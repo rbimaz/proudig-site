@@ -1,0 +1,6 @@
+target/
+src/main/frontend/node_modules/
+.git/
+*.iml
+.idea/
+deploy/

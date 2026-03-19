@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: proudig-app
+    restart: always
+    environment:
+      - PREVIEW_PASSWORD=${PREVIEW_PASSWORD:-proudig2026}
+    expose:
+      - "8081"
+
+  web:
+    image: httpd:2.4
+    container_name: proudig-web
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/httpd-proxy.conf:/usr/local/apache2/conf/extra/httpd-proxy.conf:ro
+      - ./deploy/httpd-append.conf:/tmp/httpd-append.conf:ro
+    depends_on:
+      - app
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        cat /tmp/httpd-append.conf >> /usr/local/apache2/conf/httpd.conf
+        httpd-foreground

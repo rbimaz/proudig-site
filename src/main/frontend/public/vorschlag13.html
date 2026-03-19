@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig — Prozesse und Digitalisierung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scrollbar-gutter: stable; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0A0E1A;
+  color: #C8CCD8;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { text-decoration: none; color: inherit; }
+
+/* ── 60/30/10 palette ──
+   60 %  →  #0A0E1A  (deep dark navy)
+   30 %  →  #141929  (card / section backgrounds)
+   10 %  →  #4F46E5  (indigo accent)                          */
+
+:root {
+  --bg-primary: #0A0E1A;
+  --bg-secondary: #141929;
+  --bg-card: #161C2E;
+  --accent: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-glow: rgba(79, 70, 229, 0.25);
+  --text: #E2E5ED;
+  --text-muted: #8891A5;
+  --border: rgba(255,255,255,0.06);
+  --radius: 16px;
+}
+
+/* ── Container ── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+@media (min-width: 768px) { .container { padding: 0 40px; } }
+
+/* ── Typography ── */
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; color: #fff; }
+
+/* ── Navbar ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 18px 0;
+  background: transparent;
+  transition: background 0.4s, backdrop-filter 0.4s, box-shadow 0.4s;
+}
+.nav.scrolled {
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 var(--border);
+}
+.nav-inner { display: flex; align-items: center; justify-content: space-between; }
+.logo { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+.nav-links { display: none; list-style: none; gap: 8px; }
+@media (min-width: 768px) { .nav-links { display: flex; } }
+.nav-links a {
+  padding: 8px 16px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7);
+  border-radius: 8px; transition: all 0.2s;
+}
+.nav-links a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.nav-cta {
+  padding: 10px 24px; font-size: 14px; font-weight: 600; color: #fff;
+  background: var(--accent); border: none; border-radius: 10px; cursor: pointer;
+  transition: all 0.3s; font-family: 'Inter', sans-serif;
+}
+.nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 8px 30px var(--accent-glow); }
+.hamburger { display: flex; background: none; border: none; color: #fff; padding: 8px; cursor: pointer; }
+@media (min-width: 768px) { .hamburger { display: none; } }
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0A0E1A 0%, #0D1225 40%, #111836 70%, #0A0E1A 100%);
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 50%, rgba(79,70,229,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 30% 60%, rgba(56,189,248,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+/* Animated grid overlay */
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+/* Glowing data streams — pure CSS */
+.hero-glow {
+  position: absolute;
+  right: -5%;
+  top: 15%;
+  width: 55%;
+  height: 70%;
+  pointer-events: none;
+  z-index: 0;
+}
+.glow-line {
+  position: absolute;
+  border-radius: 100px;
+  filter: blur(1px);
+  opacity: 0;
+  animation: glowStream 4s ease-in-out infinite;
+}
+.glow-line:nth-child(1) { width: 280px; height: 2px; background: linear-gradient(90deg, transparent, #4F46E5, #818CF8, transparent); top: 30%; left: 10%; animation-delay: 0s; transform: rotate(-15deg); }
+.glow-line:nth-child(2) { width: 220px; height: 2px; background: linear-gradient(90deg, transparent, #38BDF8, #06B6D4, transparent); top: 40%; left: 20%; animation-delay: 0.6s; transform: rotate(-20deg); }
+.glow-line:nth-child(3) { width: 300px; height: 2px; background: linear-gradient(90deg, transparent, #F472B6, #EC4899, transparent); top: 50%; left: 5%; animation-delay: 1.2s; transform: rotate(-12deg); }
+.glow-line:nth-child(4) { width: 250px; height: 2px; background: linear-gradient(90deg, transparent, #FBBF24, #F59E0B, transparent); top: 55%; left: 25%; animation-delay: 1.8s; transform: rotate(-25deg); }
+.glow-line:nth-child(5) { width: 200px; height: 2px; background: linear-gradient(90deg, transparent, #818CF8, #4F46E5, transparent); top: 35%; left: 30%; animation-delay: 2.4s; transform: rotate(-8deg); }
+.glow-line:nth-child(6) { width: 260px; height: 1.5px; background: linear-gradient(90deg, transparent, #06B6D4, #22D3EE, transparent); top: 60%; left: 15%; animation-delay: 0.3s; transform: rotate(-18deg); }
+.glow-line:nth-child(7) { width: 180px; height: 2px; background: linear-gradient(90deg, transparent, #A78BFA, #7C3AED, transparent); top: 25%; left: 35%; animation-delay: 3s; transform: rotate(-30deg); }
+.glow-line:nth-child(8) { width: 240px; height: 1.5px; background: linear-gradient(90deg, transparent, #F87171, #EF4444, transparent); top: 45%; left: 8%; animation-delay: 1.5s; transform: rotate(-5deg); }
+/* Glowing dots grid */
+.glow-dot {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(79, 70, 229, 0.6);
+  animation: dotPulse 3s ease-in-out infinite;
+}
+@keyframes glowStream {
+  0%, 100% { opacity: 0; transform: translateX(-40px) rotate(inherit); }
+  20% { opacity: 0.7; }
+  50% { opacity: 1; }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateX(60px) rotate(inherit); }
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.5); }
+}
+
+.hero-content {
+  position: relative; z-index: 1;
+  padding: 140px 0 80px;
+  max-width: 650px;
+}
+.hero-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  background: rgba(79,70,229,0.1);
+  border: 1px solid rgba(79,70,229,0.2);
+  border-radius: 100px;
+  margin-bottom: 28px;
+}
+.hero h1 {
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 28px;
+}
+.hero h1 .accent { color: var(--accent); }
+.hero-desc {
+  font-size: 17px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+  max-width: 540px;
+}
+.hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 32px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 16px 48px var(--accent-glow); }
+.btn-primary svg { transition: transform 0.2s; }
+.btn-primary:hover svg { transform: translateX(4px); }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 16px 28px;
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+/* ── Section shared ── */
+.section { padding: 100px 0; }
+.section-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(28px, 3.5vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 20px;
+}
+.section-desc {
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+
+/* ── Leistungen ── */
+.leistungen { background: var(--bg-primary); }
+.leistungen-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+@media (min-width: 640px) { .leistungen-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .leistungen-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  padding: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: default;
+}
+.card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(79,70,229,0.3);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3), 0 0 0 1px rgba(79,70,229,0.15);
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(79,70,229,0.04) 100%);
+}
+.card-icon {
+  width: 52px; height: 52px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(79,70,229,0.1);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+.card:hover .card-icon {
+  background: var(--accent);
+  box-shadow: 0 8px 24px var(--accent-glow);
+}
+.card-icon svg { width: 24px; height: 24px; color: var(--accent); transition: color 0.3s; }
+.card:hover .card-icon svg { color: #fff; }
+.card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; font-family: 'Space Grotesk', sans-serif; }
+.card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+
+/* ── Über uns ── */
+.about { background: var(--bg-secondary); }
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (min-width: 768px) { .about-grid { grid-template-columns: 1fr 1fr; } }
+.about-text h2 { margin-bottom: 24px; }
+.about-text p { margin-bottom: 20px; font-size: 16px; color: var(--text-muted); }
+.about-stats { display: flex; gap: 40px; margin-top: 32px; }
+.stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.about-visual {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: linear-gradient(135deg, #141929 0%, #1a2040 50%, #141929 100%);
+  border: 1px solid var(--border);
+}
+/* Abstract data visualization placeholder */
+.about-visual-inner {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.about-visual svg { width: 80%; height: 80%; opacity: 0.6; }
+
+/* ── Kontakt ── */
+.kontakt { background: var(--bg-primary); }
+.kontakt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+}
+@media (min-width: 768px) { .kontakt-grid { grid-template-columns: 1fr 1fr; } }
+.kontakt-info h3 { font-size: 20px; margin-bottom: 16px; }
+.kontakt-info p { color: var(--text-muted); margin-bottom: 24px; }
+.kontakt-detail { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; color: var(--text-muted); font-size: 15px; }
+.kontakt-detail svg { width: 20px; height: 20px; color: var(--accent); flex-shrink: 0; }
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 640px) { .form-row { grid-template-columns: 1fr 1fr; } }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: 600; color: #fff; }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.3s;
+  outline: none;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.form-group textarea { resize: vertical; min-height: 120px; }
+.form-submit {
+  padding: 16px 32px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Inter', sans-serif;
+  align-self: flex-start;
+}
+.form-submit:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 12px 40px var(--accent-glow); }
+
+/* ── Footer ── */
+.footer {
+  padding: 48px 0 32px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}
+.footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+.footer-logo { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+.footer-logo span { color: var(--accent); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { font-size: 14px; color: var(--text-muted); transition: color 0.2s; }
+.footer-links a:hover { color: var(--accent); }
+.footer-copy { width: 100%; text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+
+/* ── Scroll animations ── */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.fade-in.d1 { transition-delay: 0.1s; }
+.fade-in.d2 { transition-delay: 0.2s; }
+.fade-in.d3 { transition-delay: 0.3s; }
+.fade-in.d4 { transition-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="nav" id="navbar">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" class="logo">Prou<span>Dig</span></a>
+      <ul class="nav-links">
+        <li><a href="#leistungen">Leistungen</a></li>
+        <li><a href="#about">Über uns</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+      </ul>
+      <button class="nav-cta" onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})">Beratungsgespräch</button>
+      <button class="hamburger" aria-label="Menü" onclick="this.closest('.nav-inner').querySelector('.nav-links').classList.toggle('open')">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow">
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+    <div class="glow-line"></div>
+  </div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge fade-in d1">BERATUNG · SOFTWARE · KI · ANALYTICS</div>
+      <h1 class="fade-in d2">
+        Digitale Potenziale erschließen.<br>
+        Von der Idee zum <span class="accent">Branchenführer</span>.
+      </h1>
+      <p class="hero-desc fade-in d3">
+        ProuDig kombiniert strategische Beratung, technologische Exzellenz und tiefe Branchen-Expertise,
+        um gemeinsam mit unseren Kunden maßgeschneiderte digitale Produkte und Lösungen zu schaffen,
+        die neue Maßstäbe setzen.
+      </p>
+      <div class="hero-btns fade-in d4">
+        <button class="btn-primary" onclick="document.getElementById('kontakt').scrollIntoView({behavior:'smooth'})">
+          Beratungsgespräch vereinbaren
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h8m0 0l-3-3m3 3l-3 3"/></svg>
+        </button>
+        <button class="btn-secondary" onclick="document.getElementById('leistungen').scrollIntoView({behavior:'smooth'})">Leistungen entdecken</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Leistungen -->
+<section class="section leistungen" id="leistungen">
+  <div class="container">
+    <span class="section-label fade-in">UNSERE LEISTUNGEN</span>
+    <h2 class="section-title fade-in d1">Unsere Expertise</h2>
+    <p class="section-desc fade-in d2">Wir entwickeln maßgeschneiderte Lösungen, die Ihre Geschäftsprozesse transformieren und messbare Ergebnisse liefern.</p>
+    <div class="leistungen-grid">
+
+      <div class="card fade-in d1">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4c0 1.5-.8 2.8-2 3.5v1h-4v-1A4 4 0 0112 2z" stroke-linecap="round"/><path d="M10 14h4v3a2 2 0 01-2 2 2 2 0 01-2-2v-3zM8 10h8M9 22h6" stroke-linecap="round"/></svg>
+        </div>
+        <h3>KI-Anwendungen</h3>
+        <p>Von intelligenten Chatbots bis zu prädiktiven Analysemodellen — wir entwickeln KI-Lösungen, die Ihre Geschäftsprozesse automatisieren und Entscheidungsfindung beschleunigen.</p>
+      </div>
+
+      <div class="card fade-in d2">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Mobile Apps</h3>
+        <p>Native und cross-plattform Applikationen, die Ihre Kunden begeistern. Von der Konzeption über UX-Design bis zum Launch in den App Stores.</p>
+      </div>
+
+      <div class="card fade-in d3">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Web-Apps</h3>
+        <p>Performante, skalierbare Webanwendungen mit modernen Technologien. Von Enterprise-Portalen bis zu kundenorientierten SaaS-Plattformen.</p>
+      </div>
+
+      <div class="card fade-in d1">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4.8 2.3A.3.3 0 015 2h14a.3.3 0 01.3.3v0a.3.3 0 01-.1.2l-6.2 4.6v4.3l4.2 3V22H6.8v-7.6l4.2-3V7.1L4.8 2.5a.3.3 0 01-.1-.2z" stroke-linejoin="round"/><path d="M8 16h8" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Digitalisierung in der Medizin</h3>
+        <p>Digitale Patientenakten, Telemedizin-Plattformen und KI-gestützte Diagnostik. Wir modernisieren das Gesundheitswesen unter Einhaltung aller regulatorischen Anforderungen.</p>
+      </div>
+
+      <div class="card fade-in d2">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Digitale Transformation</h3>
+        <p>End-to-End Begleitung Ihrer digitalen Reise: Strategieentwicklung, Prozessoptimierung, Change Management und nachhaltige Implementierung neuer Technologien.</p>
+      </div>
+
+      <div class="card fade-in d3">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Daten &amp; Analytics</h3>
+        <p>Datengetriebene Erkenntnisse für bessere Geschäftsentscheidungen. Von Data Engineering über BI-Dashboards bis hin zu Advanced Analytics und Machine Learning.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Über Proudig -->
+<section class="section about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text">
+        <span class="section-label fade-in">ÜBER PROUDIG</span>
+        <h2 class="section-title fade-in d1">Forschung trifft unternehmerische Praxis</h2>
+        <p class="fade-in d2">
+          ProuDig wurde von Professoren gegründet, die akademische Exzellenz mit unternehmerischem
+          Tatendrang verbinden. Unser Team vereint tiefgreifendes Fachwissen in Informatik,
+          Künstlicher Intelligenz und Wirtschaftsinformatik mit jahrelanger Praxiserfahrung
+          in der Digitalwirtschaft.
+        </p>
+        <p class="fade-in d3">
+          Wir modernisieren Systemlandschaften, schaffen neue digitale Kanäle und nutzen die
+          transformativen Möglichkeiten von KI, um messbare Marktvorteile für unsere Kunden zu realisieren.
+        </p>
+        <div class="about-stats fade-in d4">
+          <div>
+            <div class="stat-num">50+</div>
+            <div class="stat-label">Projekte</div>
+          </div>
+          <div>
+            <div class="stat-num">98%</div>
+            <div class="stat-label">Zufriedenheit</div>
+          </div>
+          <div>
+            <div class="stat-num">15+</div>
+            <div class="stat-label">Experten</div>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual fade-in d2">
+        <div class="about-visual-inner">
+          <svg viewBox="0 0 400 300" fill="none">
+            <!-- Abstract network/data visualization -->
+            <circle cx="200" cy="150" r="80" stroke="rgba(79,70,229,0.15)" stroke-width="1"/>
+            <circle cx="200" cy="150" r="120" stroke="rgba(79,70,229,0.08)" stroke-width="1"/>
+            <circle cx="200" cy="150" r="40" stroke="rgba(79,70,229,0.25)" stroke-width="1"/>
+            <!-- Nodes -->
+            <circle cx="200" cy="150" r="6" fill="#4F46E5" opacity="0.8"/>
+            <circle cx="280" cy="150" r="4" fill="#818CF8" opacity="0.6"/>
+            <circle cx="120" cy="150" r="4" fill="#818CF8" opacity="0.6"/>
+            <circle cx="200" cy="70" r="4" fill="#38BDF8" opacity="0.6"/>
+            <circle cx="200" cy="230" r="4" fill="#38BDF8" opacity="0.6"/>
+            <circle cx="260" cy="95" r="3" fill="#F472B6" opacity="0.5"/>
+            <circle cx="140" cy="205" r="3" fill="#F472B6" opacity="0.5"/>
+            <circle cx="260" cy="205" r="3" fill="#FBBF24" opacity="0.5"/>
+            <circle cx="140" cy="95" r="3" fill="#FBBF24" opacity="0.5"/>
+            <!-- Connecting lines -->
+            <line x1="200" y1="150" x2="280" y2="150" stroke="rgba(79,70,229,0.2)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="120" y2="150" stroke="rgba(79,70,229,0.2)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="200" y2="70" stroke="rgba(56,189,248,0.2)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="200" y2="230" stroke="rgba(56,189,248,0.2)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="260" y2="95" stroke="rgba(244,114,182,0.15)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="140" y2="205" stroke="rgba(244,114,182,0.15)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="260" y2="205" stroke="rgba(251,191,36,0.15)" stroke-width="1"/>
+            <line x1="200" y1="150" x2="140" y2="95" stroke="rgba(251,191,36,0.15)" stroke-width="1"/>
+            <!-- Data flow particles -->
+            <circle cx="240" cy="150" r="2" fill="rgba(129,140,248,0.8)"><animate attributeName="cx" values="200;280;200" dur="3s" repeatCount="indefinite"/></circle>
+            <circle cx="200" cy="110" r="2" fill="rgba(56,189,248,0.8)"><animate attributeName="cy" values="150;70;150" dur="4s" repeatCount="indefinite"/></circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Kontakt -->
+<section class="section kontakt" id="kontakt">
+  <div class="container">
+    <div class="kontakt-grid">
+      <div class="kontakt-info">
+        <span class="section-label fade-in">KONTAKT</span>
+        <h2 class="section-title fade-in d1">Lassen Sie uns sprechen</h2>
+        <p class="fade-in d2">Ob strategische Beratung, Softwareentwicklung oder KI-Integration — wir finden die richtige Lösung für Ihre Herausforderung.</p>
+        <div class="fade-in d3">
+          <div class="kontakt-detail">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            info@proudig.de
+          </div>
+          <div class="kontakt-detail">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.07 3.21a1 1 0 01-.29 1.05l-1.47 1.18a11 11 0 005.33 5.33l1.18-1.47a1 1 0 011.05-.29l3.21 1.07a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z"/></svg>
+            +49 (0) 711 123 456 78
+          </div>
+          <div class="kontakt-detail">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Musterstraße 123, 70173 Stuttgart
+          </div>
+        </div>
+      </div>
+      <form class="form fade-in d2" onsubmit="event.preventDefault(); alert('Vielen Dank! Wir melden uns in Kürze.');">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vorname</label>
+            <input type="text" placeholder="Max" required>
+          </div>
+          <div class="form-group">
+            <label>Nachname</label>
+            <input type="text" placeholder="Mustermann" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input type="email" placeholder="max@unternehmen.de" required>
+        </div>
+        <div class="form-group">
+          <label>Unternehmen</label>
+          <input type="text" placeholder="Ihr Unternehmen">
+        </div>
+        <div class="form-group">
+          <label>Nachricht</label>
+          <textarea placeholder="Beschreiben Sie Ihr Projekt oder Ihre Herausforderung..."></textarea>
+        </div>
+        <button type="submit" class="form-submit">Nachricht senden</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">Prou<span>Dig</span></div>
+      <div class="footer-links">
+        <a href="#leistungen">Leistungen</a>
+        <a href="#about">Über uns</a>
+        <a href="#kontakt">Kontakt</a>
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+      </div>
+    </div>
+    <div class="footer-copy">&copy; 2026 ProuDig GmbH. Alle Rechte vorbehalten.</div>
+  </div>
+</footer>
+
+<script>
+// Navbar scroll effect
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Scroll-triggered fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Generate glow dots in hero
+const heroGlow = document.querySelector('.hero-glow');
+if (heroGlow) {
+  for (let i = 0; i < 30; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'glow-dot';
+    dot.style.left = Math.random() * 100 + '%';
+    dot.style.top = Math.random() * 100 + '%';
+    dot.style.animationDelay = Math.random() * 3 + 's';
+    dot.style.background = ['rgba(79,70,229,0.6)', 'rgba(56,189,248,0.5)', 'rgba(244,114,182,0.4)', 'rgba(251,191,36,0.4)'][Math.floor(Math.random() * 4)];
+    heroGlow.appendChild(dot);
+  }
+}
+</script>
+</body>
+</html>

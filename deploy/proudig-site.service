@@ -1,0 +1,18 @@
+[Unit]
+Description=ProuDig Website (Spring Boot)
+After=network.target
+
+[Service]
+Type=simple
+User=proudig
+Group=proudig
+WorkingDirectory=/opt/proudig
+ExecStart=/usr/bin/java -jar /opt/proudig/proudig-site.jar --server.port=8081
+Environment=PREVIEW_PASSWORD=proudig2026
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
