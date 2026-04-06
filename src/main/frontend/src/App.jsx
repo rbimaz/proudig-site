@@ -19,12 +19,8 @@ import { SeminarDetailPage } from './pages/SeminarDetailPage';
 import { AdminLogin } from './pages/admin/AdminLogin';
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { HeroEditor } from './pages/admin/editors/HeroEditor';
-import { LeistungenEditor } from './pages/admin/editors/LeistungenEditor';
-import { TeamEditor } from './pages/admin/editors/TeamEditor';
-import { QualitaetEditor } from './pages/admin/editors/QualitaetEditor';
-import { ProzessEditor } from './pages/admin/editors/ProzessEditor';
-import { ImpressumEditor } from './pages/admin/editors/ImpressumEditor';
+import { StaticPageList } from './pages/admin/StaticPageList';
+import { StaticPageEditor } from './pages/admin/StaticPageEditor';
 import { BlogList } from './pages/admin/BlogList';
 import { PageEditor } from './pages/admin/PageEditor';
 import { SeminarList } from './pages/admin/SeminarList';
@@ -32,6 +28,7 @@ import { MediaLibrary } from './pages/admin/MediaLibrary';
 
 // Portal pages
 import { PortalLogin } from './pages/portal/PortalLogin';
+import { ChangePassword } from './pages/portal/ChangePassword';
 import { PortalLayout } from './pages/portal/PortalLayout';
 import { PortalDashboard } from './pages/portal/PortalDashboard';
 import { PortalDocuments } from './pages/portal/PortalDocuments';
@@ -39,7 +36,7 @@ import { PortalShared } from './pages/portal/PortalShared';
 import { PortalUsers } from './pages/portal/PortalUsers';
 
 function AppContent() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('udig2');
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('proudig-preview') === 'true');
   const location = useLocation();
 
@@ -63,7 +60,7 @@ function AppContent() {
   return (
     <div className="app">
       {!isAdmin && !isPortal && <Navbar theme={theme} />}
-      {!hideThemeToggle && <ThemeToggle theme={theme} onThemeChange={handleThemeChange} />}
+      {/* ThemeToggle hidden — only variant 10 (udig2) is used */}
 
       <Routes>
         {/* Public */}
@@ -78,12 +75,9 @@ function AppContent() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
-          <Route path="content/hero" element={<HeroEditor />} />
-          <Route path="content/leistungen" element={<LeistungenEditor />} />
-          <Route path="content/team" element={<TeamEditor />} />
-          <Route path="content/qualitaet" element={<QualitaetEditor />} />
-          <Route path="content/prozess" element={<ProzessEditor />} />
-          <Route path="content/impressum" element={<ImpressumEditor />} />
+          <Route path="seiten" element={<StaticPageList />} />
+          <Route path="seiten/new" element={<StaticPageEditor />} />
+          <Route path="seiten/:id" element={<StaticPageEditor />} />
           <Route path="blog" element={<BlogList />} />
           <Route path="blog/new" element={<PageEditor category="BLOG" />} />
           <Route path="blog/:id" element={<PageEditor category="BLOG" />} />
@@ -95,6 +89,7 @@ function AppContent() {
 
         {/* Portal */}
         <Route path="/portal/login" element={<PortalLogin />} />
+        <Route path="/portal/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/portal" element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
           <Route index element={<PortalDashboard />} />
           <Route path="documents" element={<PortalDocuments />} />

@@ -32,8 +32,9 @@ export const Quality = () => {
     <section className="quality" ref={ref}>
       <div className={`section-container ${isVisible ? 'visible' : ''}`}>
         <div className="section-header">
-          <p className="section-tag">QUALITÄT & INNOVATION</p>
-          <h2>Innovative Technologien. Höchste Qualitätsansprüche.</h2>
+          <span className="section-tag">QUALITÄT & INNOVATION</span>
+          <h2 className="section-title">Innovative Technologien. Höchste Qualitätsansprüche.</h2>
+          <p className="section-subtitle">Forschungsnah, DSGVO-konform und agil – von der Idee bis zum Betrieb.</p>
         </div>
 
         <div className="quality-grid">

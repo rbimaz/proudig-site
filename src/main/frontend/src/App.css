@@ -641,7 +641,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  /*font-size: clamp(2.5rem, 5vw, 4rem);*/
   letter-spacing: -0.02em;
 }
 
@@ -687,8 +687,9 @@ a:hover {
 }
 
 .section-header {
-  text-align: center;
-  margin-bottom: 4rem;
+  text-align: left;
+  margin-bottom: 3rem;
+  /*max-width: 800px;*/
 }
 
 .section-tag {
@@ -696,9 +697,16 @@ a:hover {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: var(--c-accent);
+  color: #f97316;
   text-transform: uppercase;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--c-text-muted);
+  margin-top: 0.5rem;
+  line-height: 1.6;
 }
 
 section {
@@ -3019,8 +3027,9 @@ section {
 }
 
 .process-header {
-  margin-bottom: 3.5rem;
-  text-align: center;
+  margin-bottom: 3rem;
+  text-align: left;
+  max-width: 800px;
 }
 
 /* process-label and process-title reuse unified section-tag / section-title */
@@ -3029,8 +3038,8 @@ section {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: var(--c-accent);
-  margin-bottom: 1rem;
+  color: #f97316;
+  margin-bottom: 0.75rem;
   text-transform: uppercase;
 }
 

@@ -48,10 +48,8 @@ export const Process = () => {
       <div className={`container ${isVisible ? 'visible' : ''}`}>
         <div className="process-header">
           <span className="process-label">UNSER VORGEHEN</span>
-          <h2 className="process-title">
-            Vom ersten Gespräch<br />
-            bis zum laufenden System.
-          </h2>
+          <h2 className="process-title">Vom ersten Gespräch bis zum laufenden System</h2>
+          <p className="section-subtitle">Strukturiert, transparent und auf Ihre Bedürfnisse abgestimmt.</p>
         </div>
 
         <div className="process-timeline">

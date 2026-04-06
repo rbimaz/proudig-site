@@ -37,8 +37,9 @@ export const Contact = () => {
     <section className="contact" id="kontakt" ref={ref}>
       <div className={`section-container ${isVisible ? 'visible' : ''}`}>
         <div className="section-header contact-header">
-          <h2 className="section-title">Kontakt</h2>
-          <p>Wir freuen uns auf Ihre Nachricht.</p>
+          <span className="section-tag">KONTAKT</span>
+          <h2 className="section-title">Kontakt aufnehmen</h2>
+          <p className="section-subtitle">Wir freuen uns auf Ihre Nachricht.</p>
         </div>
 
         <div className="contact-grid">

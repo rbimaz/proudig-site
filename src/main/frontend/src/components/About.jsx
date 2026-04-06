@@ -66,13 +66,13 @@ export const About = () => {
     <section className="about" id="ueber" ref={ref}>
       <div className={`section-container ${isVisible ? 'visible' : ''}`}>
         <div className="section-header">
-          <p className="section-tag">ÜBER UNS</p>
-          <h2>Unser Team - Ihre Partner auf Augenhöhe</h2>
-        </div>
-
-        <p className="about-description">
+          <span className="section-tag">ÜBER UNS</span>
+          <h2 className="section-title">Unser Team – Ihre Partner auf Augenhöhe</h2>
+          <p className="section-subtitle">
           Digitalisierung ist Vertrauenssache. Deshalb setzen wir auf persönliche Zusammenarbeit und direkte Kommunikation. Unsere Gesellschafter bringen nicht nur fundiertes Know-how mit, sondern begleiten Projekte aktiv und mit echter Hands-on Mentalität.
-        </p>
+          </p>
+
+        </div>
 
         <div className="team-grid">
           {gesellschafter.map((person, index) => (
