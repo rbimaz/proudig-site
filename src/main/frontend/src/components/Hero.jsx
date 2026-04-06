@@ -2,8 +2,6 @@ import React from 'react';
 import { ArrowRight, ChevronDown } from './Icons';
 import { HeroOrb } from './HeroOrb';
 import { HeroImage } from './HeroImage';
-import { HeroWave } from './HeroWave';
-import { HeroRings } from './HeroRings';
 import { HeroCode } from './HeroCode';
 import { HeroSaas } from './HeroSaas';
 import { HeroSaasAnim } from './HeroSaasAnim';
@@ -19,23 +17,63 @@ export const Hero = ({ theme }) => {
   const isDark = theme === 'dark';
   const isBlue = theme === 'blue';
   const isImage = theme === 'image';
-  const isAoe = theme === 'aoe';
-  const isUdig = theme === 'udig';
   const isCoder = theme === 'coder';
   const isSaas = theme === 'saas';
   const isImageBlue = theme === 'imageblue';
   const isAoe2Dash = theme === 'aoe2dash';
+  const isUdig2 = theme === 'udig2';
 
-  const heroClass = isAoe2Dash ? 'hero-aoe2dash'
+  const heroClass = isUdig2 ? 'hero-udig2'
+    : isAoe2Dash ? 'hero-aoe2dash'
     : isImageBlue ? 'hero-image'
     : isSaas ? 'hero-saas'
     : isCoder ? 'hero-coder'
-    : isUdig ? 'hero-udig'
-    : isAoe ? 'hero-aoe'
     : isImage ? 'hero-image'
     : isBlue ? 'hero-blue'
     : isDark ? 'hero-dark'
     : 'hero-light';
+
+  /* UDig2 variant: dark navy-teal, concentric rings, orange accent */
+  if (isUdig2) {
+    return (
+      <section className="hero hero-udig2">
+        <div className="hero-udig2-rings-bg">
+          <svg viewBox="0 0 500 500" className="hero-udig2-rings-svg">
+            <circle cx="250" cy="250" r="240" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+            <circle cx="250" cy="250" r="200" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+            <circle cx="250" cy="250" r="160" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <circle cx="250" cy="250" r="120" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
+            <circle cx="250" cy="250" r="80" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+            <circle cx="250" cy="250" r="40" fill="none" stroke="#E8731A" strokeWidth="2" opacity="0.6" />
+            <circle cx="250" cy="250" r="8" fill="#E8731A" opacity="0.8" />
+          </svg>
+        </div>
+        <div className="container">
+          <div className="hero-udig2-content">
+            <h1 className="hero-udig2-title fade-up d2">
+              Von der Idee zur<br />digitalen <span className="accent-udig2">Wirkung</span>
+            </h1>
+            <p className="hero-udig2-desc fade-up d3">
+              Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
+              Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
+            </p>
+            <div className="hero-udig2-btns fade-up d4">
+              <button className="btn-udig2-primary" onClick={() => scrollTo('kontakt')}>
+                Beratungsgespräch <ArrowRight width={18} height={18} />
+              </button>
+              <button className="btn-udig2-secondary" onClick={() => scrollTo('leistungen')}>
+                Leistungen entdecken
+              </button>
+            </div>
+          </div>
+        </div>
+        <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
+          <span>Entdecken</span>
+          <ChevronDown width={20} height={20} />
+        </a>
+      </section>
+    );
+  }
 
   /* AOE2Dash variant: AOE dark bg + dashboard from V15 */
   if (isAoe2Dash) {
@@ -97,6 +135,10 @@ export const Hero = ({ theme }) => {
             </div>
           </div>
         </div>
+        <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
+          <span>Entdecken</span>
+          <ChevronDown width={20} height={20} />
+        </a>
       </section>
     );
   }
@@ -125,65 +167,6 @@ export const Hero = ({ theme }) => {
           </div>
           <div className="hero-coder-visual fade-up d3">
             <HeroCode />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  /* UDig variant: dark navy, concentric rings, orange accent */
-  if (isUdig) {
-    return (
-      <section className="hero hero-udig">
-        <div className="hero-udig-rings">
-          <HeroRings />
-        </div>
-        <div className="container">
-          <div className="hero-udig-content">
-            <h1 className="hero-udig-title fade-up d2">
-              Von der Idee zur <span className="accent-udig">Wirkung</span>
-            </h1>
-            <p className="hero-udig-desc fade-up d3">
-              Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
-              Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
-            </p>
-            <div className="hero-udig-btns fade-up d4">
-              <button className="btn-udig-primary" onClick={() => scrollTo('kontakt')}>
-                Beratungsgespräch
-              </button>
-              <button className="btn-udig-secondary" onClick={() => scrollTo('leistungen')}>
-                Leistungen entdecken <ArrowRight width={18} height={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-        <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
-          <span>Entdecken</span>
-          <ChevronDown width={20} height={20} />
-        </a>
-      </section>
-    );
-  }
-
-  /* AOE variant: full-width, no two-column grid, wave background */
-  if (isAoe) {
-    return (
-      <section className="hero hero-aoe">
-        <div className="hero-aoe-wave">
-          <HeroWave />
-        </div>
-        <div className="container">
-          <div className="hero-aoe-content">
-            <h1 className="hero-aoe-title fade-up d2">
-              Von der Idee zur digitalen Wirkung
-            </h1>
-            <p className="hero-aoe-desc fade-up d3">
-              Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
-              Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
-            </p>
-            <button className="btn-aoe-cta fade-up d4" onClick={() => scrollTo('kontakt')}>
-              Beratungsgespräch <ArrowRight width={20} height={20} />
-            </button>
           </div>
         </div>
         <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
@@ -257,12 +240,10 @@ export const Hero = ({ theme }) => {
         </div>
       </div>
 
-      {(isDark || isBlue) && (
-        <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
-          <span>Entdecken</span>
-          <ChevronDown width={20} height={20} />
-        </a>
-      )}
+      <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
+        <span>Entdecken</span>
+        <ChevronDown width={20} height={20} />
+      </a>
     </section>
   );
 };

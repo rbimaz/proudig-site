@@ -1,27 +1,101 @@
+# ==============================================================================
+# Docker Compose — ProuDig (Entwicklung + Produktion)
+#
+# Ports: App auf 8081, DB auf 5434 (5432 + 5433 bereits durch andere Projekte belegt)
+#
+# Verwendung:
+#   Nur DB (Entwicklung): docker compose up proudig-db -d
+#   Alles:                docker compose up -d
+#   Logs:                 docker compose logs -f proudig-app
+#   Stoppen:              docker compose down
+# ==============================================================================
+
 services:
-  app:
+
+  # ---------- PostgreSQL Datenbank ----------
+  proudig-db:
+    image: postgres:14-alpine
+    container_name: proudig-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: proudigdb
+      POSTGRES_USER: ${DB_USER:-proudig}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-proudig123}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5434:5432"
+    volumes:
+      - proudig-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-proudig} -d proudigdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    networks:
+      - proudig-network
+
+  # ---------- Spring Boot Anwendung ----------
+  proudig-app:
     build: .
     container_name: proudig-app
-    restart: always
+    restart: unless-stopped
     environment:
-      - PREVIEW_PASSWORD=${PREVIEW_PASSWORD:-proudig2026}
-    expose:
-      - "8081"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://proudig-db:5432/proudigdb
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-proudig}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-proudig123}
+      PREVIEW_PASSWORD: ${PREVIEW_PASSWORD:-proudig2026}
+    ports:
+      - "8081:8081"
+    depends_on:
+      proudig-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/api/preview-auth || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - proudig-network
 
-  web:
+  # ---------- Apache Reverse Proxy ----------
+  proudig-web:
     image: httpd:2.4
     container_name: proudig-web
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - ./deploy/httpd-proxy.conf:/usr/local/apache2/conf/extra/httpd-proxy.conf:ro
       - ./deploy/httpd-append.conf:/tmp/httpd-append.conf:ro
     depends_on:
-      - app
+      proudig-app:
+        condition: service_healthy
     entrypoint: /bin/sh
     command:
       - -c
       - |
         cat /tmp/httpd-append.conf >> /usr/local/apache2/conf/httpd.conf
         httpd-foreground
+    networks:
+      - proudig-network
+
+networks:
+  proudig-network:
+    driver: bridge
+
+volumes:
+  proudig-pgdata:

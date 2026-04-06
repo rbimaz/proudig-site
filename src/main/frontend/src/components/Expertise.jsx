@@ -49,7 +49,7 @@ export const Expertise = () => {
     <section className="expertise" id="leistungen" ref={ref}>
       <div className={`section-container ${isVisible ? 'visible' : ''}`}>
         <div className="section-header">
-          <h2 className="section-title">Unsere Expertise</h2>
+          <h2 className="section-title">Unsere Leistungen</h2>
           <p>Ihr Partner für die digitale Transformation.</p>
         </div>
 

@@ -76,31 +76,19 @@ export const About = () => {
 
         <div className="team-grid">
           {gesellschafter.map((person, index) => (
-            <div
-              key={index}
-              className={`team-card fade-up ${isVisible ? 'visible' : ''}`}
-              style={{ transitionDelay: `${index * 80}ms` }}
-            >
-              <div className="team-card-inner">
-                <div className="team-card-front">
-                  <div className="team-card-img">
-                    <img src={person.image} alt={person.name} />
-                  </div>
-                  <div className="team-card-info">
-                    <span className="team-card-title">{person.title}</span>
-                    <h3 className="team-card-name">{person.name}</h3>
-                  </div>
-                </div>
-                <div className="team-card-back">
-                  <span className="team-card-fokus-label">Fokus</span>
-                  <p className="team-card-fokus">{person.fokus}</p>
-                  <span className="team-card-back-name">{person.title} {person.name}</span>
-                </div>
+            <div key={index} className="team-card">
+              <div className="team-card-img">
+                <img src={person.image} alt={person.name} />
               </div>
+              <span className="team-card-title">{person.title}</span>
+              <h3 className="team-card-name">{person.name}</h3>
+              <div className="team-card-divider"></div>
+              <p className="team-card-fokus">{person.fokus}</p>
             </div>
           ))}
         </div>
 
+        {/*
         <div className="about-cards">
           {cards.map((card, index) => {
             const Icon = card.icon;
@@ -118,7 +106,7 @@ export const About = () => {
               </div>
             );
           })}
-        </div>
+        </div>*/}
       </div>
     </section>
   );

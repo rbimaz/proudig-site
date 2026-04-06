@@ -20,6 +20,9 @@ export const ComingSoon = ({ onUnlock }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
       });
+
+      if (!res.ok) throw new Error('not ok');
+
       const data = await res.json();
 
       if (data.success) {
