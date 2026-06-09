@@ -22,8 +22,8 @@ services:
       POSTGRES_USER: ${DB_USER:-proudig}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-proudig123}
       PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "5434:5432"
+    # ports:
+    #   - "5434:5432"          # Nur fuer lokale Entwicklung einkommentieren
     volumes:
       - proudig-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -51,17 +51,17 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-proudig}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-proudig123}
       PREVIEW_PASSWORD: ${PREVIEW_PASSWORD:-proudig2026}
-    ports:
-      - "8081:8081"
+    # ports:
+    #   - "8081:8081"          # Nicht noetig — Apache im Docker-Netzwerk erreicht die App direkt
     depends_on:
       proudig-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/api/preview-auth || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/ || exit 1"]
       interval: 30s
       timeout: 5s
-      start_period: 30s
-      retries: 3
+      start_period: 60s
+      retries: 5
     deploy:
       resources:
         limits:

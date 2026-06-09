@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, ChevronDown } from './Icons';
 import { HeroOrb } from './HeroOrb';
 import { HeroImage } from './HeroImage';
@@ -7,6 +7,40 @@ import { HeroSaas } from './HeroSaas';
 import { HeroSaasAnim } from './HeroSaasAnim';
 import { HeroImageBlue } from './HeroImageBlue';
 import { HeroAoeDash } from './HeroAoeDash';
+import { HeroProcessFlow } from './HeroProcessFlow';
+
+const HeroUdig2 = ({ scrollTo }) => (
+  <section className="hero hero-udig2">
+    <div className="container">
+      <div className="hero-udig2-layout">
+        <div className="hero-udig2-content">
+          <h1 className="hero-udig2-title fade-up d2">
+            Von der Idee zur<br />digitalen <span className="accent-udig2">Wirkung</span>
+          </h1>
+          <p className="hero-udig2-desc fade-up d3">
+            Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
+            Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
+          </p>
+          <div className="hero-udig2-btns fade-up d4">
+            <button className="btn-udig2-primary" onClick={() => scrollTo('kontakt')}>
+              Beratungsgespräch <ArrowRight width={18} height={18} />
+            </button>
+            <button className="btn-udig2-secondary" onClick={() => scrollTo('leistungen')}>
+              Leistungen entdecken
+            </button>
+          </div>
+        </div>
+        <div className="hero-udig2-visual fade-up d3">
+          <HeroProcessFlow />
+        </div>
+      </div>
+    </div>
+    <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
+      <span>Entdecken</span>
+      <ChevronDown width={20} height={20} />
+    </a>
+  </section>
+);
 
 export const Hero = ({ theme }) => {
   const scrollTo = (id) => {
@@ -33,46 +67,9 @@ export const Hero = ({ theme }) => {
     : isDark ? 'hero-dark'
     : 'hero-light';
 
-  /* UDig2 variant: dark navy-teal, concentric rings, orange accent */
+  /* UDig2 variant: dark navy-teal, visual on right with toggle */
   if (isUdig2) {
-    return (
-      <section className="hero hero-udig2">
-        <div className="hero-udig2-rings-bg">
-          <svg viewBox="0 0 500 500" className="hero-udig2-rings-svg">
-            <circle cx="250" cy="250" r="240" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-            <circle cx="250" cy="250" r="200" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-            <circle cx="250" cy="250" r="160" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            <circle cx="250" cy="250" r="120" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
-            <circle cx="250" cy="250" r="80" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-            <circle cx="250" cy="250" r="40" fill="none" stroke="#E8731A" strokeWidth="2" opacity="0.6" />
-            <circle cx="250" cy="250" r="8" fill="#E8731A" opacity="0.8" />
-          </svg>
-        </div>
-        <div className="container">
-          <div className="hero-udig2-content">
-            <h1 className="hero-udig2-title fade-up d2">
-              Von der Idee zur<br />digitalen <span className="accent-udig2">Wirkung</span>
-            </h1>
-            <p className="hero-udig2-desc fade-up d3">
-              Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
-              Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
-            </p>
-            <div className="hero-udig2-btns fade-up d4">
-              <button className="btn-udig2-primary" onClick={() => scrollTo('kontakt')}>
-                Beratungsgespräch <ArrowRight width={18} height={18} />
-              </button>
-              <button className="btn-udig2-secondary" onClick={() => scrollTo('leistungen')}>
-                Leistungen entdecken
-              </button>
-            </div>
-          </div>
-        </div>
-        <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
-          <span>Entdecken</span>
-          <ChevronDown width={20} height={20} />
-        </a>
-      </section>
-    );
+    return <HeroUdig2 scrollTo={scrollTo} />;
   }
 
   /* AOE2Dash variant: AOE dark bg + dashboard from V15 */

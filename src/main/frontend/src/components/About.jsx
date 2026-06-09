@@ -68,25 +68,43 @@ export const About = () => {
         <div className="section-header">
           <span className="section-tag">ÜBER UNS</span>
           <h2 className="section-title">Unser Team – Ihre Partner auf Augenhöhe</h2>
-          <p className="section-subtitle">
-          Digitalisierung ist Vertrauenssache. Deshalb setzen wir auf persönliche Zusammenarbeit und direkte Kommunikation. Unsere Gesellschafter bringen nicht nur fundiertes Know-how mit, sondern begleiten Projekte aktiv und mit echter Hands-on Mentalität.
-          </p>
+          {/* 1. Geändert von <p> zu <div>, damit die Liste valide ist */}
+          <div className="section-subtitle">
+            Prozess und Digitalisierung: dafür stehen wir und hier bieten wir unseren Kunden maßgeschneiderte Lösungen, die wir effizient entwickeln und ausrollen.
+
+            <br />Fünf umsetzungsstarke branchenerfahrene Profis
+            mit weitreichender Erfahrung in den Bereichen
+
+            {/* 2. Styles für Einrückung und Punkte hinzufügen */}
+            <ul style={{ listStyleType: 'disc', paddingLeft: '2rem', margin: '1rem 0' }}>
+              <li>Software Engineering, insbesondere KI-Lösungen</li>
+              <li>Projektmanagement</li>
+              <li>Weiterbildung</li>
+            </ul>
+
+            und Zugriff auf ein starkes dahinterliegendes Netzwerk.
+            <br /><br />
+
+          </div>
 
         </div>
 
+        {/*
         <div className="team-grid">
           {gesellschafter.map((person, index) => (
             <div key={index} className="team-card">
-              <div className="team-card-img">
+              <div className="team-card-media">
                 <img src={person.image} alt={person.name} />
               </div>
-              <span className="team-card-title">{person.title}</span>
-              <h3 className="team-card-name">{person.name}</h3>
-              <div className="team-card-divider"></div>
-              <p className="team-card-fokus">{person.fokus}</p>
+              <div className="team-card-body">
+                <span className="team-card-title">{person.title}</span>
+                <h3 className="team-card-name">{person.name}</h3>
+                <div className="team-card-divider"></div>
+                <p className="team-card-fokus">{person.fokus}</p>
+              </div>
             </div>
           ))}
-        </div>
+        </div>*/}
 
         {/*
         <div className="about-cards">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import "bootstrap-icons/font/bootstrap-icons.css";
 import { AuthProvider } from './contexts/AuthContext';
 import { ContentProvider } from './contexts/ContentContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -10,6 +11,7 @@ import { ComingSoon } from './components/ComingSoon';
 // Public pages
 import { HomePage } from './pages/HomePage';
 import { ImpressumPage } from './pages/ImpressumPage';
+import { StaticPageRenderer } from './pages/StaticPageRenderer';
 import { BlogPage } from './pages/BlogPage';
 import { BlogPostPage } from './pages/BlogPostPage';
 import { SeminarePage } from './pages/SeminarePage';
@@ -17,6 +19,7 @@ import { SeminarDetailPage } from './pages/SeminarDetailPage';
 
 // Admin pages
 import { AdminLogin } from './pages/admin/AdminLogin';
+import { AdminHome } from './pages/admin/AdminHome';
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { StaticPageList } from './pages/admin/StaticPageList';
@@ -27,7 +30,6 @@ import { SeminarList } from './pages/admin/SeminarList';
 import { MediaLibrary } from './pages/admin/MediaLibrary';
 
 // Portal pages
-import { PortalLogin } from './pages/portal/PortalLogin';
 import { ChangePassword } from './pages/portal/ChangePassword';
 import { PortalLayout } from './pages/portal/PortalLayout';
 import { PortalDashboard } from './pages/portal/PortalDashboard';
@@ -40,10 +42,9 @@ function AppContent() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('proudig-preview') === 'true');
   const location = useLocation();
 
-  const isImpressum = location.pathname === '/impressum';
-  const isAdmin = location.pathname.startsWith('/admin') && !location.pathname.startsWith('/admin/login');
-  const isPortal = location.pathname.startsWith('/portal') && !location.pathname.startsWith('/portal/login');
-  const hideThemeToggle = isAdmin || isPortal || location.pathname.startsWith('/admin/login') || location.pathname.startsWith('/portal/login');
+  const isStaticPage = location.pathname === '/impressum' || location.pathname === '/datenschutz' || location.pathname.startsWith('/seite/');
+  const isAdminArea = location.pathname.startsWith('/admin') && !location.pathname.startsWith('/admin/login') && location.pathname !== '/admin';
+  const hideNavbar = isAdminArea || location.pathname === '/admin' || location.pathname.startsWith('/admin/login');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -59,21 +60,26 @@ function AppContent() {
 
   return (
     <div className="app">
-      {!isAdmin && !isPortal && <Navbar theme={theme} />}
+      {!hideNavbar && <Navbar theme={theme} />}
       {/* ThemeToggle hidden — only variant 10 (udig2) is used */}
 
       <Routes>
         {/* Public */}
         <Route path="/" element={<HomePage theme={theme} />} />
-        <Route path="/impressum" element={<ImpressumPage />} />
+        <Route path="/impressum" element={<StaticPageRenderer slug="impressum" />} />
+        <Route path="/datenschutz" element={<StaticPageRenderer slug="datenschutz" />} />
+        <Route path="/seite/:slug" element={<StaticPageRenderer />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/seminare" element={<SeminarePage />} />
         <Route path="/seminare/:slug" element={<SeminarDetailPage />} />
 
-        {/* Admin */}
+        {/* Admin - Zentrale Einstiegsseite */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+        <Route path="/admin" element={<ProtectedRoute><AdminHome /></ProtectedRoute>} />
+
+        {/* Admin - CMS */}
+        <Route path="/admin/cms" element={<ProtectedRoute requiredRole="ADMIN,CONSULTANT"><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="seiten" element={<StaticPageList />} />
           <Route path="seiten/new" element={<StaticPageEditor />} />
@@ -87,15 +93,22 @@ function AppContent() {
           <Route path="media" element={<MediaLibrary />} />
         </Route>
 
-        {/* Portal */}
-        <Route path="/portal/login" element={<PortalLogin />} />
-        <Route path="/portal/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-        <Route path="/portal" element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
+        {/* Admin - Portal */}
+        <Route path="/admin/portal/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+        <Route path="/admin/portal" element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
           <Route index element={<PortalDashboard />} />
           <Route path="documents" element={<PortalDocuments />} />
           <Route path="shared" element={<PortalShared />} />
           <Route path="users" element={<ProtectedRoute requiredRole="ADMIN"><PortalUsers /></ProtectedRoute>} />
         </Route>
+
+        {/* Legacy Redirects */}
+        <Route path="/portal/login" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/portal/change-password" element={<Navigate to="/admin/portal/change-password" replace />} />
+        <Route path="/portal/documents" element={<Navigate to="/admin/portal/documents" replace />} />
+        <Route path="/portal/shared" element={<Navigate to="/admin/portal/shared" replace />} />
+        <Route path="/portal/users" element={<Navigate to="/admin/portal/users" replace />} />
+        <Route path="/portal" element={<Navigate to="/admin/portal" replace />} />
       </Routes>
     </div>
   );

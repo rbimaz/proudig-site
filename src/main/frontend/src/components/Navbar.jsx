@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X } from './Icons';
+import { Menu, X, Person } from './Icons';
 import { useScrolled } from '../hooks/useScrolled';
 
 export const Navbar = ({ theme }) => {
@@ -38,6 +38,11 @@ export const Navbar = ({ theme }) => {
     setMobileOpen(false);
   };
 
+  const goToLogin = () => {
+    navigate('/admin/login');
+    setMobileOpen(false);
+  };
+
   const hasDarkHero = theme === 'dark' || theme === 'blue' || theme === 'aoe2dash' || theme === 'udig2';
   const isHome = location.pathname === '/';
   const atTop = hasDarkHero && !scrolled && isHome;
@@ -48,15 +53,16 @@ export const Navbar = ({ theme }) => {
         <div className="container nav-inner">
           <a className="logo" href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             <span className="logo-text">Prou<span>Dig</span></span>
-            <span className="logo-dot">.</span>
+            {/*<span className="logo-dot">.</span>*/}
           </a>
           <ul className="nav-links">
             <li><button className="nav-link" onClick={() => scrollTo('leistungen')}>Leistungen</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('ueber')}>Über Proudig</button></li>
-            <li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
-            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>
+            {/*<li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
+            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>*/}
             <li><button className="nav-link" onClick={goToImpressum}>Impressum</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('prozess')}>Prozess</button></li>
+            <li><button className="nav-link" onClick={goToLogin}><Person width={16} height={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />Login</button></li>
           </ul>
           <button className="nav-cta" onClick={() => scrollTo('kontakt')}>Beratungsgespräch</button>
           <button className="hamburger" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -72,10 +78,11 @@ export const Navbar = ({ theme }) => {
           </button>
           <button className="mobile-link" onClick={() => scrollTo('leistungen')}>Leistungen</button>
           <button className="mobile-link" onClick={() => scrollTo('ueber')}>Über Proudig</button>
-          <button className="mobile-link" onClick={goToBlog}>Blog</button>
-          <button className="mobile-link" onClick={goToSeminare}>Seminare</button>
+          {/*<button className="mobile-link" onClick={goToBlog}>Blog</button>
+          <button className="mobile-link" onClick={goToSeminare}>Seminare</button>*/}
           <button className="mobile-link" onClick={goToImpressum}>Impressum</button>
           <button className="mobile-link" onClick={() => scrollTo('prozess')}>Prozess</button>
+          <button className="mobile-link" onClick={goToLogin}><Person width={16} height={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />Login</button>
           <button className="mobile-link" onClick={() => scrollTo('kontakt')}>Kontakt</button>
         </div>
       )}

@@ -8,7 +8,7 @@ export const Footer = () => {
         <div className="footer-content">
           <div className="footer-brand">
             <h3>ProuDig.</h3>
-            <p>Digitale Transformation von Professoren für Unternehmen.</p>
+            <p>Prozesse und Digitalisierung</p>
           </div>
 
           <div className="footer-links">
@@ -19,9 +19,9 @@ export const Footer = () => {
               <li>
                 <a href="#datenschutz">Datenschutz</a>
               </li>
-              <li>
+              {/*<li>
                 <a href="#agb">AGB</a>
-              </li>
+              </li>*/}
             </ul>
           </div>
         </div>

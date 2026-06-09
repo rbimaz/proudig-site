@@ -12,5 +12,10 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8081'
     }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
   }
 });
