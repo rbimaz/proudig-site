@@ -46,13 +46,15 @@ services:
     build: .
     container_name: proudig-app
     restart: unless-stopped
+    volumes:
+      - ./data/files:/app/data/files      # Persistenter Speicher für Uploads
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://proudig-db:5432/proudigdb
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-proudig}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-proudig123}
       PREVIEW_PASSWORD: ${PREVIEW_PASSWORD:-proudig2026}
     # ports:
-    #   - "8081:8081"          # Nicht noetig — Apache im Docker-Netzwerk erreicht die App direkt
+    #   - "8081:8081"          # Nicht noetig — Caddy im Docker-Netzwerk erreicht die App direkt
     depends_on:
       proudig-db:
         condition: service_healthy
@@ -71,25 +73,22 @@ services:
     networks:
       - proudig-network
 
-  # ---------- Apache Reverse Proxy ----------
-  proudig-web:
-    image: httpd:2.4
-    container_name: proudig-web
+  # ---------- Caddy Reverse Proxy ----------
+  # HTTPS für proudig.ai mit automatischem Let's Encrypt Zertifikat
+  proudig-proxy:
+    image: caddy:2-alpine
+    container_name: proudig-proxy
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./deploy/httpd-proxy.conf:/usr/local/apache2/conf/extra/httpd-proxy.conf:ro
-      - ./deploy/httpd-append.conf:/tmp/httpd-append.conf:ro
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data          # Let's Encrypt Zertifikate
+      - caddy_config:/config      # Caddy Konfiguration
     depends_on:
       proudig-app:
         condition: service_healthy
-    entrypoint: /bin/sh
-    command:
-      - -c
-      - |
-        cat /tmp/httpd-append.conf >> /usr/local/apache2/conf/httpd.conf
-        httpd-foreground
     networks:
       - proudig-network
 
@@ -99,3 +98,5 @@ networks:
 
 volumes:
   proudig-pgdata:
+  caddy_data:           # Let's Encrypt Zertifikate (persistent)
+  caddy_config:         # Caddy Konfiguration (persistent)

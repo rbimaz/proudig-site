@@ -28,6 +28,8 @@ import { BlogList } from './pages/admin/BlogList';
 import { PageEditor } from './pages/admin/PageEditor';
 import { SeminarList } from './pages/admin/SeminarList';
 import { MediaLibrary } from './pages/admin/MediaLibrary';
+import { MessageList } from './pages/admin/MessageList';
+import { MessageDetail } from './pages/admin/MessageDetail';
 
 // Portal pages
 import { ChangePassword } from './pages/portal/ChangePassword';
@@ -91,6 +93,8 @@ function AppContent() {
           <Route path="seminare/new" element={<PageEditor category="SEMINAR" />} />
           <Route path="seminare/:id" element={<PageEditor category="SEMINAR" />} />
           <Route path="media" element={<MediaLibrary />} />
+          <Route path="nachrichten" element={<MessageList />} />
+          <Route path="nachrichten/:id" element={<MessageDetail />} />
         </Route>
 
         {/* Admin - Portal */}
