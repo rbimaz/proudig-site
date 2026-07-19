@@ -35,7 +35,9 @@ ist das Scrollen des Seitenhintergrunds sperren.
 Der Dialog SHALL die Eingabefelder einspaltig (untereinander gestapelt) in der
 Reihenfolge E-Mail, Vorname, Nachname, Rolle, Passwort, Passwort bestätigen
 anzeigen, jeweils mit einem führenden Feld-Icon und einem als Pflichtfeld
-gekennzeichneten Label. Der Dialog-Header SHALL eine Live-Vorschau zeigen.
+gekennzeichneten Label. Der Dialog-Header SHALL eine Live-Vorschau zeigen. Der
+vertikale Abstand zwischen dem Titelbereich und dem ersten Eingabefeld SHALL
+kompakt gehalten sein, sodass der Dialog nicht unnötig hoch wird.
 
 #### Scenario: Liste ohne offenes Formular
 - **WHEN** die Seite geladen wird
@@ -44,6 +46,10 @@ gekennzeichneten Label. Der Dialog-Header SHALL eine Live-Vorschau zeigen.
 #### Scenario: Formular über Button öffnen
 - **WHEN** der Administrator »+ Neuer Benutzer« anklickt
 - **THEN** öffnet sich der Modal-Dialog mit den einspaltig gestapelten Feldern E-Mail, Vorname, Nachname, Rolle, Passwort und Passwort bestätigen
+
+#### Scenario: Kompakter Abstand zwischen Titel und Inhalt
+- **WHEN** der Dialog geöffnet ist
+- **THEN** ist der Abstand zwischen dem Titelbereich und dem ersten Eingabefeld reduziert (kein großer Leerraum unter dem Header)
 
 #### Scenario: Dialog abbrechen
 - **WHEN** der Administrator den Dialog über Escape, Backdrop-Klick oder »Abbrechen« schließt
