@@ -46,8 +46,11 @@ Eingabefelder in der Reihenfolge E-Mail, Vorname, Nachname, Rolle(n), Passwort,
 Passwort bestätigen anzeigen, jeweils mit einem führenden Feld-Icon und einem als
 Pflichtfeld gekennzeichneten Label, und im Kopfbereich eine Live-Vorschau zeigen.
 Um die Höhe kompakt zu halten (sichtbar ohne Scrollen), SHALL Vorname und
-Nachname in einer gemeinsamen Zeile (zwei Spalten) stehen; die übrigen Felder
-bleiben einspaltig. »Abbrechen« SHALL ohne Anlegen zur Liste zurückführen; nach
+Nachname in einer gemeinsamen Zeile (zwei Spalten) stehen und Passwort und
+Passwort bestätigen ebenfalls in einer gemeinsamen Zeile (zwei Spalten); ist im
+Bearbeiten-Modus kein Passwort eingegeben und das Bestätigungsfeld ausgeblendet,
+SHALL das Passwortfeld die volle Breite behalten. Die übrigen Felder bleiben
+einspaltig. »Abbrechen« SHALL ohne Anlegen zur Liste zurückführen; nach
 erfolgreicher Anlage SHALL zur Liste zurücknavigiert werden, wo der neue Benutzer
 erscheint.
 
@@ -62,6 +65,10 @@ erscheint.
 #### Scenario: Volle Breite und Vorname/Nachname in einer Zeile
 - **WHEN** das Formular angezeigt wird
 - **THEN** nutzt die Karte die volle verfügbare Breite und Vorname und Nachname stehen nebeneinander in einer Zeile
+
+#### Scenario: Passwort und Bestätigung in einer Zeile
+- **WHEN** das Erstellungs-Formular angezeigt wird oder im Bearbeiten-Modus ein Passwort eingegeben wurde
+- **THEN** stehen Passwort und Passwort bestätigen nebeneinander in einer Zeile
 
 #### Scenario: Kompakter Abstand zwischen Titel und Inhalt
 - **WHEN** das Erstellungs-Formular angezeigt wird
