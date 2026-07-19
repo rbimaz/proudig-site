@@ -186,32 +186,34 @@ export const PortalUserForm = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Vorname <span className="req">*</span></label>
-              <div className="ucd-field">
-                <i className="bi bi-person ucd-icon"></i>
-                <input
-                  type="text"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                  placeholder="Max"
-                  disabled={saving}
-                  autoFocus={!isNew}
-                />
+            <div className="ucd-row">
+              <div className="form-group">
+                <label>Vorname <span className="req">*</span></label>
+                <div className="ucd-field">
+                  <i className="bi bi-person ucd-icon"></i>
+                  <input
+                    type="text"
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    placeholder="Max"
+                    disabled={saving}
+                    autoFocus={!isNew}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label>Nachname <span className="req">*</span></label>
-              <div className="ucd-field">
-                <i className="bi bi-person ucd-icon"></i>
-                <input
-                  type="text"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  placeholder="Mustermann"
-                  disabled={saving}
-                />
+              <div className="form-group">
+                <label>Nachname <span className="req">*</span></label>
+                <div className="ucd-field">
+                  <i className="bi bi-person ucd-icon"></i>
+                  <input
+                    type="text"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    placeholder="Mustermann"
+                    disabled={saving}
+                  />
+                </div>
               </div>
             </div>
 

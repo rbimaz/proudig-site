@@ -1013,6 +1013,22 @@
 
 .portal-user-form .user-form-page {
   background: var(--surface);
+  /* Volle verfügbare Breite statt der schmalen Modal-Karte */
+  max-width: none;
+  width: 100%;
+}
+
+/* Zwei Felder nebeneinander (z. B. Vorname/Nachname) */
+.user-create-dialog .ucd-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 640px) {
+  .user-create-dialog .ucd-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .user-create-dialog .ucd-header {
