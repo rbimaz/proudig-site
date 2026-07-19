@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
+const ROLE_LABELS = { ADMIN: 'Admin', CONSULTANT: 'Consultant', CLIENT: 'Customer' };
+
 export const PortalUsers = () => {
   const { authFetch } = useAuth();
   const navigate = useNavigate();
@@ -120,7 +122,7 @@ export const PortalUsers = () => {
                         className={`role-badge ${user.roles?.includes(role) ? 'active' : ''}`}
                         onClick={() => handleToggleRole(user.id, role)}
                       >
-                        {role}
+                        {ROLE_LABELS[role]}
                       </button>
                     ))}
                   </div>

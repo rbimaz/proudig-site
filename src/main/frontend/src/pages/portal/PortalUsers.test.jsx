@@ -92,7 +92,7 @@ describe('PortalUsers (Liste)', () => {
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ...user, roles: ['CLIENT', 'ADMIN'] }) });
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([{ ...user, roles: ['CLIENT', 'ADMIN'] }]) });
 
-    fireEvent.click(screen.getByText('ADMIN'));
+    fireEvent.click(screen.getByText('Admin'));
     await waitFor(() => {
       const putCall = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'PUT');
       expect(putCall[0]).toBe('/api/users/u4');

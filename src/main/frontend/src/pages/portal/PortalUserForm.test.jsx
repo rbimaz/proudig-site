@@ -97,8 +97,8 @@ describe('PortalUserForm', () => {
       render(<PortalUserForm />);
       await waitFor(() => expect(screen.getByDisplayValue('Ada')).toBeInTheDocument());
 
-      expect(screen.getByLabelText('Benutzer')).toBeChecked();
-      expect(screen.getByLabelText('Administrator')).toBeChecked();
+      expect(screen.getByLabelText('Customer')).toBeChecked();
+      expect(screen.getByLabelText('Admin')).toBeChecked();
 
       fireEvent.change(screen.getByDisplayValue('Ada'), { target: { value: 'Neu' } });
       mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(editUser) });
@@ -120,7 +120,7 @@ describe('PortalUserForm', () => {
       render(<PortalUserForm />);
       await waitFor(() => expect(screen.getByDisplayValue('Ada')).toBeInTheDocument());
 
-      expect(screen.getByLabelText('Administrator')).toBeDisabled();
+      expect(screen.getByLabelText('Admin')).toBeDisabled();
       expect(screen.getByText(/letzte Administratorrolle/i)).toBeInTheDocument();
     });
 
@@ -133,7 +133,7 @@ describe('PortalUserForm', () => {
       render(<PortalUserForm />);
       await waitFor(() => expect(screen.getByDisplayValue('Solo')).toBeInTheDocument());
 
-      fireEvent.click(screen.getByLabelText('Benutzer')); // einzige Rolle abwählen
+      fireEvent.click(screen.getByLabelText('Customer')); // einzige Rolle abwählen
       fireEvent.click(screen.getByText('Speichern'));
       await new Promise(r => setTimeout(r, 30));
 

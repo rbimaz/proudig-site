@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ROLE_OPTIONS = [
-  { value: 'CLIENT', label: 'Benutzer' },
-  { value: 'CONSULTANT', label: 'Bearbeiter' },
-  { value: 'ADMIN', label: 'Administrator' },
+  { value: 'CLIENT', label: 'Customer' },
+  { value: 'CONSULTANT', label: 'Consultant' },
+  { value: 'ADMIN', label: 'Admin' },
 ];
 
 const USERS_ROUTE = '/admin/portal/users';
