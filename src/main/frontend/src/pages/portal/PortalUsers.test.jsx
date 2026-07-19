@@ -343,7 +343,50 @@ describe('PortalUsers', () => {
         expect(body.firstName).toBe('Neu');
         expect(body.lastName).toBe('User');
         expect(body.roles).toEqual(['ADMIN']);
+        expect(body.password).toBeUndefined(); // ohne Eingabe kein Passwort
       });
+    });
+
+    it('Given im Bearbeiten-Dialog ein neues Passwort gesetzt wird, When gespeichert wird, Then enthält der PUT-Payload das Passwort', async () => {
+      const existingUser = {
+        id: 'user-2', email: 'edit2@example.com', firstName: 'Erik', lastName: 'Muster', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Erik Muster')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+      fireEvent.change(screen.getByPlaceholderText('Leer lassen = unverändert'), { target: { value: 'NeuesPW1!' } });
+      fireEvent.change(screen.getByPlaceholderText('Passwort wiederholen'), { target: { value: 'NeuesPW1!' } });
+
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(existingUser) });
+      fireEvent.click(screen.getByText('Speichern'));
+
+      await waitFor(() => {
+        const putCall = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'PUT');
+        expect(putCall).toBeTruthy();
+        expect(JSON.parse(putCall[1].body).password).toBe('NeuesPW1!');
+      });
+    });
+
+    it('Given Passwort und Bestätigung im Bearbeiten-Dialog weichen ab, When gespeichert wird, Then wird KEIN PUT gemacht', async () => {
+      const existingUser = {
+        id: 'user-3', email: 'edit3@example.com', firstName: 'Mia', lastName: 'Test', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Mia Test')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+      fireEvent.change(screen.getByPlaceholderText('Leer lassen = unverändert'), { target: { value: 'NeuesPW1!' } });
+      fireEvent.change(screen.getByPlaceholderText('Passwort wiederholen'), { target: { value: 'Anders2!' } });
+
+      fireEvent.click(screen.getByText('Speichern'));
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockAuthFetch.mock.calls.find(c => c[1]?.method === 'PUT')).toBeUndefined();
     });
   });
 

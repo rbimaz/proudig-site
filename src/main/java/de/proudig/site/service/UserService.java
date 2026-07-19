@@ -77,6 +77,13 @@ public class UserService {
         if (request.getLastName() != null) user.setLastName(request.getLastName());
         if (request.getCompany() != null) user.setCompany(request.getCompany());
 
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            if (request.getPassword().length() < 3) {
+                throw new IllegalArgumentException("Passwort muss mindestens 3 Zeichen lang sein");
+            }
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             Set<Role> roles = request.getRoles().stream()
                     .map(roleName -> roleRepository.findByName(roleName)

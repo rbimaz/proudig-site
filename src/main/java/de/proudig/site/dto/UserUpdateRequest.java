@@ -16,4 +16,5 @@ public class UserUpdateRequest {
     private String lastName;
     private String company;
     private Set<String> roles;
+    private String password;
 }

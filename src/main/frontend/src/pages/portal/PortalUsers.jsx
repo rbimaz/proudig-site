@@ -21,6 +21,7 @@ export const PortalUsers = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState('');
@@ -71,10 +72,16 @@ export const PortalUsers = () => {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       role: primaryRole(user),
+      password: '',
+      passwordConfirm: '',
     });
+    setShowEditPassword(false);
   };
 
-  const closeEdit = () => setEditing(null);
+  const closeEdit = () => {
+    setEditing(null);
+    setShowEditPassword(false);
+  };
 
   const handleUpdateUser = async (e) => {
     e.preventDefault();
@@ -82,18 +89,25 @@ export const PortalUsers = () => {
       setMessage('Bitte Vor- und Nachname ausfüllen');
       return;
     }
+    if (editing.password && editing.password !== editing.passwordConfirm) {
+      setMessage('Passwörter stimmen nicht überein');
+      return;
+    }
 
     setSaving(true);
     setMessage('');
     try {
+      const payload = {
+        firstName: editing.firstName,
+        lastName: editing.lastName,
+        roles: [editing.role],
+      };
+      if (editing.password) payload.password = editing.password;
+
       const res = await authFetch(`/api/users/${editing.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: editing.firstName,
-          lastName: editing.lastName,
-          roles: [editing.role],
-        })
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
@@ -437,6 +451,50 @@ export const PortalUsers = () => {
                     <i className="bi bi-chevron-down ucd-chevron"></i>
                   </div>
                 </div>
+                <div className="form-group">
+                  <label>Neues Passwort</label>
+                  <div className="ucd-field">
+                    <i className="bi bi-lock ucd-icon"></i>
+                    <input
+                      type={showEditPassword ? 'text' : 'password'}
+                      value={editing.password}
+                      onChange={(e) => setEditing({ ...editing, password: e.target.value })}
+                      placeholder="Leer lassen = unverändert"
+                      autoComplete="new-password"
+                      disabled={saving}
+                    />
+                    <button
+                      type="button"
+                      className="ucd-eye"
+                      onClick={() => setShowEditPassword(!showEditPassword)}
+                      aria-label={showEditPassword ? 'Passwörter verbergen' : 'Passwörter anzeigen'}
+                    >
+                      <i className={`bi ${showEditPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                    </button>
+                  </div>
+                </div>
+                {editing.password && (
+                  <div className="form-group">
+                    <label>Neues Passwort bestätigen</label>
+                    <div className="ucd-field">
+                      <i className="bi bi-lock ucd-icon"></i>
+                      <input
+                        type={showEditPassword ? 'text' : 'password'}
+                        value={editing.passwordConfirm}
+                        onChange={(e) => setEditing({ ...editing, passwordConfirm: e.target.value })}
+                        placeholder="Passwort wiederholen"
+                        autoComplete="new-password"
+                        disabled={saving}
+                      />
+                    </div>
+                    {editing.passwordConfirm && (
+                      <p className={`ucd-match ${editing.password === editing.passwordConfirm ? 'ok' : 'bad'}`}>
+                        <i className={`bi ${editing.password === editing.passwordConfirm ? 'bi-check-lg' : 'bi-x-lg'}`}></i>
+                        {editing.password === editing.passwordConfirm ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein'}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="user-form-actions">
                 <button type="button" className="btn-secondary" onClick={closeEdit} disabled={saving}>
