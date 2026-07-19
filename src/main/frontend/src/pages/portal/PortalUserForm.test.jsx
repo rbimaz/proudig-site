@@ -16,7 +16,7 @@ vi.mock('react-router-dom', () => ({
 }));
 
 const postOk = () => mockAuthFetch.mockResolvedValueOnce({
-  ok: true, json: () => Promise.resolve({ id: 'x', roles: ['USER'] })
+  ok: true, json: () => Promise.resolve({ id: 'x', roles: ['CLIENT'] })
 });
 
 describe('PortalUserForm', () => {
@@ -35,7 +35,7 @@ describe('PortalUserForm', () => {
       fireEvent.change(screen.getByPlaceholderText('Passwort wiederholen'), { target: { value: 'Geheim123!' } });
     };
 
-    it('Given alle Felder, When Erstellen, Then POST /api/users mit roles:[USER] und Navigation zur Liste', async () => {
+    it('Given alle Felder, When Erstellen, Then POST /api/users mit roles:[CLIENT] und Navigation zur Liste', async () => {
       render(<PortalUserForm />);
       fillNew();
       postOk();
@@ -45,7 +45,7 @@ describe('PortalUserForm', () => {
         const post = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'POST');
         expect(post[0]).toBe('/api/users');
         const body = JSON.parse(post[1].body);
-        expect(body.roles).toEqual(['USER']);
+        expect(body.roles).toEqual(['CLIENT']);
         expect(body.forcePasswordChange).toBe(false);
       });
       expect(mockNavigate).toHaveBeenCalledWith('/admin/portal/users');
@@ -83,7 +83,7 @@ describe('PortalUserForm', () => {
   });
 
   describe('Bearbeiten (users/:id)', () => {
-    const editUser = { id: 'u1', email: 'ada@x.de', firstName: 'Ada', lastName: 'Admin', roles: ['USER', 'ADMIN'] };
+    const editUser = { id: 'u1', email: 'ada@x.de', firstName: 'Ada', lastName: 'Admin', roles: ['CLIENT', 'ADMIN'] };
 
     const mountEdit = (list) => {
       currentParams = { id: 'u1' };
@@ -109,7 +109,7 @@ describe('PortalUserForm', () => {
         expect(put[0]).toBe('/api/users/u1');
         const body = JSON.parse(put[1].body);
         expect(body.firstName).toBe('Neu');
-        expect([...body.roles].sort()).toEqual(['ADMIN', 'USER']);
+        expect([...body.roles].sort()).toEqual(['ADMIN', 'CLIENT']);
         expect(body.password).toBeUndefined();
       });
       expect(mockNavigate).toHaveBeenCalledWith('/admin/portal/users');
@@ -125,7 +125,7 @@ describe('PortalUserForm', () => {
     });
 
     it('Given alle Rollen abgewählt, When Speichern, Then kein PUT', async () => {
-      const soloUser = { id: 'u2', email: 'solo@x.de', firstName: 'Solo', lastName: 'User', roles: ['USER'] };
+      const soloUser = { id: 'u2', email: 'solo@x.de', firstName: 'Solo', lastName: 'User', roles: ['CLIENT'] };
       currentParams = { id: 'u2' };
       mockAuthFetch
         .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(soloUser) })

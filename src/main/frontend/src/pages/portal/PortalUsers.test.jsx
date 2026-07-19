@@ -53,7 +53,7 @@ describe('PortalUsers (Liste)', () => {
   });
 
   it('Given ein Benutzer, When gelöscht und bestätigt wird, Then wird DELETE /api/users/{id} aufgerufen', async () => {
-    const user = { id: 'u2', email: 'del@b.de', firstName: 'Delete', lastName: 'Me', roles: ['USER'] };
+    const user = { id: 'u2', email: 'del@b.de', firstName: 'Delete', lastName: 'Me', roles: ['CLIENT'] };
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([user]) });
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Delete Me')).toBeInTheDocument());
@@ -72,7 +72,7 @@ describe('PortalUsers (Liste)', () => {
   });
 
   it('Given der Löschdialog ist offen, When abgebrochen wird, Then kein DELETE', async () => {
-    const user = { id: 'u3', email: 'keep@b.de', firstName: 'Keep', lastName: 'Me', roles: ['USER'] };
+    const user = { id: 'u3', email: 'keep@b.de', firstName: 'Keep', lastName: 'Me', roles: ['CLIENT'] };
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([user]) });
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Keep Me')).toBeInTheDocument());
@@ -84,13 +84,13 @@ describe('PortalUsers (Liste)', () => {
   });
 
   it('Given ein Benutzer, When ein Rollen-Badge geklickt wird, Then wird PUT /api/users/{id} aufgerufen', async () => {
-    const user = { id: 'u4', email: 'r@b.de', firstName: 'Rolle', lastName: 'Test', roles: ['USER'] };
+    const user = { id: 'u4', email: 'r@b.de', firstName: 'Rolle', lastName: 'Test', roles: ['CLIENT'] };
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([user]) });
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Rolle Test')).toBeInTheDocument());
 
-    mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ...user, roles: ['USER', 'ADMIN'] }) });
-    mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([{ ...user, roles: ['USER', 'ADMIN'] }]) });
+    mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ...user, roles: ['CLIENT', 'ADMIN'] }) });
+    mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([{ ...user, roles: ['CLIENT', 'ADMIN'] }]) });
 
     fireEvent.click(screen.getByText('ADMIN'));
     await waitFor(() => {
@@ -102,7 +102,7 @@ describe('PortalUsers (Liste)', () => {
   it('Given Benutzer existieren, When die Seite geladen wird, Then werden alle angezeigt', async () => {
     const users = [
       { id: '1', email: 'admin@test.de', firstName: 'Max', lastName: 'Admin', roles: ['ADMIN'] },
-      { id: '2', email: 'user@test.de', firstName: 'Hans', lastName: 'User', roles: ['USER'] },
+      { id: '2', email: 'user@test.de', firstName: 'Hans', lastName: 'User', roles: ['CLIENT'] },
     ];
     mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(users) });
     render(<PortalUsers />);

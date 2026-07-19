@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ROLE_OPTIONS = [
-  { value: 'USER', label: 'Benutzer' },
+  { value: 'CLIENT', label: 'Benutzer' },
   { value: 'CONSULTANT', label: 'Bearbeiter' },
   { value: 'ADMIN', label: 'Administrator' },
 ];
@@ -20,7 +20,7 @@ export const PortalUserForm = () => {
     email: '',
     firstName: '',
     lastName: '',
-    role: 'USER',          // Anlegen: Einzelauswahl
+    role: 'CLIENT',        // Anlegen: Einzelauswahl
     roles: [],             // Bearbeiten: Mehrfachauswahl
     password: '',
     passwordConfirm: '',
@@ -261,51 +261,53 @@ export const PortalUserForm = () => {
               </div>
             )}
 
-            <div className="form-group">
-              <label>{isNew ? 'Passwort' : 'Neues Passwort'} {isNew && <span className="req">*</span>}</label>
-              <div className="ucd-field">
-                <i className="bi bi-lock ucd-icon"></i>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder={isNew ? 'Initialpasswort' : 'Leer lassen = unverändert'}
-                  autoComplete="new-password"
-                  disabled={saving}
-                />
-                <button
-                  type="button"
-                  className="ucd-eye"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Passwörter verbergen' : 'Passwörter anzeigen'}
-                >
-                  <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-                </button>
-              </div>
-            </div>
-
-            {(isNew || form.password) && (
+            <div className={`ucd-row ${(isNew || form.password) ? '' : 'ucd-row-single'}`}>
               <div className="form-group">
-                <label>{isNew ? 'Passwort bestätigen' : 'Neues Passwort bestätigen'} {isNew && <span className="req">*</span>}</label>
+                <label>{isNew ? 'Passwort' : 'Neues Passwort'} {isNew && <span className="req">*</span>}</label>
                 <div className="ucd-field">
                   <i className="bi bi-lock ucd-icon"></i>
                   <input
                     type={showPassword ? 'text' : 'password'}
-                    value={form.passwordConfirm}
-                    onChange={(e) => setForm({ ...form, passwordConfirm: e.target.value })}
-                    placeholder="Passwort wiederholen"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder={isNew ? 'Initialpasswort' : 'Leer lassen = unverändert'}
                     autoComplete="new-password"
                     disabled={saving}
                   />
+                  <button
+                    type="button"
+                    className="ucd-eye"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Passwörter verbergen' : 'Passwörter anzeigen'}
+                  >
+                    <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                  </button>
                 </div>
-                {form.passwordConfirm && (
-                  <p className={`ucd-match ${passwordsMatch ? 'ok' : 'bad'}`}>
-                    <i className={`bi ${passwordsMatch ? 'bi-check-lg' : 'bi-x-lg'}`}></i>
-                    {passwordsMatch ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein'}
-                  </p>
-                )}
               </div>
-            )}
+
+              {(isNew || form.password) && (
+                <div className="form-group">
+                  <label>{isNew ? 'Passwort bestätigen' : 'Neues Passwort bestätigen'} {isNew && <span className="req">*</span>}</label>
+                  <div className="ucd-field">
+                    <i className="bi bi-lock ucd-icon"></i>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.passwordConfirm}
+                      onChange={(e) => setForm({ ...form, passwordConfirm: e.target.value })}
+                      placeholder="Passwort wiederholen"
+                      autoComplete="new-password"
+                      disabled={saving}
+                    />
+                  </div>
+                  {form.passwordConfirm && (
+                    <p className={`ucd-match ${passwordsMatch ? 'ok' : 'bad'}`}>
+                      <i className={`bi ${passwordsMatch ? 'bi-check-lg' : 'bi-x-lg'}`}></i>
+                      {passwordsMatch ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
 
             {isNew && (
               <label className="ucd-checkbox">

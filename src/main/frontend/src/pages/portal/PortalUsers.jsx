@@ -114,7 +114,7 @@ export const PortalUsers = () => {
                 <td>{user.email}</td>
                 <td>
                   <div className="role-badges">
-                    {['ADMIN', 'CONSULTANT', 'USER'].map(role => (
+                    {['ADMIN', 'CONSULTANT', 'CLIENT'].map(role => (
                       <button
                         key={role}
                         className={`role-badge ${user.roles?.includes(role) ? 'active' : ''}`}
