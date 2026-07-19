@@ -17,7 +17,7 @@ Speichern schließbar sein.
 - **WHEN** der Administrator »Bearbeiten« wählt, Vor-/Nachname ändert und speichert
 - **THEN** wird `PUT /api/users/{id}` mit den geänderten Feldern und der gewählten Rollenmenge aufgerufen und die Liste zeigt die Änderung
 
-#### Scenario: Rollen werden vorausgewählt
+#### Scenario: Rolle wird vorausgewählt
 - **WHEN** der Bearbeiten-Dialog für einen Benutzer geöffnet wird
 - **THEN** sind alle aktuell vergebenen Rollen des Benutzers angehakt
 

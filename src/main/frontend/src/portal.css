@@ -1174,6 +1174,12 @@
   cursor: pointer;
 }
 
+.user-create-dialog .ucd-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
 .user-create-dialog .user-form-actions {
   padding: 12px 30px 28px;
   margin-top: 0;

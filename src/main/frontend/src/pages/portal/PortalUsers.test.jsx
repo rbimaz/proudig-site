@@ -326,7 +326,9 @@ describe('PortalUsers', () => {
       expect(screen.getByText('Benutzer bearbeiten')).toBeInTheDocument();
 
       fireEvent.change(screen.getByPlaceholderText('Max'), { target: { value: 'Neu' } });
-      fireEvent.change(screen.getByDisplayValue('Benutzer'), { target: { value: 'ADMIN' } });
+      // USER abwählen, Administrator anwählen -> nur ADMIN
+      fireEvent.click(screen.getByLabelText('Benutzer'));
+      fireEvent.click(screen.getByLabelText('Administrator'));
 
       mockAuthFetch.mockResolvedValueOnce({
         ok: true,
@@ -345,6 +347,50 @@ describe('PortalUsers', () => {
         expect(body.roles).toEqual(['ADMIN']);
         expect(body.password).toBeUndefined(); // ohne Eingabe kein Passwort
       });
+    });
+
+    it('Given im Bearbeiten-Dialog mehrere Rollen angehakt werden, When gespeichert wird, Then wird die vollständige Rollenmenge gesendet', async () => {
+      const existingUser = {
+        id: 'user-m', email: 'multi@example.com', firstName: 'Multi', lastName: 'Rolle', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Multi Rolle')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+      // USER bleibt, Bearbeiter + Administrator zusätzlich anhaken
+      fireEvent.click(screen.getByLabelText('Bearbeiter'));
+      fireEvent.click(screen.getByLabelText('Administrator'));
+
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(existingUser) });
+      fireEvent.click(screen.getByText('Speichern'));
+
+      await waitFor(() => {
+        const putCall = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'PUT');
+        expect(putCall).toBeTruthy();
+        const roles = JSON.parse(putCall[1].body).roles;
+        expect([...roles].sort()).toEqual(['ADMIN', 'CONSULTANT', 'USER']);
+      });
+    });
+
+    it('Given im Bearbeiten-Dialog alle Rollen abgewählt werden, When gespeichert wird, Then wird KEIN PUT gemacht', async () => {
+      const existingUser = {
+        id: 'user-n', email: 'none@example.com', firstName: 'Ohne', lastName: 'Rolle', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Ohne Rolle')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+      fireEvent.click(screen.getByLabelText('Benutzer')); // einzige Rolle abwählen
+
+      fireEvent.click(screen.getByText('Speichern'));
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockAuthFetch.mock.calls.find(c => c[1]?.method === 'PUT')).toBeUndefined();
+      expect(screen.getByText('Bitte mindestens eine Rolle wählen')).toBeInTheDocument();
     });
 
     it('Given im Bearbeiten-Dialog ein neues Passwort gesetzt wird, When gespeichert wird, Then enthält der PUT-Payload das Passwort', async () => {

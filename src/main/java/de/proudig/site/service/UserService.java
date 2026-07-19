@@ -84,7 +84,10 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+        if (request.getRoles() != null) {
+            if (request.getRoles().isEmpty()) {
+                throw new IllegalArgumentException("Mindestens eine Rolle erforderlich");
+            }
             Set<Role> roles = request.getRoles().stream()
                     .map(roleName -> roleRepository.findByName(roleName)
                             .orElseThrow(() -> new NoSuchElementException("Role not found: " + roleName)))

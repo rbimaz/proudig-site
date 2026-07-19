@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
-const ROLE_PRIORITY = ['ADMIN', 'CONSULTANT', 'USER'];
-const primaryRole = (user) => ROLE_PRIORITY.find(r => user.roles?.includes(r)) || 'USER';
-
 const ROLE_OPTIONS = [
   { value: 'USER', label: 'Benutzer' },
   { value: 'CONSULTANT', label: 'Bearbeiter' },
@@ -71,7 +68,7 @@ export const PortalUsers = () => {
       email: user.email,
       firstName: user.firstName || '',
       lastName: user.lastName || '',
-      role: primaryRole(user),
+      roles: ROLE_OPTIONS.map(o => o.value).filter(v => user.roles?.includes(v)),
       password: '',
       passwordConfirm: '',
     });
@@ -83,10 +80,23 @@ export const PortalUsers = () => {
     setShowEditPassword(false);
   };
 
+  const toggleEditRole = (value) => {
+    setEditing(prev => ({
+      ...prev,
+      roles: prev.roles.includes(value)
+        ? prev.roles.filter(r => r !== value)
+        : [...prev.roles, value],
+    }));
+  };
+
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     if (!editing.firstName || !editing.lastName) {
       setMessage('Bitte Vor- und Nachname ausfüllen');
+      return;
+    }
+    if (editing.roles.length === 0) {
+      setMessage('Bitte mindestens eine Rolle wählen');
       return;
     }
     if (editing.password && editing.password !== editing.passwordConfirm) {
@@ -100,7 +110,7 @@ export const PortalUsers = () => {
       const payload = {
         firstName: editing.firstName,
         lastName: editing.lastName,
-        roles: [editing.role],
+        roles: editing.roles,
       };
       if (editing.password) payload.password = editing.password;
 
@@ -435,20 +445,19 @@ export const PortalUsers = () => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Rolle <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-shield ucd-icon"></i>
-                    <select
-                      className="ucd-select"
-                      value={editing.role}
-                      onChange={(e) => setEditing({ ...editing, role: e.target.value })}
-                      disabled={saving}
-                    >
-                      {ROLE_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                    <i className="bi bi-chevron-down ucd-chevron"></i>
+                  <label>Rollen <span className="req">*</span></label>
+                  <div className="ucd-roles">
+                    {ROLE_OPTIONS.map(({ value, label }) => (
+                      <label key={value} className="ucd-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={editing.roles.includes(value)}
+                          onChange={() => toggleEditRole(value)}
+                          disabled={saving}
+                        />
+                        {label}
+                      </label>
+                    ))}
                   </div>
                 </div>
                 <div className="form-group">
