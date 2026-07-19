@@ -94,9 +94,9 @@ Nachname« lauten bzw. einen Platzhaltertext, solange kein Name eingegeben ist.
 ### Requirement: Rollenauswahl beim Anlegen
 Der Erstellungs-Dialog SHALL ein Pflicht-Auswahlfeld für die Rolle enthalten mit
 den Optionen »Benutzer«, »Bearbeiter« und »Administrator«, die auf die
-Systemrollen `USER`, `CONSULTANT` bzw. `ADMIN` abgebildet werden. Die gewählte
+Systemrollen `CLIENT`, `CONSULTANT` bzw. `ADMIN` abgebildet werden. Die gewählte
 Rolle SHALL beim Absenden als einelementiges `roles`-Array im Payload von
-`POST /api/users` mitgesendet werden. Die Vorauswahl SHALL »Benutzer« (`USER`)
+`POST /api/users` mitgesendet werden. Die Vorauswahl SHALL »Benutzer« (`CLIENT`)
 sein.
 
 #### Scenario: Gewählte Rolle wird gesendet
@@ -105,7 +105,7 @@ sein.
 
 #### Scenario: Standardrolle
 - **WHEN** der Dialog geöffnet wird, ohne die Rolle zu ändern
-- **THEN** ist »Benutzer« ausgewählt und der Payload enthält `roles: ["USER"]`
+- **THEN** ist »Benutzer« ausgewählt und der Payload enthält `roles: ["CLIENT"]`
 
 ### Requirement: Passwort-Bestätigung und Sichtbarkeit
 Der Erstellungs-Dialog SHALL neben dem Passwortfeld ein Bestätigungsfeld
