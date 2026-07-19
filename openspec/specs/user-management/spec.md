@@ -35,39 +35,38 @@ Default `false`). Ersetzt `USER-001`.
 - **THEN** wird der Benutzer ohne Zwang zur Passwortänderung angelegt (Flag `false`)
 
 ### Requirement: Darstellung der Benutzerverwaltung
-Die Benutzerverwaltungsseite SHALL die Benutzerliste als Hauptinhalt zeigen und
-das Anlegen neuer Benutzer von der Liste trennen. Das Erstellungs-Formular SHALL
-in einem Modal-Dialog dargestellt werden, der über einen Button »+ Neuer
-Benutzer« geöffnet wird und nicht permanent sichtbar ist. Der Dialog SHALL per
-Backdrop-Klick, Escape-Taste und »Abbrechen« schließbar sein und während er offen
-ist das Scrollen des Seitenhintergrunds sperren.
+Die Benutzerverwaltungsseite (`/admin/portal/users`) SHALL die Benutzerliste als
+Hauptinhalt zeigen und das Anlegen neuer Benutzer von der Liste trennen. Das
+Erstellungs-Formular SHALL auf einer **eigenen Route** `/admin/portal/users/new`
+(nur für ADMIN) dargestellt werden — nicht als Modal-Dialog —, erreichbar über
+einen Button »+ Neuer Benutzer«, der dorthin navigiert.
 
-Der Dialog SHALL die Eingabefelder einspaltig (untereinander gestapelt) in der
-Reihenfolge E-Mail, Vorname, Nachname, Rolle, Passwort, Passwort bestätigen
+Das Formular SHALL die Eingabefelder einspaltig (untereinander gestapelt) in der
+Reihenfolge E-Mail, Vorname, Nachname, Rolle(n), Passwort, Passwort bestätigen
 anzeigen, jeweils mit einem führenden Feld-Icon und einem als Pflichtfeld
-gekennzeichneten Label. Der Dialog-Header SHALL eine Live-Vorschau zeigen. Der
-vertikale Abstand zwischen dem Titelbereich und dem ersten Eingabefeld SHALL
-kompakt gehalten sein, sodass der Dialog nicht unnötig hoch wird.
+gekennzeichneten Label, und im Kopfbereich eine Live-Vorschau zeigen. »Abbrechen«
+SHALL ohne Anlegen zur Liste zurückführen; nach erfolgreicher Anlage SHALL zur
+Liste zurücknavigiert werden, wo der neue Benutzer erscheint.
 
 #### Scenario: Liste ohne offenes Formular
-- **WHEN** die Seite geladen wird
-- **THEN** wird die Benutzerliste angezeigt und das Erstellungs-Formular ist nicht sichtbar
+- **WHEN** `/admin/portal/users` geladen wird
+- **THEN** wird die Benutzerliste angezeigt und kein Erstellungs-Formular ist eingebettet
 
 #### Scenario: Formular über Button öffnen
 - **WHEN** der Administrator »+ Neuer Benutzer« anklickt
-- **THEN** öffnet sich der Modal-Dialog mit den einspaltig gestapelten Feldern E-Mail, Vorname, Nachname, Rolle, Passwort und Passwort bestätigen
+- **THEN** wird zu `/admin/portal/users/new` navigiert und das Erstellungs-Formular als eigene Seite angezeigt
 
 #### Scenario: Kompakter Abstand zwischen Titel und Inhalt
-- **WHEN** der Dialog geöffnet ist
-- **THEN** ist der Abstand zwischen dem Titelbereich und dem ersten Eingabefeld reduziert (kein großer Leerraum unter dem Header)
+- **WHEN** das Erstellungs-Formular angezeigt wird
+- **THEN** ist der Abstand zwischen dem Titelbereich und dem ersten Eingabefeld kompakt gehalten
 
 #### Scenario: Dialog abbrechen
-- **WHEN** der Administrator den Dialog über Escape, Backdrop-Klick oder »Abbrechen« schließt
-- **THEN** wird der Dialog geschlossen und kein Benutzer angelegt
+- **WHEN** der Administrator im Formular »Abbrechen« wählt
+- **THEN** wird zur Liste zurücknavigiert und kein Benutzer angelegt
 
 #### Scenario: Erfolgreiche Anlage schließt den Dialog
-- **WHEN** ein Benutzer im Dialog erfolgreich angelegt wird
-- **THEN** wird der Dialog geschlossen und der neue Benutzer erscheint in der Liste
+- **WHEN** ein Benutzer erfolgreich angelegt wird
+- **THEN** wird zur Liste zurücknavigiert und der neue Benutzer erscheint dort
 
 ### Requirement: Live-Vorschau im Dialog-Header
 Der Erstellungs-Dialog SHALL im Header einen Avatar und einen Vorschau-Text
@@ -124,23 +123,28 @@ nicht übereinstimmen, und darf in diesem Fall keinen POST-Aufruf auslösen.
 
 ### Requirement: Bestehenden Benutzer bearbeiten
 Das System SHALL Administratoren erlauben, einen bestehenden Benutzer über eine
-Aktion »Bearbeiten« je Tabellenzeile in einem Modal-Dialog zu bearbeiten. Der
-Dialog SHALL Vorname und Nachname als editierbare Felder sowie eine
-Rollen-Mehrfachauswahl (Checkboxen mit den Optionen Benutzer, Bearbeiter,
-Administrator) enthalten und die E-Mail schreibgeschützt anzeigen. Beim Öffnen
-SHALL alle aktuell vergebenen Rollen des Benutzers vorausgewählt sein. Es MUSS
-mindestens eine Rolle gewählt sein. Beim Speichern SHALL das System
-`PUT /api/users/{id}` mit `firstName`, `lastName` und der vollständigen
-gewählten Rollenmenge als `roles`-Array aufrufen und die Benutzerliste
-aktualisieren. Der Dialog SHALL per Escape, Backdrop-Klick und »Abbrechen« ohne
-Speichern schließbar sein.
+Aktion »Bearbeiten« je Tabellenzeile auf einer **eigenen Route**
+`/admin/portal/users/:id` (nur für ADMIN) zu bearbeiten — nicht in einem
+Modal-Dialog. Die Seite SHALL Vorname und Nachname als editierbare Felder sowie
+eine Rollen-Mehrfachauswahl (Checkboxen mit den Optionen Benutzer, Bearbeiter,
+Administrator) enthalten und die E-Mail schreibgeschützt anzeigen. Beim Laden
+SHALL der Benutzer über `GET /api/users/{id}` geladen und alle aktuell
+vergebenen Rollen vorausgewählt sein. Es MUSS mindestens eine Rolle gewählt sein.
+Beim Speichern SHALL das System `PUT /api/users/{id}` mit `firstName`,
+`lastName` und der vollständigen gewählten Rollenmenge als `roles`-Array
+aufrufen und danach zur Liste zurücknavigieren. »Abbrechen« SHALL ohne Speichern
+zur Liste zurückführen.
+
+#### Scenario: Bearbeiten öffnet eigene Route
+- **WHEN** der Administrator in einer Zeile »Bearbeiten« wählt
+- **THEN** wird zu `/admin/portal/users/:id` navigiert und das Bearbeiten-Formular als eigene Seite angezeigt
 
 #### Scenario: Benutzer bearbeiten und speichern
-- **WHEN** der Administrator »Bearbeiten« wählt, Vor-/Nachname ändert und speichert
-- **THEN** wird `PUT /api/users/{id}` mit den geänderten Feldern und der gewählten Rollenmenge aufgerufen und die Liste zeigt die Änderung
+- **WHEN** der Administrator Vor-/Nachname ändert und speichert
+- **THEN** wird `PUT /api/users/{id}` mit den geänderten Feldern und der gewählten Rollenmenge aufgerufen und zur Liste zurücknavigiert
 
 #### Scenario: Rolle wird vorausgewählt
-- **WHEN** der Bearbeiten-Dialog für einen Benutzer geöffnet wird
+- **WHEN** das Bearbeiten-Formular für einen Benutzer geladen wird
 - **THEN** sind alle aktuell vergebenen Rollen des Benutzers angehakt
 
 #### Scenario: Mehrere Rollen vergeben oder entziehen
@@ -152,8 +156,8 @@ Speichern schließbar sein.
 - **THEN** ist das Speichern nicht möglich und es erfolgt kein `PUT`
 
 #### Scenario: Bearbeiten abbrechen
-- **WHEN** der Administrator den Dialog über Escape, Backdrop-Klick oder »Abbrechen« schließt
-- **THEN** wird nichts gespeichert und der Benutzer bleibt unverändert
+- **WHEN** der Administrator »Abbrechen« wählt
+- **THEN** wird ohne Speichern zur Liste zurücknavigiert und der Benutzer bleibt unverändert
 
 ### Requirement: Benutzer löschen mit Bestätigungsdialog
 Das System SHALL Administratoren erlauben, einen Benutzer über eine Aktion
