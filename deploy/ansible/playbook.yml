@@ -1,0 +1,18 @@
+###############################################################################
+# ProuDig Deployment Playbook
+#
+# Verwendung:
+#   ansible-playbook -i inventory.yml playbook.yml
+#
+# Optionen:
+#   --tags setup     → Nur Server-Setup (Docker, Verzeichnisse)
+#   --tags deploy    → Nur Deployment (Pull, Build, Start)
+#   --tags rollback  → Rollback auf vorheriges Image
+###############################################################################
+
+- name: ProuDig — Docker Deployment auf Linux-Server
+  hosts: all
+  become: true
+
+  roles:
+    - proudig

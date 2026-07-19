@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leistungen — Vorschlag ProuDig</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #FFFFFF;
+    color: #1A1D23;
+    line-height: 1.6;
+  }
+
+  /* ── Section ── */
+  .leistungen {
+    padding: 5rem 1.5rem 6rem;
+    background: #FFFFFF;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-tag {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #E8731A;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: #1A1D23;
+    line-height: 1.25;
+    margin-bottom: 0.5rem;
+  }
+  .section-subtitle {
+    font-size: 1rem;
+    color: #4A5568;
+    margin-bottom: 3rem;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* ── Grid: 3 columns top, 3 columns bottom ── */
+  .leistungen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  /* ── Card ── */
+  .leistung-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 2rem 1.75rem;
+    transition: border-bottom-color 0.2s ease, box-shadow 0.2s ease;
+    border-bottom: 3px solid transparent;
+  }
+  .leistung-card:hover {
+    border-bottom-color: #E8731A;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Icon */
+  .leistung-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FDF2E8;
+    color: #E8731A;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .leistung-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .leistung-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.5rem;
+  }
+  .leistung-desc {
+    font-size: 0.9rem;
+    color: #4A5568;
+    line-height: 1.6;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 968px) {
+    .leistungen-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .leistungen-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Page wrapper for demo ── */
+  .demo-label {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    padding: 0 1.5rem;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #E8731A;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-label">
+  <span class="badge">Vorschlag: Neue Leistungen</span>
+</div>
+
+<section class="leistungen">
+  <span class="section-tag">LEISTUNGEN</span>
+  <h2 class="section-title">Unsere Leistungen</h2>
+  <p class="section-subtitle">Wissen vermitteln, Loesungen entwickeln, Zukunft gestalten.</p>
+
+  <div class="leistungen-grid">
+
+    <!-- 1. Vortraege -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h20v14H2z"/>
+          <path d="M8 21h8"/>
+          <path d="M12 17v4"/>
+          <circle cx="12" cy="10" r="2"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">Vortraege</h3>
+      <p class="leistung-desc">Inspirierende Fachvortraege zu Digitalisierung, KI und Technologie-Trends — fuer Konferenzen, Unternehmen und Fachpublikum.</p>
+    </div>
+
+    <!-- 2. Beratung -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">Beratung</h3>
+      <p class="leistung-desc">Strategische Technologieberatung und Digitalisierungskonzepte — von der Analyse bis zur Umsetzungsbegleitung.</p>
+    </div>
+
+    <!-- 3. Studien -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M16 13H8"/>
+          <path d="M16 17H8"/>
+          <path d="M10 9H8"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">Studien</h3>
+      <p class="leistung-desc">Wissenschaftlich fundierte Studien und Analysen zu Markttrends, Technologiebewertungen und Machbarkeit.</p>
+    </div>
+
+    <!-- 4. Weiterbildung -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">Weiterbildung</h3>
+      <p class="leistung-desc">Praxisnahe Schulungen und Workshops fuer Teams — von KI-Grundlagen bis zu spezialisierten Technologie-Trainings.</p>
+    </div>
+
+    <!-- 5. Software-Loesungen -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"/>
+          <polyline points="8 6 2 12 8 18"/>
+          <line x1="14" y1="4" x2="10" y2="20"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">Software-Loesungen</h3>
+      <p class="leistung-desc">Massgeschneiderte Softwareentwicklung — von Web- und Mobilanwendungen bis zu komplexen Unternehmensplattformen.</p>
+    </div>
+
+    <!-- 6. KI-Anwendungen -->
+    <div class="leistung-card">
+      <div class="leistung-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.4V11h3a3 3 0 0 1 3 3v1.5"/>
+          <path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.4V11H7a3 3 0 0 0-3 3v1.5"/>
+          <circle cx="12" cy="18" r="4"/>
+          <circle cx="4" cy="18" r="2"/>
+          <circle cx="20" cy="18" r="2"/>
+        </svg>
+      </div>
+      <h3 class="leistung-title">KI-Anwendungen</h3>
+      <p class="leistung-desc">Entwicklung intelligenter Systeme mit Machine Learning und generativer KI — von der Idee bis zum produktiven Einsatz.</p>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+###############################################################################
+# Globale Variablen — ProuDig Deployment
+###############################################################################
+
+# ── App ──
+app_dir: /opt/proudig
+
+# ── Projektquelle (lokaler Pfad zum Repo-Root) ──
+project_src: "{{ playbook_dir }}/../../"
+
+# ── Datenbank ──
+db_user: proudig
+db_password: "{{ vault_db_password | default('proudig123') }}"
+
+# ── Preview ──
+preview_password: "{{ vault_preview_password | default('proudig2026') }}"

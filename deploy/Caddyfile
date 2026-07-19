@@ -1,0 +1,60 @@
+# ==============================================================================
+# Caddyfile - ProuDig Reverse Proxy Konfiguration
+#
+# AKTIV: Domain-basierter HTTPS-Zugriff für proudig.ai
+# Automatisches Let's Encrypt Zertifikat.
+# ==============================================================================
+
+# ==============================================================================
+# HTTPS-Zugriff für proudig.ai
+# ==============================================================================
+# Automatisches Let's Encrypt Zertifikat für proudig.ai und www.proudig.ai.
+# HTTP wird automatisch auf HTTPS umgeleitet.
+# Zugriff über: https://proudig.ai/ oder https://www.proudig.ai/
+
+proudig.ai, www.proudig.ai {
+    reverse_proxy proudig-app:8081
+
+    # Security Headers
+    header {
+        # Content-Security-Policy
+        # React/Vite benötigt unsafe-eval (Babel JSX Transform)
+        # Bootstrap Icons lokal gebündelt (npm package)
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';"
+
+        # Zusätzliche Security Headers
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+
+        # HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+}
+
+# ==============================================================================
+# FALLBACK: IP-basierter HTTP-Zugriff (für Tests ohne Domain)
+# ==============================================================================
+# Zum Aktivieren: Block einkommentieren und HTTPS-Block oben auskommentieren.
+#
+# :80 {
+#     reverse_proxy proudig-app:8081
+#
+#     header {
+#         Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';"
+#         X-Content-Type-Options "nosniff"
+#         X-Frame-Options "DENY"
+#         Referrer-Policy "strict-origin-when-cross-origin"
+#     }
+#
+#     log {
+#         output stdout
+#         format console
+#     }
+# }

@@ -1,0 +1,16 @@
+###############################################################################
+# Ansible Inventory — ProuDig Deployment
+#
+# Anpassen:
+#   - ansible_host: IP oder Hostname des Linux-Servers
+#   - ansible_user: SSH-Benutzer mit sudo-Rechten
+#   - ansible_ssh_private_key_file: Pfad zum SSH-Key (optional)
+###############################################################################
+
+all:
+  hosts:
+    proudig-server:
+      ansible_host: proudig        # <-- Server-IP hier eintragen
+      ansible_user: root           # <-- SSH-User hier eintragen
+      ansible_ssh_private_key_file: ~/.ssh/instance1.pem
+      ansible_python_interpreter: /usr/bin/python3

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team-Cards Vorschlag — ProuDig</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F5F7F6;
+    color: #1A1D23;
+    padding: 2rem;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #8890A4;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 2.5rem;
+  }
+
+  .comparison {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #14B8A6;
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-label.alt {
+    background: #E53E3E;
+  }
+
+  /* ── Section wrapper ── */
+  .demo-section {
+    background: linear-gradient(135deg, #F0F5F4 0%, #FFFFFF 100%);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    border: 1px solid #E5EAF0;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #14B8A6;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1A1D23;
+  }
+
+  .about-description {
+    font-size: 1rem;
+    color: #5A6178;
+    margin-bottom: 2rem;
+    max-width: 700px;
+    line-height: 1.6;
+  }
+
+  /* ── VORSCHLAG: Team-Cards ohne Animation ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .team-card-new {
+    background: #FFFFFF;
+    border: 1px solid #E5EAF0;
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .team-card-new:hover {
+    border-color: #14B8A6;
+    box-shadow: 0 4px 16px rgba(20, 184, 166, 0.08);
+  }
+
+  .team-card-new .avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #E8F5F3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    border: 2px solid rgba(20, 184, 166, 0.15);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .team-card-new .avatar svg {
+    width: 48px;
+    height: 48px;
+    color: #14B8A6;
+    opacity: 0.5;
+  }
+
+  .team-card-new .title-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #14B8A6;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+  }
+
+  .team-card-new .name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.75rem;
+  }
+
+  .team-card-new .divider {
+    width: 32px;
+    height: 2px;
+    background: #14B8A6;
+    opacity: 0.3;
+    border-radius: 1px;
+    margin-bottom: 0.75rem;
+  }
+
+  .team-card-new .fokus {
+    font-size: 0.85rem;
+    color: #5A6178;
+    line-height: 1.5;
+  }
+
+  /* ── ALT: Current animated cards (simplified demo) ── */
+  .team-card-old {
+    perspective: 800px;
+    height: 240px;
+  }
+
+  .team-card-old-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+  }
+
+  .team-card-old:hover .team-card-old-inner {
+    transform: rotateY(180deg);
+  }
+
+  .team-card-old-front,
+  .team-card-old-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E5EAF0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem 1rem;
+  }
+
+  .team-card-old-back {
+    transform: rotateY(180deg);
+    background: #14B8A6;
+    border-color: #14B8A6;
+  }
+
+  .team-card-old .avatar-old {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #E8F5F3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    border: 3px solid rgba(20, 184, 166, 0.15);
+  }
+
+  .team-card-old .avatar-old svg {
+    width: 40px;
+    height: 40px;
+    color: #14B8A6;
+    opacity: 0.5;
+  }
+
+  .team-card-old .title-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #14B8A6;
+  }
+
+  .team-card-old .name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-top: 0.25rem;
+  }
+
+  .team-card-old-back .fokus-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .team-card-old-back .fokus {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 0.5rem;
+    max-width: 200px;
+    line-height: 1.4;
+  }
+
+  .team-card-old-back .back-name {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 0.75rem;
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #8890A4;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+
+  /* ── Notes ── */
+  .notes {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #E5EAF0;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+
+  .notes h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #1A1D23;
+  }
+
+  .notes ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .notes li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #5A6178;
+    line-height: 1.5;
+    border-bottom: 1px solid #F0F2F5;
+  }
+
+  .notes li:last-child { border-bottom: none; }
+
+  .notes li strong {
+    color: #1A1D23;
+  }
+
+  .check { color: #14B8A6; margin-right: 0.5rem; }
+</style>
+</head>
+<body>
+
+<div class="comparison">
+
+  <!-- ── VORSCHLAG: NEUE CARDS ── -->
+  <span class="section-label">Vorschlag: Ohne Animation</span>
+  <div class="demo-section">
+    <div class="section-header">
+      <p class="section-tag">ÜBER UNS</p>
+      <h2>Unser Team — Ihre Partner auf Augenhöhe</h2>
+    </div>
+    <p class="about-description">
+      Digitalisierung ist Vertrauenssache. Deshalb setzen wir auf persönliche Zusammenarbeit und direkte Kommunikation. Unsere Gesellschafter bringen nicht nur fundiertes Know-how mit, sondern begleiten Projekte aktiv und mit echter Hands-on Mentalität.
+    </p>
+
+    <div class="team-grid">
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Prof. Dr.</span>
+        <span class="name">Max Mustermann</span>
+        <div class="divider"></div>
+        <span class="fokus">Künstliche Intelligenz & Machine Learning</span>
+      </div>
+
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Prof. Dr.</span>
+        <span class="name">Maria Musterfrau</span>
+        <div class="divider"></div>
+        <span class="fokus">Cloud-Architektur & Digitale Plattformen</span>
+      </div>
+
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Dr.-Ing.</span>
+        <span class="name">Thomas Schmidt</span>
+        <div class="divider"></div>
+        <span class="fokus">Software Engineering & DevOps</span>
+      </div>
+
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Prof. Dr.-Ing.</span>
+        <span class="name">Anna Weber</span>
+        <div class="divider"></div>
+        <span class="fokus">Medizininformatik & Datenschutz</span>
+      </div>
+
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Dr. rer. nat.</span>
+        <span class="name">Stefan Braun</span>
+        <div class="divider"></div>
+        <span class="fokus">Prozessautomatisierung & ERP-Systeme</span>
+      </div>
+
+      <div class="team-card-new">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="title-label">Prof. Dr.</span>
+        <span class="name">Julia Fischer</span>
+        <div class="divider"></div>
+        <span class="fokus">Digitale Strategie & Change Management</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VERGLEICH: AKTUELLE CARDS ── -->
+  <span class="section-label alt">Aktuell: 3D-Flip-Animation</span>
+  <div class="demo-section" style="background: linear-gradient(135deg, #F8F0F0 0%, #FFFFFF 100%);">
+    <div class="section-header">
+      <p class="section-tag">ÜBER UNS</p>
+      <h2>Unser Team — Ihre Partner auf Augenhöhe</h2>
+    </div>
+    <p class="about-description">
+      Digitalisierung ist Vertrauenssache. Deshalb setzen wir auf persönliche Zusammenarbeit und direkte Kommunikation.
+    </p>
+
+    <div class="team-grid">
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Prof. Dr.</span>
+            <span class="name">Max Mustermann</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Künstliche Intelligenz & Machine Learning</span>
+            <span class="back-name">Prof. Dr. Max Mustermann</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Prof. Dr.</span>
+            <span class="name">Maria Musterfrau</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Cloud-Architektur & Digitale Plattformen</span>
+            <span class="back-name">Prof. Dr. Maria Musterfrau</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Dr.-Ing.</span>
+            <span class="name">Thomas Schmidt</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Software Engineering & DevOps</span>
+            <span class="back-name">Dr.-Ing. Thomas Schmidt</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Prof. Dr.-Ing.</span>
+            <span class="name">Anna Weber</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Medizininformatik & Datenschutz</span>
+            <span class="back-name">Prof. Dr.-Ing. Anna Weber</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Dr. rer. nat.</span>
+            <span class="name">Stefan Braun</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Prozessautomatisierung & ERP-Systeme</span>
+            <span class="back-name">Dr. rer. nat. Stefan Braun</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card-old">
+        <div class="team-card-old-inner">
+          <div class="team-card-old-front">
+            <div class="avatar-old">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <span class="title-label">Prof. Dr.</span>
+            <span class="name">Julia Fischer</span>
+          </div>
+          <div class="team-card-old-back">
+            <span class="fokus-label">Fokus</span>
+            <span class="fokus">Digitale Strategie & Change Management</span>
+            <span class="back-name">Prof. Dr. Julia Fischer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Hover über eine Karte, um die aktuelle 3D-Flip-Animation zu sehen</p>
+  </div>
+
+  <!-- ── Änderungsnotizen ── -->
+  <div class="notes">
+    <h3>Was sich ändert</h3>
+    <ul>
+      <li><span class="check">&#10003;</span> <strong>3D-Flip entfernt</strong> — Kein rotateY(180deg) mehr beim Hover. Die Fokus-Information wird direkt auf der Card angezeigt, getrennt durch einen dezenten Divider.</li>
+      <li><span class="check">&#10003;</span> <strong>Fade-Up-Animation entfernt</strong> — Cards sind sofort sichtbar, kein opacity/translateY-Übergang beim Scrollen.</li>
+      <li><span class="check">&#10003;</span> <strong>Hover-Effekt dezent</strong> — Nur ein subtiler Border-Farbwechsel zum Accent-Ton und ein leichter Box-Shadow. Kein Transform.</li>
+      <li><span class="check">&#10003;</span> <strong>Alle Infos auf einen Blick</strong> — Titel, Name und Fachgebiet sind ohne Interaktion sichtbar. Professioneller, da nichts "entdeckt" werden muss.</li>
+      <li><span class="check">&#10003;</span> <strong>Visueller Trennstrich</strong> — Ein schmaler Accent-farbener Divider trennt Person von Fachgebiet und gibt der Card Struktur.</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Node / Vite ###
+node_modules/
+.vite/
+
+### Frontend build output (per Build erzeugt) ###
+src/main/resources/static/assets/
+
+### Portal-Runtime-Uploads ###
+data/
+
+### Claude Code (lokale Overrides) ###
+.claude/settings.local.json

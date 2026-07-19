@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig Hero — Prozessdarstellung statt Atom-Modell</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#E2E8F0;}
+
+  .page-header{background:#0F2B3C;color:white;padding:2rem 2rem;text-align:center;}
+  .page-header h1{font-size:1.3rem;font-weight:700;margin-bottom:.3rem;}
+  .page-header p{color:rgba(255,255,255,.5);font-size:.8rem;}
+
+  .compare{display:flex;gap:2rem;padding:2rem;max-width:1400px;margin:0 auto;}
+  .panel{flex:1;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);background:white;}
+  .panel-label{padding:.6rem 1.25rem;font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;}
+  .panel-label.before{background:#FEE2E2;color:#991B1B;}
+  .panel-label.after{background:#D1FAE5;color:#065F46;}
+
+  /* ── Hero Mock ── */
+  .hero-mock{height:480px;position:relative;overflow:hidden;display:flex;align-items:center;}
+
+  /* Old hero */
+  .hero-old{background:linear-gradient(160deg,#0F2B3C 0%,#061520 100%);}
+  .hero-old .hero-inner{display:flex;align-items:center;padding:0 3rem;gap:2rem;width:100%;}
+  .hero-old .hero-text{flex:1;}
+  .hero-old .hero-title{font-size:1.7rem;font-weight:800;color:white;line-height:1.25;margin-bottom:.75rem;}
+  .hero-old .hero-title .acc{color:#E8731A;}
+  .hero-old .hero-desc{font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:1rem;}
+  .hero-old .hero-btns{display:flex;gap:.5rem;}
+  .hero-old .btn-p{background:#E8731A;color:white;border:none;padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;}
+  .hero-old .btn-s{background:transparent;color:white;border:1px solid rgba(255,255,255,.25);padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:500;cursor:pointer;}
+  .hero-old .hero-visual{flex:0 0 240px;display:flex;align-items:center;justify-content:center;}
+
+  /* Atom rings (old) */
+  .atom-wrap{position:relative;width:220px;height:220px;}
+  .atom-ring{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.08);}
+  .atom-ring.r1{width:220px;height:220px;top:0;left:0;}
+  .atom-ring.r2{width:170px;height:170px;top:25px;left:25px;}
+  .atom-ring.r3{width:120px;height:120px;top:50px;left:50px;}
+  .atom-ring.r4{width:70px;height:70px;top:75px;left:75px;border-color:rgba(232,115,26,.35);border-width:1.5px;}
+  .atom-core{position:absolute;top:102px;left:102px;width:16px;height:16px;border-radius:50%;background:#E8731A;opacity:.8;}
+  .atom-label{position:absolute;bottom:-30px;width:100%;text-align:center;color:rgba(255,255,255,.25);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;}
+
+  /* New hero */
+  .hero-new{background:linear-gradient(160deg,#0F2B3C 0%,#061520 100%);}
+  .hero-new .hero-inner{display:flex;align-items:center;padding:0 3rem;gap:2rem;width:100%;}
+  .hero-new .hero-text{flex:1;}
+  .hero-new .hero-title{font-size:1.7rem;font-weight:800;color:white;line-height:1.25;margin-bottom:.75rem;}
+  .hero-new .hero-title .acc{color:#E8731A;}
+  .hero-new .hero-desc{font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:1rem;}
+  .hero-new .hero-btns{display:flex;gap:.5rem;}
+  .hero-new .btn-p{background:#E8731A;color:white;border:none;padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;}
+  .hero-new .btn-s{background:transparent;color:white;border:1px solid rgba(255,255,255,.25);padding:.5rem 1rem;border-radius:6px;font-size:.72rem;font-weight:500;cursor:pointer;}
+  .hero-new .hero-visual{flex:0 0 300px;display:flex;align-items:center;justify-content:center;}
+
+  /* ── Process Flow Visualization ── */
+  .process-flow{position:relative;width:280px;height:380px;}
+
+  .pf-node{
+    position:absolute;display:flex;align-items:center;gap:.5rem;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+    border-radius:10px;padding:.5rem .7rem;
+    transition:all .3s;cursor:default;
+    backdrop-filter:blur(4px);
+  }
+  .pf-node:hover{border-color:rgba(232,115,26,.4);background:rgba(232,115,26,.06);}
+  .pf-node .pf-icon{
+    width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:.85rem;flex-shrink:0;
+  }
+  .pf-node .pf-label{font-size:.68rem;font-weight:600;color:white;line-height:1.3;}
+  .pf-node .pf-sub{font-size:.55rem;color:rgba(255,255,255,.4);margin-top:.1rem;}
+
+  /* Node positions — staggered left-right for flow feel */
+  .pf-n1{top:10px;left:20px;}
+  .pf-n2{top:90px;right:10px;}
+  .pf-n3{top:170px;left:10px;}
+  .pf-n4{top:250px;right:20px;}
+  .pf-n5{top:330px;left:40px;}
+
+  /* Icon colors */
+  .pf-icon.analyze{background:rgba(96,165,250,.15);color:#60A5FA;}
+  .pf-icon.consult{background:rgba(232,115,26,.15);color:#E8731A;}
+  .pf-icon.develop{background:rgba(52,211,153,.15);color:#34D399;}
+  .pf-icon.test{background:rgba(167,139,250,.15);color:#A78BFA;}
+  .pf-icon.deploy{background:rgba(251,191,36,.15);color:#FBBf24;}
+
+  /* Connecting lines (SVG overlay) */
+  .pf-lines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .pf-line{stroke:rgba(232,115,26,.2);stroke-width:1.5;fill:none;stroke-dasharray:6,4;}
+  .pf-dot{fill:#E8731A;opacity:.6;}
+
+  /* Animated pulse on lines */
+  @keyframes dashFlow{
+    from{stroke-dashoffset:0;}
+    to{stroke-dashoffset:-30;}
+  }
+  .pf-line{animation:dashFlow 3s linear infinite;}
+
+  /* Active node glow */
+  .pf-node.active{border-color:rgba(232,115,26,.5);box-shadow:0 0 20px rgba(232,115,26,.1);}
+
+  /* Step number */
+  .pf-step{
+    position:absolute;top:-6px;left:-6px;width:18px;height:18px;border-radius:50%;
+    background:#E8731A;color:white;font-size:.55rem;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    z-index:2;
+  }
+
+  /* ── Annotations ── */
+  .annotations{padding:2rem 2rem 3rem;max-width:1400px;margin:0 auto;}
+  .anno-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+  .anno-card{background:white;border-radius:10px;padding:1.1rem;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .anno-card h3{font-size:.8rem;font-weight:700;margin-bottom:.35rem;display:flex;align-items:center;gap:.35rem;}
+  .anno-card h3 i{color:#E8731A;}
+  .anno-card p{font-size:.75rem;color:#4A5568;line-height:1.5;}
+
+  @media(max-width:900px){
+    .compare{flex-direction:column;}
+    .anno-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Hero-Visualisierung: Prozessdarstellung statt Atom-Modell</h1>
+  <p>Das Atom-Modell hat keinen Bezug zum Thema &bdquo;Prozesse und Digitalisierung&rdquo; — ein Prozessfluss passt besser</p>
+</div>
+
+<div class="compare">
+
+  <!-- ── VORHER ── -->
+  <div class="panel">
+    <div class="panel-label before">Ist-Zustand: Atom-Modell</div>
+    <div class="hero-mock hero-old">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+          <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+          <div class="hero-btns">
+            <button class="btn-p">Beratungsgespraech &rarr;</button>
+            <button class="btn-s">Leistungen entdecken</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="atom-wrap">
+            <div class="atom-ring r1"></div>
+            <div class="atom-ring r2"></div>
+            <div class="atom-ring r3"></div>
+            <div class="atom-ring r4"></div>
+            <div class="atom-core"></div>
+            <div class="atom-label">Kein Bezug zum Thema</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NACHHER ── -->
+  <div class="panel">
+    <div class="panel-label after">Vorschlag: Prozessfluss</div>
+    <div class="hero-mock hero-new">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+          <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+          <div class="hero-btns">
+            <button class="btn-p">Beratungsgespraech &rarr;</button>
+            <button class="btn-s">Leistungen entdecken</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="process-flow">
+            <!-- Connecting lines -->
+            <svg class="pf-lines" viewBox="0 0 280 380">
+              <path class="pf-line" d="M 100 38 C 160 50, 180 80, 200 105" />
+              <path class="pf-line" d="M 180 125 C 140 145, 80 160, 90 190" />
+              <path class="pf-line" d="M 120 210 C 160 230, 200 245, 190 275" />
+              <path class="pf-line" d="M 170 290 C 140 310, 110 325, 120 350" />
+            </svg>
+
+            <!-- Node 1: Analyse -->
+            <div class="pf-node pf-n1">
+              <div class="pf-step">1</div>
+              <div class="pf-icon analyze"><i class="bi bi-search"></i></div>
+              <div>
+                <div class="pf-label">Analyse</div>
+                <div class="pf-sub">Prozesse verstehen</div>
+              </div>
+            </div>
+
+            <!-- Node 2: Beratung -->
+            <div class="pf-node pf-n2">
+              <div class="pf-step">2</div>
+              <div class="pf-icon consult"><i class="bi bi-chat-dots"></i></div>
+              <div>
+                <div class="pf-label">Strategie</div>
+                <div class="pf-sub">Konzept entwickeln</div>
+              </div>
+            </div>
+
+            <!-- Node 3: Entwicklung -->
+            <div class="pf-node pf-n3 active">
+              <div class="pf-step">3</div>
+              <div class="pf-icon develop"><i class="bi bi-code-slash"></i></div>
+              <div>
+                <div class="pf-label">Entwicklung</div>
+                <div class="pf-sub">L&ouml;sung bauen</div>
+              </div>
+            </div>
+
+            <!-- Node 4: Qualit&auml;t -->
+            <div class="pf-node pf-n4">
+              <div class="pf-step">4</div>
+              <div class="pf-icon test"><i class="bi bi-shield-check"></i></div>
+              <div>
+                <div class="pf-label">Qualit&auml;t</div>
+                <div class="pf-sub">Testen &amp; sichern</div>
+              </div>
+            </div>
+
+            <!-- Node 5: Go-Live -->
+            <div class="pf-node pf-n5">
+              <div class="pf-step">5</div>
+              <div class="pf-icon deploy"><i class="bi bi-rocket-takeoff"></i></div>
+              <div>
+                <div class="pf-label">Go-Live</div>
+                <div class="pf-sub">Wirkung entfalten</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Annotations -->
+<div class="annotations">
+  <div class="anno-grid">
+    <div class="anno-card">
+      <h3><i class="bi bi-arrow-down-right"></i> Vertikaler Prozessfluss</h3>
+      <p>Die 5 Schritte fliessen von oben nach unten — intuitiv lesbar wie ein Ablaufdiagramm. Die versetzten Positionen (links-rechts) erzeugen Dynamik und vermeiden Monotonie.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-palette"></i> Farb-codierte Icons</h3>
+      <p>Jeder Schritt hat eine eigene Farbe (Blau, Orange, Gruen, Violett, Gelb) auf transparentem Hintergrund. Das fuegt sich nahtlos in den dunklen Hero-Hintergrund ein.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-bezier2"></i> Animierte Verbindungslinien</h3>
+      <p>Gestrichelte Linien mit fliessender Dash-Animation verbinden die Schritte. Der Eindruck: Daten und Prozesse sind in Bewegung — passend zum Kernthema Digitalisierung.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-1-circle-fill"></i> Nummerierte Schritte</h3>
+      <p>Kleine orange Badges (1–5) zeigen klar die Reihenfolge. Der Benutzer versteht sofort: ProuDig hat einen strukturierten, zuverlaessigen Prozess.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-link-45deg"></i> Bezug zum Seiteninhalt</h3>
+      <p>Die 5 Schritte entsprechen dem Prozess-Abschnitt weiter unten auf der Seite. Der Hero gibt einen kompakten Ueberblick, der Scroll-Bereich die Details.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-hand-index-thumb"></i> Hover-Interaktion</h3>
+      <p>Beim Hovern ueber einen Knoten leuchtet der Rahmen orange auf. Dezent, aber einladend — der Benutzer spuert, dass die Seite lebendig ist.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

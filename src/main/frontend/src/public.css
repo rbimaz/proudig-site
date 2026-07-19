@@ -1,0 +1,753 @@
+/* ============================================================================
+   PUBLIC PAGES STYLES (Blog, Seminars)
+   ============================================================================ */
+
+/* Blog Page */
+.blog-page {
+  background: white;
+}
+
+.blog-hero,
+.seminar-hero {
+  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  padding: 4rem 2rem;
+  text-align: left;
+}
+
+.blog-hero .container,
+.seminar-hero .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.blog-hero .hero-tag,
+.seminar-hero .hero-tag {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #f97316;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.blog-hero h1,
+.seminar-hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  color: #1a1a2e;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.blog-hero p,
+.seminar-hero p {
+  margin: 0;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.blog-section,
+.seminar-section {
+  padding: 3rem 2rem;
+}
+
+.blog-grid,
+.seminar-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.blog-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.blog-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+
+.blog-card-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.blog-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover .blog-card-image img {
+  transform: scale(1.05);
+}
+
+.blog-card-content {
+  padding: 1.5rem;
+}
+
+.blog-date {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.blog-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.3rem;
+  color: #1a1a2e;
+  line-height: 1.4;
+}
+
+.blog-card .excerpt {
+  margin: 0 0 1rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #f3f4f6;
+  color: #64748b;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.read-more {
+  display: inline-block;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.read-more:hover {
+  color: #1d4ed8;
+}
+
+.no-posts,
+.no-seminars {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #94a3b8;
+}
+
+/* Blog Post Page */
+.blog-post-page {
+  background: white;
+}
+
+.blog-post {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.blog-post-cover {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.blog-post-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.blog-post-container {
+  padding: 3rem 2rem;
+}
+
+.blog-post-header {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.blog-post-header h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  color: #1a1a2e;
+  line-height: 1.3;
+}
+
+.blog-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.blog-post-meta .date {
+  font-weight: 500;
+}
+
+.blog-post-meta .tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.blog-post-content {
+  line-height: 1.8;
+  color: #64748b;
+  margin-bottom: 3rem;
+}
+
+.blog-post-content h2 {
+  margin: 2rem 0 1rem;
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.blog-post-content h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.2rem;
+  color: #1a1a2e;
+}
+
+.blog-post-content p {
+  margin-bottom: 1rem;
+}
+
+.blog-post-content ul,
+.blog-post-content ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.blog-post-content li {
+  margin-bottom: 0.5rem;
+}
+
+.blog-post-content code {
+  background: #f3f4f6;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.blog-post-content pre {
+  background: #1a1a2e;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.blog-post-content pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.blog-post-content blockquote {
+  border-left: 4px solid #2563eb;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #64748b;
+}
+
+.blog-post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.blog-post-content th,
+.blog-post-content td {
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.blog-post-content th {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.related-posts {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.related-posts h2 {
+  margin: 0 0 1.5rem;
+  color: #1a1a2e;
+  font-size: 1.3rem;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.related-card {
+  display: block;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.related-card:hover {
+  background: #f3f4f6;
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+}
+
+.related-card h3 {
+  margin: 0 0 0.5rem;
+  color: #1a1a2e;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.related-card p {
+  margin: 0 0 0.75rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.related-card .date {
+  display: block;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Seminar Page */
+.seminar-page {
+  background: white;
+}
+
+/* seminar-hero styles merged with blog-hero above */
+
+.filter-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.filter-btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  color: #64748b;
+}
+
+.filter-btn:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.filter-btn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.seminar-list {
+  grid-template-columns: 1fr;
+}
+
+.seminar-card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.seminar-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+}
+
+.seminar-card-image {
+  width: 200px;
+  height: 150px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #f3f4f6;
+  border-radius: 6px;
+}
+
+.seminar-card-image img,
+.seminar-card-image .placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+}
+
+.seminar-card:hover .seminar-card-image img {
+  transform: scale(1.05);
+}
+
+.seminar-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.seminar-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.3rem;
+  color: #1a1a2e;
+  line-height: 1.4;
+}
+
+.seminar-card .excerpt {
+  margin: 0 0 1rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seminar-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.meta-item .icon {
+  font-size: 1.1rem;
+}
+
+.seminar-card-footer {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* Seminar Detail Page */
+.seminar-detail-page {
+  background: white;
+}
+
+.seminar-detail {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.seminar-detail-cover {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.seminar-detail-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seminar-detail-container {
+  padding: 3rem 2rem;
+}
+
+.seminar-detail-header {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.seminar-detail-header h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+  color: #1a1a2e;
+  line-height: 1.3;
+}
+
+.seminar-detail-header .subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.seminar-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+}
+
+.seminar-detail-content {
+  line-height: 1.8;
+  color: #64748b;
+}
+
+.seminar-detail-content h2 {
+  margin: 2rem 0 1rem;
+  font-size: 1.5rem;
+  color: #1a1a2e;
+}
+
+.seminar-detail-content h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.2rem;
+  color: #1a1a2e;
+}
+
+.seminar-detail-content p {
+  margin-bottom: 1rem;
+}
+
+.seminar-detail-content ul,
+.seminar-detail-content ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.seminar-info-box {
+  background: #f9fafb;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.seminar-info-box h3 {
+  margin: 0 0 1rem;
+  color: #1a1a2e;
+  font-size: 1.1rem;
+}
+
+.info-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.info-item:last-child {
+  margin-bottom: 1rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.info-item strong {
+  display: block;
+  color: #1a1a2e;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.info-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.seminar-info-box .btn-primary {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.registration-deadline {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.page.not-found {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page.not-found .container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.page.not-found h1 {
+  color: #1a1a2e;
+  margin-bottom: 1rem;
+}
+
+.page.not-found a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page.not-found a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .blog-grid,
+  .seminar-list {
+    grid-template-columns: 1fr;
+  }
+
+  .seminar-card {
+    flex-direction: column;
+  }
+
+  .seminar-card-image {
+    width: 100%;
+    height: 200px;
+  }
+
+  .blog-hero h1,
+  .seminar-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .blog-post-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .seminar-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .seminar-info-box {
+    position: static;
+  }
+
+  .related-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-buttons {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-hero,
+  .seminar-hero {
+    padding: 2rem 1rem;
+  }
+
+  .blog-hero h1,
+  .seminar-hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .blog-post-container,
+  .seminar-detail-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .blog-post-cover,
+  .seminar-detail-cover {
+    height: 250px;
+  }
+
+  .blog-post-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .blog-post-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .blog-post-content h3 {
+    font-size: 1rem;
+  }
+
+  .blog-card-image {
+    height: 150px;
+  }
+
+  .seminar-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+}

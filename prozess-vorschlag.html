@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prozess-Visualisierung — Vorschlaege</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F5F7F6;
+    color: #1A1D23;
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .page-header {
+    max-width: 1100px;
+    margin: 0 auto 3rem;
+    text-align: center;
+  }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .page-header p { font-size: 0.9rem; color: #5A6178; }
+
+  .proposal {
+    max-width: 1100px;
+    margin: 0 auto 4rem;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    padding: 3rem 3rem 3.5rem;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+  .badge-a { background: #E8731A; }
+  .badge-b { background: #0062B8; }
+  .badge-c { background: #6B7280; }
+
+  .process-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #E8731A;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+  .process-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #1A1D23;
+    margin-bottom: 0.5rem;
+  }
+  .process-subtitle {
+    font-size: 0.95rem;
+    color: #5A6178;
+    margin-bottom: 2.5rem;
+    max-width: 600px;
+  }
+
+  /* ═══════════════════════════════════════════
+     VORSCHLAG A: Vertikale Timeline (links)
+     ═══════════════════════════════════════════ */
+  .v-timeline {
+    position: relative;
+    padding-left: 64px;
+  }
+  .v-timeline::before {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: #E8731A;
+    opacity: 0.2;
+  }
+  .v-step {
+    position: relative;
+    padding-bottom: 2.5rem;
+    transition: opacity 0.3s ease;
+  }
+  .v-step:last-child { padding-bottom: 0; }
+
+  .v-dot {
+    position: absolute;
+    left: -64px;
+    top: 2px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  .v-dot span {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #E8731A;
+  }
+  .v-dot::before {
+    content: '';
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid rgba(232,115,26,0.15);
+    background: #fff;
+  }
+  .v-dot span { position: relative; z-index: 1; }
+
+  .v-step:hover .v-dot::before {
+    border-color: #E8731A;
+  }
+
+  .v-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.35rem;
+  }
+  .v-desc {
+    font-size: 0.88rem;
+    color: #5A6178;
+    line-height: 1.55;
+    max-width: 520px;
+  }
+
+  /* ═══════════════════════════════════════════
+     VORSCHLAG B: Horizontale Karten-Reihe
+     ═══════════════════════════════════════════ */
+  .h-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+  }
+  .h-card {
+    padding: 1.5rem 1.25rem;
+    border-left: 3px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .h-card:hover {
+    border-left-color: #E8731A;
+    background: #FDF8F3;
+  }
+  .h-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #E8731A;
+    margin-bottom: 0.6rem;
+    line-height: 1;
+  }
+  .h-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.4rem;
+  }
+  .h-desc {
+    font-size: 0.82rem;
+    color: #5A6178;
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════
+     VORSCHLAG C: Gestapelte Zeilen mit Linie
+     ═══════════════════════════════════════════ */
+  .row-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .row-step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #F0F2F5;
+    transition: background 0.2s ease;
+  }
+  .row-step:last-child { border-bottom: none; }
+  .row-step:hover { background: #FDFAF7; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; border-radius: 8px; }
+
+  .row-number {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #E8731A;
+    text-align: right;
+    padding-top: 2px;
+  }
+  .row-content {}
+  .row-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.3rem;
+  }
+  .row-desc {
+    font-size: 0.88rem;
+    color: #5A6178;
+    line-height: 1.55;
+    max-width: 600px;
+  }
+
+  /* ═══════════════════ Notes ═══════════════════ */
+  .notes {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+  .notes h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .note-card { padding: 1rem; border: 1px solid #F0F2F5; border-radius: 8px; }
+  .note-card h4 { font-size: 0.85rem; font-weight: 700; color: #1A1D23; margin-bottom: 0.4rem; }
+  .note-card p { font-size: 0.82rem; color: #5A6178; line-height: 1.5; }
+  .note-card .tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; display: block; }
+  .tag-a { color: #E8731A; }
+  .tag-b { color: #0062B8; }
+  .tag-c { color: #6B7280; }
+
+  @media (max-width: 768px) {
+    .h-cards { grid-template-columns: 1fr; }
+    .notes-grid { grid-template-columns: 1fr; }
+    .proposal { padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Prozess-Visualisierung: 3 Vorschlaege</h1>
+  <p>Alternativen zur aktuellen Kreis-Timeline — buendig, sauber, gleichmaessige Abstande</p>
+</div>
+
+<!-- ═══════ VORSCHLAG A ═══════ -->
+<div class="proposal">
+  <span class="badge badge-a">Vorschlag A: Vertikale Timeline</span>
+  <span class="process-label">UNSER VORGEHEN</span>
+  <h2 class="process-title">Vom ersten Gespraech bis zum laufenden System</h2>
+  <p class="process-subtitle">Strukturiert, transparent und auf Ihre Beduerfnisse abgestimmt.</p>
+
+  <div class="v-timeline">
+    <div class="v-step">
+      <div class="v-dot"><span>01</span></div>
+      <h3 class="v-title">Analyse &amp; Workshop</h3>
+      <p class="v-desc">Wir verstehen Ihre Prozesse, Schnittstellen und Anforderungen — bevor wir eine Zeile Code schreiben.</p>
+    </div>
+    <div class="v-step">
+      <div class="v-dot"><span>02</span></div>
+      <h3 class="v-title">Konzept &amp; Prototyp</h3>
+      <p class="v-desc">Klickbares Konzept und technische Architektur in 2–4 Wochen. Feedback-Schleife mit Ihrem Team.</p>
+    </div>
+    <div class="v-step">
+      <div class="v-dot"><span>03</span></div>
+      <h3 class="v-title">Agile Entwicklung</h3>
+      <p class="v-desc">Zweiwoechige Sprints mit transparentem Fortschritt. Sie sehen jederzeit, woran wir arbeiten.</p>
+    </div>
+    <div class="v-step">
+      <div class="v-dot"><span>04</span></div>
+      <h3 class="v-title">Go-Live &amp; Migration</h3>
+      <p class="v-desc">Strukturiertes Change-Management, Schulungen und reibungsloser Datenuebergang — ohne Betriebsunterbrechung.</p>
+    </div>
+    <div class="v-step">
+      <div class="v-dot"><span>05</span></div>
+      <h3 class="v-title">Support &amp; Weiter</h3>
+      <p class="v-desc">24/7-Support, regelmaessige Updates und kontinuierliche Weiterentwicklung nach Ihren Prioritaeten.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VORSCHLAG B ═══════ -->
+<div class="proposal">
+  <span class="badge badge-b">Vorschlag B: Horizontale Karten mit Border-Left</span>
+  <span class="process-label">UNSER VORGEHEN</span>
+  <h2 class="process-title">Vom ersten Gespraech bis zum laufenden System</h2>
+  <p class="process-subtitle">Strukturiert, transparent und auf Ihre Beduerfnisse abgestimmt.</p>
+
+  <div class="h-cards">
+    <div class="h-card">
+      <div class="h-number">01</div>
+      <h3 class="h-title">Analyse &amp; Workshop</h3>
+      <p class="h-desc">Wir verstehen Ihre Prozesse, Schnittstellen und Anforderungen — bevor wir eine Zeile Code schreiben.</p>
+    </div>
+    <div class="h-card">
+      <div class="h-number">02</div>
+      <h3 class="h-title">Konzept &amp; Prototyp</h3>
+      <p class="h-desc">Klickbares Konzept und technische Architektur in 2–4 Wochen. Feedback-Schleife mit Ihrem Team.</p>
+    </div>
+    <div class="h-card">
+      <div class="h-number">03</div>
+      <h3 class="h-title">Agile Entwicklung</h3>
+      <p class="h-desc">Zweiwoechige Sprints mit transparentem Fortschritt. Sie sehen jederzeit, woran wir arbeiten.</p>
+    </div>
+    <div class="h-card">
+      <div class="h-number">04</div>
+      <h3 class="h-title">Go-Live &amp; Migration</h3>
+      <p class="h-desc">Strukturiertes Change-Management, Schulungen und reibungsloser Datenuebergang — ohne Betriebsunterbrechung.</p>
+    </div>
+    <div class="h-card">
+      <div class="h-number">05</div>
+      <h3 class="h-title">Support &amp; Weiter</h3>
+      <p class="h-desc">24/7-Support, regelmaessige Updates und kontinuierliche Weiterentwicklung nach Ihren Prioritaeten.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VORSCHLAG C ═══════ -->
+<div class="proposal">
+  <span class="badge badge-c">Vorschlag C: Gestapelte Zeilen</span>
+  <span class="process-label">UNSER VORGEHEN</span>
+  <h2 class="process-title">Vom ersten Gespraech bis zum laufenden System</h2>
+  <p class="process-subtitle">Strukturiert, transparent und auf Ihre Beduerfnisse abgestimmt.</p>
+
+  <div class="row-steps">
+    <div class="row-step">
+      <div class="row-number">01</div>
+      <div class="row-content">
+        <h3 class="row-title">Analyse &amp; Workshop</h3>
+        <p class="row-desc">Wir verstehen Ihre Prozesse, Schnittstellen und Anforderungen — bevor wir eine Zeile Code schreiben.</p>
+      </div>
+    </div>
+    <div class="row-step">
+      <div class="row-number">02</div>
+      <div class="row-content">
+        <h3 class="row-title">Konzept &amp; Prototyp</h3>
+        <p class="row-desc">Klickbares Konzept und technische Architektur in 2–4 Wochen. Feedback-Schleife mit Ihrem Team.</p>
+      </div>
+    </div>
+    <div class="row-step">
+      <div class="row-number">03</div>
+      <div class="row-content">
+        <h3 class="row-title">Agile Entwicklung</h3>
+        <p class="row-desc">Zweiwoechige Sprints mit transparentem Fortschritt. Sie sehen jederzeit, woran wir arbeiten.</p>
+      </div>
+    </div>
+    <div class="row-step">
+      <div class="row-number">04</div>
+      <div class="row-content">
+        <h3 class="row-title">Go-Live &amp; Migration</h3>
+        <p class="row-desc">Strukturiertes Change-Management, Schulungen und reibungsloser Datenuebergang — ohne Betriebsunterbrechung.</p>
+      </div>
+    </div>
+    <div class="row-step">
+      <div class="row-number">05</div>
+      <div class="row-content">
+        <h3 class="row-title">Support &amp; Weiter</h3>
+        <p class="row-desc">24/7-Support, regelmaessige Updates und kontinuierliche Weiterentwicklung nach Ihren Prioritaeten.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ VERGLEICH ═══════ -->
+<div class="notes">
+  <h3>Vergleich der Vorschlaege</h3>
+  <div class="notes-grid">
+    <div class="note-card">
+      <span class="tag tag-a">Vorschlag A</span>
+      <h4>Vertikale Timeline</h4>
+      <p>Kreise links mit vertikaler Verbindungslinie. Texte rechts linksbuendig. Gleichmaessige Abstande, kein Zentrierungsproblem. Aehnlich wie professionelle Case-Study-Seiten.</p>
+    </div>
+    <div class="note-card">
+      <span class="tag tag-b">Vorschlag B</span>
+      <h4>Horizontale Karten</h4>
+      <p>5 Spalten ohne Kreise. Nummern gross als Text, kein verbindendes Element noetig. Border-Left als Hover-Akzent. Minimalistisch, gleichmaessiges Grid.</p>
+    </div>
+    <div class="note-card">
+      <span class="tag tag-c">Vorschlag C</span>
+      <h4>Gestapelte Zeilen</h4>
+      <p>Nummer links, Text rechts in horizontaler Zeile. Trennlinien zwischen Schritten. Sehr sauber, einfach, gut lesbar. Am besten fuer lange Beschreibungen.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

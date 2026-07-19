@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig – UX Section Headers Analyse & Vorschlag</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1a1a2e; }
+
+  .page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5e 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .page-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .page-header p { opacity: 0.7; font-size: 1rem; }
+
+  .analysis-section {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+
+  .analysis-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #e74c3c;
+    color: #e74c3c;
+  }
+
+  .analysis-title.green {
+    border-bottom-color: #10b981;
+    color: #10b981;
+  }
+
+  /* Current state comparison grid */
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .section-card-label {
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .badge-left { background: #dbeafe; color: #1d4ed8; }
+  .badge-center { background: #fef3c7; color: #92400e; }
+  .badge-tag { background: #d1fae5; color: #065f46; }
+  .badge-notag { background: #fee2e2; color: #991b1b; }
+
+  /* Simulated section previews */
+  .preview {
+    padding: 2rem 1.5rem;
+    min-height: 160px;
+    position: relative;
+  }
+
+  /* Leistungen - left aligned, no tag */
+  .preview-leistungen {
+    text-align: center;
+  }
+  .preview-leistungen h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .preview-leistungen p { color: #64748b; font-size: 0.9rem; }
+
+  /* About - center, orange tag */
+  .preview-about {
+    text-align: center;
+  }
+  .preview-about .tag {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #f97316;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .preview-about h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  /* Blog - centered, no tag */
+  .preview-blog {
+    text-align: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+  }
+  .preview-blog h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+  }
+  .preview-blog p { color: #64748b; }
+
+  /* Seminare - centered, no tag */
+  .preview-seminare {
+    text-align: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+  }
+  .preview-seminare h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+  }
+  .preview-seminare p { color: #64748b; }
+
+  /* Prozess - centered, green tag */
+  .preview-prozess {
+    text-align: center;
+  }
+  .preview-prozess .tag {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #10b981;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .preview-prozess h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  /* Problem annotations */
+  .annotations {
+    padding: 0.75rem 1.25rem;
+    background: #fff7ed;
+    border-top: 1px solid #fed7aa;
+    font-size: 0.8rem;
+    color: #9a3412;
+  }
+  .annotations ul {
+    list-style: none;
+    padding: 0;
+  }
+  .annotations li::before {
+    content: "⚠️ ";
+  }
+  .annotations li { margin-bottom: 0.25rem; }
+
+  /* Issues summary */
+  .issues-summary {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 2px solid #fecaca;
+  }
+  .issues-summary h3 {
+    color: #dc2626;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+  .issues-summary table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .issues-summary th {
+    text-align: left;
+    padding: 0.5rem 1rem;
+    background: #fef2f2;
+    border-bottom: 2px solid #fecaca;
+    font-weight: 700;
+    color: #991b1b;
+  }
+  .issues-summary td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .yes { color: #10b981; font-weight: 600; }
+  .no { color: #ef4444; font-weight: 600; }
+  .diff { color: #f59e0b; font-weight: 600; }
+
+  /* PROPOSAL */
+  .proposal-section {
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+    padding: 0 2rem;
+  }
+
+  .proposal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Unified Proposal Preview */
+  .proposal-demo {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #10b981;
+    margin-bottom: 2rem;
+  }
+
+  .proposal-demo-label {
+    background: #ecfdf5;
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #065f46;
+    border-bottom: 1px solid #a7f3d0;
+  }
+
+  /* Simulated inline sections */
+  .simulated-page {
+    overflow: hidden;
+  }
+
+  .sim-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: #1a1a2e;
+    color: white;
+    font-size: 0.85rem;
+  }
+  .sim-logo { font-weight: 800; font-size: 1.1rem; }
+  .sim-logo span { color: #f97316; }
+  .sim-nav-links { display: flex; gap: 1.5rem; font-size: 0.8rem; opacity: 0.8; }
+
+  .sim-section {
+    padding: 3rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sim-section:last-child { border-bottom: none; }
+
+  /* Unified header pattern */
+  .unified-header {
+    text-align: left;
+    max-width: 800px;
+    margin-bottom: 2rem;
+  }
+
+  .unified-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: #f97316;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .unified-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  .unified-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+
+  /* Section-specific bg */
+  .sim-leistungen { background: #ffffff; }
+  .sim-about { background: #f8fafc; }
+  .sim-blog { background: #ffffff; }
+  .sim-seminare { background: #f8fafc; }
+  .sim-prozess { background: #ffffff; }
+
+  /* Content placeholder */
+  .content-placeholder {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .placeholder-card {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 0.75rem;
+  }
+
+  /* Design rationale */
+  .rationale {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+    margin-top: 2rem;
+  }
+  .rationale h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #1a1a2e;
+  }
+  .rationale-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .rationale-item {
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border-left: 3px solid #f97316;
+  }
+  .rationale-item h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: #1a1a2e;
+  }
+  .rationale-item p {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .divider {
+    height: 3px;
+    background: linear-gradient(90deg, #f97316, #10b981);
+    margin: 3rem 0;
+    border-radius: 2px;
+  }
+
+  /* Page sections */
+  .sim-page-header {
+    padding: 3rem 2rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .sim-page-header .unified-tag { margin-bottom: 0.5rem; }
+
+  /* Blog/Seminar as separate pages */
+  .sim-standalone-page {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #10b981;
+    margin-bottom: 1.5rem;
+  }
+  .sim-standalone-label {
+    background: #ecfdf5;
+    padding: 0.5rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #065f46;
+    border-bottom: 1px solid #a7f3d0;
+  }
+  .sim-standalone-page .sim-page-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>UX-Analyse: Section Headers</h1>
+  <p>IST-Zustand, Inkonsistenzen & Vorschlag</p>
+</div>
+
+<!-- ===================== IST-ZUSTAND ===================== -->
+<div class="analysis-section">
+  <div class="analysis-title">IST-Zustand: So sieht es aktuell aus</div>
+
+  <div class="comparison-grid">
+    <!-- Leistungen -->
+    <div class="section-card">
+      <div class="section-card-label">
+        1. Leistungen
+        <div><span class="badge badge-center">Zentriert</span> <span class="badge badge-notag">Kein Tag</span></div>
+      </div>
+      <div class="preview preview-leistungen">
+        <h3>Unsere Leistungen</h3>
+        <p>Ihr Partner für die digitale Transformation.</p>
+      </div>
+      <div class="annotations">
+        <ul>
+          <li>Zentriert via <code>.section-header { text-align: center }</code></li>
+          <li>Kein farbiger Tag/Label oberhalb</li>
+          <li>Titel + kurze Unterzeile</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Über ProuDig -->
+    <div class="section-card">
+      <div class="section-card-label">
+        2. Über ProuDig
+        <div><span class="badge badge-center">Zentriert</span> <span class="badge badge-tag">Orange Tag</span></div>
+      </div>
+      <div class="preview preview-about">
+        <span class="tag">ÜBER UNS</span>
+        <h3>Unser Team - Ihre Partner auf Augenhöhe</h3>
+      </div>
+      <div class="annotations">
+        <ul>
+          <li>Hat orangenen <code>.section-tag</code> ("ÜBER UNS")</li>
+          <li>Zentriert, kein Untertitel</li>
+          <li>Titel ist beschreibender Satz</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Blog -->
+    <div class="section-card">
+      <div class="section-card-label">
+        3. Blog
+        <div><span class="badge badge-center">Zentriert</span> <span class="badge badge-notag">Kein Tag</span></div>
+      </div>
+      <div class="preview preview-blog">
+        <h3>Blog</h3>
+        <p>Aktuelle Artikel und Insights</p>
+      </div>
+      <div class="annotations">
+        <ul>
+          <li>Eigene Seite mit Hero-Banner</li>
+          <li>Größerer Font (2.5rem, weight 800)</li>
+          <li>Anderer Hintergrund (Gradient)</li>
+          <li>Kein Tag</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Seminare -->
+    <div class="section-card">
+      <div class="section-card-label">
+        4. Seminare
+        <div><span class="badge badge-center">Zentriert</span> <span class="badge badge-notag">Kein Tag</span></div>
+      </div>
+      <div class="preview preview-seminare">
+        <h3>Seminare</h3>
+        <p>Wissenstransfer und Weiterbildung</p>
+      </div>
+      <div class="annotations">
+        <ul>
+          <li>Eigene Seite mit Hero-Banner (wie Blog)</li>
+          <li>Gleicher Stil wie Blog-Hero</li>
+          <li>Kein Tag</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Prozess -->
+    <div class="section-card">
+      <div class="section-card-label">
+        5. Prozess
+        <div><span class="badge badge-center">Zentriert</span> <span class="badge badge-tag" style="background:#d1fae5;color:#065f46">Grüner Tag</span></div>
+      </div>
+      <div class="preview preview-prozess">
+        <span class="tag" style="color:#10b981">UNSER VORGEHEN</span>
+        <h3>Vom ersten Gespräch<br>bis zum laufenden System.</h3>
+      </div>
+      <div class="annotations">
+        <ul>
+          <li>Hat grünen <code>.process-label</code></li>
+          <li>Tag-Farbe grün statt orange (<code>var(--c-accent)</code> = grün hier)</li>
+          <li>Eigener Container (<code>.container</code> statt <code>.section-container</code>)</li>
+          <li>Titel über zwei Zeilen, poetischer</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inconsistency matrix -->
+  <div class="issues-summary">
+    <h3>Inkonsistenz-Matrix</h3>
+    <table>
+      <tr>
+        <th>Sektion</th>
+        <th>Tag/Label</th>
+        <th>Tag-Farbe</th>
+        <th>Ausrichtung</th>
+        <th>Container-Klasse</th>
+        <th>Hat Untertitel</th>
+        <th>Font-Size Titel</th>
+      </tr>
+      <tr>
+        <td><strong>Leistungen</strong></td>
+        <td class="no">Nein</td>
+        <td>—</td>
+        <td>center</td>
+        <td><code>.section-container</code></td>
+        <td class="yes">Ja</td>
+        <td>clamp(1.75rem, 3vw, 2.5rem)</td>
+      </tr>
+      <tr>
+        <td><strong>Über uns</strong></td>
+        <td class="yes">Ja ("ÜBER UNS")</td>
+        <td class="diff">Orange</td>
+        <td>center</td>
+        <td><code>.section-container</code></td>
+        <td class="no">Nein</td>
+        <td>inherit (unset)</td>
+      </tr>
+      <tr>
+        <td><strong>Blog</strong></td>
+        <td class="no">Nein</td>
+        <td>—</td>
+        <td>center</td>
+        <td>Eigene Hero-Box</td>
+        <td class="yes">Ja</td>
+        <td>2.5rem (fest)</td>
+      </tr>
+      <tr>
+        <td><strong>Seminare</strong></td>
+        <td class="no">Nein</td>
+        <td>—</td>
+        <td>center</td>
+        <td>Eigene Hero-Box</td>
+        <td class="yes">Ja</td>
+        <td>2.5rem (fest)</td>
+      </tr>
+      <tr>
+        <td><strong>Prozess</strong></td>
+        <td class="yes">Ja ("UNSER VORGEHEN")</td>
+        <td class="diff">Grün</td>
+        <td>center</td>
+        <td><code>.container</code> (anders!)</td>
+        <td class="no">Nein (aber langer Titel)</td>
+        <td>clamp(1.75rem, 3vw, 2.5rem)</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="divider" style="max-width:1200px;margin:3rem auto"></div>
+
+<!-- ===================== VORSCHLAG ===================== -->
+<div class="proposal-section">
+  <div class="analysis-title green">Vorschlag: Einheitliches Header-System</div>
+
+  <p style="margin-bottom:2rem;color:#475569;line-height:1.7;max-width:800px;">
+    <strong>Grundprinzip:</strong> Jede Sektion bekommt dasselbe 3-Zeilen-Header-Pattern:
+    <strong style="color:#f97316">orangener Tag</strong> (Kategorie) &rarr; <strong>Haupttitel</strong> (fett, groß) &rarr; <em>optionaler Untertitel</em> (grau).
+    Alle Sektionen auf der Hauptseite sind linksbündig und teilen denselben <code>max-width: 1200px</code> Container.
+    Blog und Seminare als eigene Seiten behalten ihren Hero-Banner, übernehmen aber dasselbe Pattern.
+  </p>
+
+  <!-- Main Page Simulation -->
+  <div class="proposal-demo">
+    <div class="proposal-demo-label">Hauptseite – Einheitliche Sektionen (linksbündig, gleicher Container)</div>
+    <div class="simulated-page">
+      <div class="sim-navbar">
+        <div class="sim-logo">Prou<span>.</span>Dig</div>
+        <div class="sim-nav-links">
+          <span>Leistungen</span>
+          <span>Über uns</span>
+          <span>Prozess</span>
+          <span>Blog</span>
+          <span>Seminare</span>
+          <span>Kontakt</span>
+        </div>
+      </div>
+
+      <!-- Leistungen -->
+      <div class="sim-section sim-leistungen">
+        <div class="unified-header">
+          <div class="unified-tag">LEISTUNGEN</div>
+          <h2 class="unified-title">Unsere Leistungen</h2>
+          <p class="unified-subtitle">Ihr Partner für die digitale Transformation.</p>
+        </div>
+        <div class="content-placeholder">
+          <div class="placeholder-card">KI-Anwendungen</div>
+          <div class="placeholder-card">Mobile Apps</div>
+          <div class="placeholder-card">Web-Entwicklung</div>
+        </div>
+      </div>
+
+      <!-- Über uns -->
+      <div class="sim-section sim-about">
+        <div class="unified-header">
+          <div class="unified-tag">ÜBER UNS</div>
+          <h2 class="unified-title">Unser Team – Ihre Partner auf Augenhöhe</h2>
+          <p class="unified-subtitle">Digitalisierung ist Vertrauenssache. Persönliche Zusammenarbeit und direkte Kommunikation.</p>
+        </div>
+        <div class="content-placeholder">
+          <div class="placeholder-card">Team Mitglied</div>
+          <div class="placeholder-card">Team Mitglied</div>
+          <div class="placeholder-card">Team Mitglied</div>
+        </div>
+      </div>
+
+      <!-- Prozess -->
+      <div class="sim-section sim-prozess">
+        <div class="unified-header">
+          <div class="unified-tag">UNSER VORGEHEN</div>
+          <h2 class="unified-title">Vom ersten Gespräch bis zum laufenden System</h2>
+          <p class="unified-subtitle">Strukturiert, transparent und auf Ihre Bedürfnisse abgestimmt.</p>
+        </div>
+        <div class="content-placeholder" style="grid-template-columns: repeat(5, 1fr);">
+          <div class="placeholder-card">01 Analyse</div>
+          <div class="placeholder-card">02 Konzept</div>
+          <div class="placeholder-card">03 Agile Dev</div>
+          <div class="placeholder-card">04 Go-Live</div>
+          <div class="placeholder-card">05 Support</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blog Standalone Page -->
+  <div class="sim-standalone-page">
+    <div class="sim-standalone-label">Blog – Eigene Seite (Hero-Banner mit einheitlichem Pattern)</div>
+    <div class="sim-navbar">
+      <div class="sim-logo">Prou<span>.</span>Dig</div>
+      <div class="sim-nav-links">
+        <span>Leistungen</span>
+        <span>Über uns</span>
+        <span>Prozess</span>
+        <span style="font-weight:700;opacity:1">Blog</span>
+        <span>Seminare</span>
+        <span>Kontakt</span>
+      </div>
+    </div>
+    <div class="sim-page-header" style="background:linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)">
+      <div class="unified-header" style="text-align:left;max-width:1200px;margin:0 auto">
+        <div class="unified-tag">BLOG</div>
+        <h2 class="unified-title" style="font-size:2.2rem">Aktuelle Artikel & Insights</h2>
+        <p class="unified-subtitle">Wissen teilen. Impulse setzen. Zukunft gestalten.</p>
+      </div>
+    </div>
+    <div style="padding:1.5rem 2rem">
+      <div class="content-placeholder">
+        <div class="placeholder-card" style="min-height:120px">Blog Artikel</div>
+        <div class="placeholder-card" style="min-height:120px">Blog Artikel</div>
+        <div class="placeholder-card" style="min-height:120px">Blog Artikel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seminare Standalone Page -->
+  <div class="sim-standalone-page">
+    <div class="sim-standalone-label">Seminare – Eigene Seite (Hero-Banner mit einheitlichem Pattern)</div>
+    <div class="sim-navbar">
+      <div class="sim-logo">Prou<span>.</span>Dig</div>
+      <div class="sim-nav-links">
+        <span>Leistungen</span>
+        <span>Über uns</span>
+        <span>Prozess</span>
+        <span>Blog</span>
+        <span style="font-weight:700;opacity:1">Seminare</span>
+        <span>Kontakt</span>
+      </div>
+    </div>
+    <div class="sim-page-header" style="background:linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)">
+      <div class="unified-header" style="text-align:left;max-width:1200px;margin:0 auto">
+        <div class="unified-tag">SEMINARE</div>
+        <h2 class="unified-title" style="font-size:2.2rem">Wissenstransfer & Weiterbildung</h2>
+        <p class="unified-subtitle">Praxisnahe Seminare für Ihr Team – von Experten geleitet.</p>
+      </div>
+    </div>
+    <div style="padding:1.5rem 2rem">
+      <div class="content-placeholder" style="grid-template-columns: 1fr 1fr">
+        <div class="placeholder-card" style="min-height:120px">Seminar Karte</div>
+        <div class="placeholder-card" style="min-height:120px">Seminar Karte</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Design Rationale -->
+  <div class="rationale">
+    <h3>Design-Begründung</h3>
+    <div class="rationale-grid">
+      <div class="rationale-item">
+        <h4>Einheitlicher Tag (orange)</h4>
+        <p>Jede Sektion hat einen orangenen Tag in Versalien. Orange ist die Markenfarbe von ProuDig – dadurch entsteht ein konsistenter Wiedererkennungseffekt. Kein Wechsel zwischen orange/grün/kein Tag.</p>
+      </div>
+      <div class="rationale-item">
+        <h4>Linksbündig statt zentriert</h4>
+        <p>Linksbündige Header erzeugen eine klare visuelle Hierarchie, die dem natürlichen Lesefluss (F-Pattern) entspricht. Sie fühlen sich professioneller an als zentrierte Header, besonders bei längeren Titeln.</p>
+      </div>
+      <div class="rationale-item">
+        <h4>3-Zeilen-Struktur: Tag → Titel → Untertitel</h4>
+        <p>Jede Sektion folgt demselben Muster. Der Benutzer lernt das Pattern einmal und kann jede Sektion sofort scannen. Kognitive Last wird reduziert.</p>
+      </div>
+      <div class="rationale-item">
+        <h4>Gleicher Container (max-width: 1200px)</h4>
+        <p>Alle Sektionen teilen denselben Container. Das Auge hat eine konstante linke Kante als Ankerpunkt – genau wie die Navbar.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

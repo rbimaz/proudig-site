@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig Hero — 5 Varianten zur Auswahl</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#E2E8F0;}
+
+  .page-header{background:#0F2B3C;color:white;padding:2rem 2rem;text-align:center;}
+  .page-header h1{font-size:1.3rem;font-weight:700;margin-bottom:.3rem;}
+  .page-header p{color:rgba(255,255,255,.5);font-size:.8rem;}
+
+  .variants{max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+  .variant-card{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:2rem;}
+  .variant-label{padding:.65rem 1.25rem;font-weight:700;font-size:.78rem;display:flex;align-items:center;gap:.5rem;background:#F8FAFC;border-bottom:1px solid #E2E8F0;}
+  .variant-label .v-letter{width:26px;height:26px;border-radius:50%;background:#E8731A;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.75rem;flex-shrink:0;}
+  .variant-label .v-name{font-size:.85rem;color:#1A1D23;}
+  .variant-label .v-desc{font-size:.72rem;color:#64748b;margin-left:auto;}
+
+  /* ── Hero mock shared ── */
+  .hero-mock{height:420px;position:relative;overflow:hidden;display:flex;align-items:center;background:linear-gradient(160deg,#0F2B3C 0%,#061520 100%);}
+  .hero-inner{display:flex;align-items:center;padding:0 2.5rem;gap:2rem;width:100%;}
+  .hero-text{flex:1;min-width:0;}
+  .hero-title{font-size:1.6rem;font-weight:800;color:white;line-height:1.25;margin-bottom:.65rem;}
+  .hero-title .acc{color:#E8731A;}
+  .hero-desc{font-size:.75rem;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:.9rem;max-width:380px;}
+  .hero-btns{display:flex;gap:.5rem;}
+  .btn-p{background:#E8731A;color:white;border:none;padding:.45rem .9rem;border-radius:6px;font-size:.7rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;}
+  .btn-s{background:transparent;color:white;border:1px solid rgba(255,255,255,.25);padding:.45rem .9rem;border-radius:6px;font-size:.7rem;font-weight:500;cursor:pointer;}
+  .hero-visual{flex:0 0 340px;display:flex;align-items:center;justify-content:center;position:relative;}
+
+  /* ══════════════════════════════════════════════
+     VARIANTE A — Vertikaler Prozessfluss (Referenz)
+     ══════════════════════════════════════════════ */
+  .va-flow{position:relative;width:280px;height:360px;}
+  .va-node{position:absolute;display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.45rem .65rem;cursor:default;backdrop-filter:blur(4px);transition:border-color .2s;}
+  .va-node:hover{border-color:rgba(232,115,26,.4);}
+  .va-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+  .va-label{font-size:.65rem;font-weight:600;color:white;line-height:1.3;}
+  .va-sub{font-size:.52rem;color:rgba(255,255,255,.4);margin-top:.05rem;}
+  .va-step{position:absolute;top:-5px;left:-5px;width:16px;height:16px;border-radius:50%;background:#E8731A;color:white;font-size:.5rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2;}
+  .va-n1{top:5px;left:15px;} .va-n2{top:75px;right:5px;} .va-n3{top:145px;left:5px;} .va-n4{top:215px;right:10px;} .va-n5{top:285px;left:30px;}
+  .ic-a{background:rgba(96,165,250,.15);color:#60A5FA;} .ic-b{background:rgba(232,115,26,.15);color:#E8731A;} .ic-c{background:rgba(52,211,153,.15);color:#34D399;} .ic-d{background:rgba(167,139,250,.15);color:#A78BFA;} .ic-e{background:rgba(251,191,36,.15);color:#FBBF24;}
+  .va-lines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .va-line{stroke:rgba(232,115,26,.2);stroke-width:1.5;fill:none;stroke-dasharray:6,4;}
+  @keyframes dashA{from{stroke-dashoffset:0;}to{stroke-dashoffset:-30;}}
+  .va-line{animation:dashA 3s linear infinite;}
+
+  /* ══════════════════════════════════════════════
+     VARIANTE B — Horizontale Pipeline
+     ══════════════════════════════════════════════ */
+  .vb-pipeline{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:320px;}
+  .vb-row{display:flex;align-items:center;gap:0;width:100%;}
+  .vb-stage{flex:1;text-align:center;position:relative;}
+  .vb-circle{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;margin:0 auto .3rem;font-size:.9rem;transition:all .25s;position:relative;}
+  .vb-circle:hover{border-color:#E8731A;box-shadow:0 0 16px rgba(232,115,26,.2);}
+  .vb-circle .vb-num{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#E8731A;color:white;font-size:.45rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .vb-sname{font-size:.6rem;font-weight:600;color:white;margin-bottom:.1rem;}
+  .vb-ssub{font-size:.48rem;color:rgba(255,255,255,.35);}
+  .vb-arrow{color:rgba(232,115,26,.35);font-size:.75rem;flex-shrink:0;margin:0 -.1rem;margin-top:-1.2rem;}
+  .vb-progress{width:100%;height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:.3rem;overflow:hidden;position:relative;}
+  .vb-progress-bar{height:100%;width:60%;background:linear-gradient(90deg,#E8731A,#F59E0B);border-radius:2px;animation:vbPulse 3s ease-in-out infinite;}
+  @keyframes vbPulse{0%,100%{width:20%;opacity:.5;}50%{width:80%;opacity:1;}}
+  .vb-bar-label{display:flex;justify-content:space-between;font-size:.45rem;color:rgba(255,255,255,.3);margin-top:.15rem;padding:0 .1rem;}
+  .ic-b1{color:#60A5FA;} .ic-b2{color:#E8731A;} .ic-b3{color:#34D399;} .ic-b4{color:#A78BFA;} .ic-b5{color:#FBBF24;}
+
+  /* ══════════════════════════════════════════════
+     VARIANTE C — Kreisförmiger Lifecycle
+     ══════════════════════════════════════════════ */
+  .vc-cycle{position:relative;width:300px;height:300px;}
+  .vc-ring{position:absolute;top:0;left:0;width:100%;height:100%;}
+  .vc-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:.2rem;cursor:default;}
+  .vc-dot{width:42px;height:42px;border-radius:50%;border:2px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:.85rem;background:rgba(255,255,255,.03);backdrop-filter:blur(4px);transition:all .25s;position:relative;}
+  .vc-dot:hover{border-color:#E8731A;background:rgba(232,115,26,.06);}
+  .vc-dot .vc-num{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#E8731A;color:white;font-size:.45rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .vc-text{font-size:.58rem;font-weight:600;color:white;text-align:center;white-space:nowrap;}
+  .vc-textsub{font-size:.46rem;color:rgba(255,255,255,.35);text-align:center;}
+  /* positions on circle (r=120, cx=150, cy=150) */
+  .vc-p1{top:30px;left:150px;}   /* top */
+  .vc-p2{top:87px;left:264px;}   /* top-right */
+  .vc-p3{top:213px;left:264px;}  /* bottom-right */
+  .vc-p4{top:270px;left:150px;}  /* bottom */
+  .vc-p5{top:213px;left:36px;}   /* bottom-left */
+  .vc-center-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+  .vc-center-label .vc-cl1{font-size:.7rem;font-weight:800;color:#E8731A;}
+  .vc-center-label .vc-cl2{font-size:.45rem;color:rgba(255,255,255,.35);margin-top:.1rem;}
+  @keyframes vcSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .vc-ring-line{animation:vcSpin 40s linear infinite;}
+
+  /* ══════════════════════════════════════════════
+     VARIANTE D — Netzwerk / Verbundene Knoten
+     ══════════════════════════════════════════════ */
+  .vd-network{position:relative;width:300px;height:340px;}
+  .vd-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .vd-edge{stroke:rgba(255,255,255,.07);stroke-width:1;fill:none;}
+  .vd-edge-active{stroke:rgba(232,115,26,.2);stroke-width:1.5;fill:none;stroke-dasharray:5,4;}
+  @keyframes vdDash{from{stroke-dashoffset:0;}to{stroke-dashoffset:-27;}}
+  .vd-edge-active{animation:vdDash 2.5s linear infinite;}
+  .vd-node{position:absolute;transform:translate(-50%,-50%);cursor:default;transition:all .2s;}
+  .vd-node:hover .vd-pill{border-color:rgba(232,115,26,.5);background:rgba(232,115,26,.06);}
+  .vd-pill{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.4rem .6rem;backdrop-filter:blur(4px);}
+  .vd-ic{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+  .vd-name{font-size:.62rem;font-weight:600;color:white;}
+  .vd-detail{font-size:.48rem;color:rgba(255,255,255,.35);}
+  .vd-hub{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid rgba(232,115,26,.3);display:flex;align-items:center;justify-content:center;background:rgba(232,115,26,.08);}
+  .vd-hub i{color:#E8731A;font-size:1.1rem;}
+  .vd-hub-pulse{position:absolute;width:54px;height:54px;border-radius:50%;border:1px solid rgba(232,115,26,.15);animation:vdPulse 2.5s ease-out infinite;}
+  @keyframes vdPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.6;}100%{transform:translate(-50%,-50%) scale(2);opacity:0;}}
+  /* positions */
+  .vd-n1{top:45px;left:70px;} .vd-n2{top:45px;left:230px;} .vd-n3{top:170px;left:150px;} .vd-n4{top:265px;left:60px;} .vd-n5{top:265px;left:240px;}
+
+  /* ══════════════════════════════════════════════
+     VARIANTE E — Timeline / Zeitstrahl mit Meilensteinen
+     ══════════════════════════════════════════════ */
+  .ve-timeline{position:relative;width:300px;height:360px;padding:10px 0;}
+  .ve-line{position:absolute;left:24px;top:20px;bottom:20px;width:2px;background:linear-gradient(180deg,rgba(232,115,26,.4),rgba(232,115,26,.1));border-radius:1px;}
+  .ve-pulse{position:absolute;left:23px;width:4px;height:4px;border-radius:50%;background:#E8731A;animation:vePulseMove 4s ease-in-out infinite;}
+  @keyframes vePulseMove{0%{top:20px;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:calc(100% - 24px);opacity:0;}}
+  .ve-item{display:flex;align-items:flex-start;gap:.65rem;margin-bottom:1.1rem;position:relative;padding-left:0;}
+  .ve-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;margin-left:15px;}
+  .ve-dot-inner{width:10px;height:10px;border-radius:50%;background:#E8731A;}
+  .ve-dot-ring{position:absolute;width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(232,115,26,.3);}
+  .ve-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.45rem .6rem;flex:1;backdrop-filter:blur(4px);transition:border-color .2s;}
+  .ve-card:hover{border-color:rgba(232,115,26,.4);}
+  .ve-card-head{display:flex;align-items:center;gap:.35rem;margin-bottom:.15rem;}
+  .ve-card-icon{font-size:.7rem;}
+  .ve-card-title{font-size:.62rem;font-weight:600;color:white;}
+  .ve-card-desc{font-size:.5rem;color:rgba(255,255,255,.4);line-height:1.4;}
+  .ve-phase{font-size:.42rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(232,115,26,.6);margin-left:15px;margin-bottom:.3rem;}
+
+  @media(max-width:800px){
+    .hero-inner{flex-direction:column;padding:1.5rem;}
+    .hero-visual{flex:none;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Hero-Visualisierung — 5 Varianten zur Auswahl</h1>
+  <p>Jede Variante ersetzt das Atom-Modell durch eine prozessbezogene Darstellung</p>
+</div>
+
+<div class="variants">
+
+<!-- ════════════════════════════════════════════
+     VARIANTE A — Vertikaler Prozessfluss
+     ════════════════════════════════════════════ -->
+<div class="variant-card">
+  <div class="variant-label">
+    <div class="v-letter">A</div>
+    <span class="v-name">Vertikaler Prozessfluss</span>
+    <span class="v-desc">Versetzt, von oben nach unten, animierte Verbindungslinien</span>
+  </div>
+  <div class="hero-mock">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns"><button class="btn-p">Beratungsgespraech <i class="bi bi-arrow-right"></i></button><button class="btn-s">Leistungen entdecken</button></div>
+      </div>
+      <div class="hero-visual">
+        <div class="va-flow">
+          <svg class="va-lines" viewBox="0 0 280 360"><path class="va-line" d="M95 30 C155 45,175 65,195 85"/><path class="va-line" d="M175 110 C135 130,75 145,85 170"/><path class="va-line" d="M115 195 C155 210,195 225,185 250"/><path class="va-line" d="M165 270 C135 290,105 305,115 325"/></svg>
+          <div class="va-node va-n1"><div class="va-step">1</div><div class="va-icon ic-a"><i class="bi bi-search"></i></div><div><div class="va-label">Analyse</div><div class="va-sub">Prozesse verstehen</div></div></div>
+          <div class="va-node va-n2"><div class="va-step">2</div><div class="va-icon ic-b"><i class="bi bi-chat-dots"></i></div><div><div class="va-label">Strategie</div><div class="va-sub">Konzept entwickeln</div></div></div>
+          <div class="va-node va-n3"><div class="va-step">3</div><div class="va-icon ic-c"><i class="bi bi-code-slash"></i></div><div><div class="va-label">Entwicklung</div><div class="va-sub">Loesung bauen</div></div></div>
+          <div class="va-node va-n4"><div class="va-step">4</div><div class="va-icon ic-d"><i class="bi bi-shield-check"></i></div><div><div class="va-label">Qualitaet</div><div class="va-sub">Testen &amp; sichern</div></div></div>
+          <div class="va-node va-n5"><div class="va-step">5</div><div class="va-icon ic-e"><i class="bi bi-rocket-takeoff"></i></div><div><div class="va-label">Go-Live</div><div class="va-sub">Wirkung entfalten</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     VARIANTE B — Horizontale Pipeline
+     ════════════════════════════════════════════ -->
+<div class="variant-card">
+  <div class="variant-label">
+    <div class="v-letter">B</div>
+    <span class="v-name">Horizontale Pipeline</span>
+    <span class="v-desc">Kompakte Schritte in einer Reihe, animierter Fortschrittsbalken</span>
+  </div>
+  <div class="hero-mock">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns"><button class="btn-p">Beratungsgespraech <i class="bi bi-arrow-right"></i></button><button class="btn-s">Leistungen entdecken</button></div>
+      </div>
+      <div class="hero-visual">
+        <div class="vb-pipeline">
+          <div class="vb-row">
+            <div class="vb-stage"><div class="vb-circle"><span class="ic-b1"><i class="bi bi-search"></i></span><span class="vb-num">1</span></div><div class="vb-sname">Analyse</div><div class="vb-ssub">Verstehen</div></div>
+            <div class="vb-arrow"><i class="bi bi-chevron-right"></i></div>
+            <div class="vb-stage"><div class="vb-circle"><span class="ic-b2"><i class="bi bi-chat-dots"></i></span><span class="vb-num">2</span></div><div class="vb-sname">Strategie</div><div class="vb-ssub">Planen</div></div>
+            <div class="vb-arrow"><i class="bi bi-chevron-right"></i></div>
+            <div class="vb-stage"><div class="vb-circle"><span class="ic-b3"><i class="bi bi-code-slash"></i></span><span class="vb-num">3</span></div><div class="vb-sname">Entwicklung</div><div class="vb-ssub">Bauen</div></div>
+            <div class="vb-arrow"><i class="bi bi-chevron-right"></i></div>
+            <div class="vb-stage"><div class="vb-circle"><span class="ic-b4"><i class="bi bi-shield-check"></i></span><span class="vb-num">4</span></div><div class="vb-sname">Qualitaet</div><div class="vb-ssub">Sichern</div></div>
+            <div class="vb-arrow"><i class="bi bi-chevron-right"></i></div>
+            <div class="vb-stage"><div class="vb-circle"><span class="ic-b5"><i class="bi bi-rocket-takeoff"></i></span><span class="vb-num">5</span></div><div class="vb-sname">Go-Live</div><div class="vb-ssub">Wirken</div></div>
+          </div>
+          <div class="vb-progress"><div class="vb-progress-bar"></div></div>
+          <div class="vb-bar-label"><span>Idee</span><span>Wirkung</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     VARIANTE C — Kreisfoermiger Lifecycle
+     ════════════════════════════════════════════ -->
+<div class="variant-card">
+  <div class="variant-label">
+    <div class="v-letter">C</div>
+    <span class="v-name">Kreisfoermiger Lifecycle</span>
+    <span class="v-desc">Schritte auf einem Kreis — betont den iterativen, kontinuierlichen Prozess</span>
+  </div>
+  <div class="hero-mock">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns"><button class="btn-p">Beratungsgespraech <i class="bi bi-arrow-right"></i></button><button class="btn-s">Leistungen entdecken</button></div>
+      </div>
+      <div class="hero-visual">
+        <div class="vc-cycle">
+          <!-- Ring -->
+          <svg class="vc-ring" viewBox="0 0 300 300">
+            <circle cx="150" cy="150" r="115" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.5"/>
+            <circle class="vc-ring-line" cx="150" cy="150" r="115" fill="none" stroke="rgba(232,115,26,.15)" stroke-width="1.5" stroke-dasharray="12,8" transform-origin="150 150"/>
+          </svg>
+          <!-- Center -->
+          <div class="vc-center-label"><div class="vc-cl1">ProuDig</div><div class="vc-cl2">Prozesszyklus</div></div>
+          <!-- Nodes -->
+          <div class="vc-node vc-p1"><div class="vc-dot"><span class="ic-a" style="font-size:.85rem"><i class="bi bi-search"></i></span><span class="vc-num" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E8731A;color:white;font-size:.42rem;font-weight:800;display:flex;align-items:center;justify-content:center;">1</span></div><div class="vc-text">Analyse</div></div>
+          <div class="vc-node vc-p2"><div class="vc-dot"><span class="ic-b" style="font-size:.85rem;background:none;color:#E8731A"><i class="bi bi-chat-dots"></i></span><span class="vc-num" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E8731A;color:white;font-size:.42rem;font-weight:800;display:flex;align-items:center;justify-content:center;">2</span></div><div class="vc-text">Strategie</div></div>
+          <div class="vc-node vc-p3"><div class="vc-dot"><span class="ic-c" style="font-size:.85rem;background:none;color:#34D399"><i class="bi bi-code-slash"></i></span><span class="vc-num" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E8731A;color:white;font-size:.42rem;font-weight:800;display:flex;align-items:center;justify-content:center;">3</span></div><div class="vc-text">Entwicklung</div></div>
+          <div class="vc-node vc-p4"><div class="vc-dot"><span class="ic-d" style="font-size:.85rem;background:none;color:#A78BFA"><i class="bi bi-shield-check"></i></span><span class="vc-num" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E8731A;color:white;font-size:.42rem;font-weight:800;display:flex;align-items:center;justify-content:center;">4</span></div><div class="vc-text">Qualitaet</div></div>
+          <div class="vc-node vc-p5"><div class="vc-dot"><span class="ic-e" style="font-size:.85rem;background:none;color:#FBBF24"><i class="bi bi-rocket-takeoff"></i></span><span class="vc-num" style="position:absolute;top:-3px;right:-3px;width:13px;height:13px;border-radius:50%;background:#E8731A;color:white;font-size:.42rem;font-weight:800;display:flex;align-items:center;justify-content:center;">5</span></div><div class="vc-text">Go-Live</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     VARIANTE D — Netzwerk / Zentraler Hub
+     ════════════════════════════════════════════ -->
+<div class="variant-card">
+  <div class="variant-label">
+    <div class="v-letter">D</div>
+    <span class="v-name">Netzwerk mit zentralem Hub</span>
+    <span class="v-desc">ProuDig als Zentrum, verbunden mit allen Prozessschritten — betont Vernetzung</span>
+  </div>
+  <div class="hero-mock">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns"><button class="btn-p">Beratungsgespraech <i class="bi bi-arrow-right"></i></button><button class="btn-s">Leistungen entdecken</button></div>
+      </div>
+      <div class="hero-visual">
+        <div class="vd-network">
+          <svg class="vd-svg" viewBox="0 0 300 340">
+            <!-- Background edges (all to center 150,170) -->
+            <line class="vd-edge" x1="70" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge" x1="230" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge" x1="60" y1="265" x2="150" y2="170"/>
+            <line class="vd-edge" x1="240" y1="265" x2="150" y2="170"/>
+            <!-- Active edges (sequential) -->
+            <line class="vd-edge-active" x1="70" y1="45" x2="230" y2="45"/>
+            <line class="vd-edge-active" x1="230" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge-active" x1="150" y1="170" x2="60" y2="265"/>
+            <line class="vd-edge-active" x1="60" y1="265" x2="240" y2="265"/>
+          </svg>
+          <!-- Hub -->
+          <div class="vd-hub" style="top:170px;left:150px;"><i class="bi bi-gear-wide-connected"></i></div>
+          <div class="vd-hub-pulse" style="top:170px;left:150px;"></div>
+          <!-- Nodes -->
+          <div class="vd-node vd-n1"><div class="vd-pill"><div class="vd-ic ic-a"><i class="bi bi-search"></i></div><div><div class="vd-name">Analyse</div><div class="vd-detail">Prozesse erfassen</div></div></div></div>
+          <div class="vd-node vd-n2"><div class="vd-pill"><div class="vd-ic ic-b"><i class="bi bi-chat-dots"></i></div><div><div class="vd-name">Strategie</div><div class="vd-detail">Konzept planen</div></div></div></div>
+          <div class="vd-node vd-n4"><div class="vd-pill"><div class="vd-ic ic-d"><i class="bi bi-shield-check"></i></div><div><div class="vd-name">Qualitaet</div><div class="vd-detail">Absichern</div></div></div></div>
+          <div class="vd-node vd-n5"><div class="vd-pill"><div class="vd-ic ic-e"><i class="bi bi-rocket-takeoff"></i></div><div><div class="vd-name">Go-Live</div><div class="vd-detail">Wirken</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     VARIANTE E — Timeline mit Meilensteinen
+     ════════════════════════════════════════════ -->
+<div class="variant-card">
+  <div class="variant-label">
+    <div class="v-letter">E</div>
+    <span class="v-name">Timeline mit Meilensteinen</span>
+    <span class="v-desc">Vertikale Zeitachse mit Karten — betont Fortschritt und Phasen</span>
+  </div>
+  <div class="hero-mock">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns"><button class="btn-p">Beratungsgespraech <i class="bi bi-arrow-right"></i></button><button class="btn-s">Leistungen entdecken</button></div>
+      </div>
+      <div class="hero-visual">
+        <div class="ve-timeline">
+          <div class="ve-line"></div>
+          <div class="ve-pulse"></div>
+
+          <div class="ve-phase">Phase 1 — Verstehen</div>
+          <div class="ve-item">
+            <div class="ve-dot"><div class="ve-dot-ring"></div><div class="ve-dot-inner"></div></div>
+            <div class="ve-card">
+              <div class="ve-card-head"><span class="ve-card-icon ic-b1"><i class="bi bi-search"></i></span><span class="ve-card-title">Analyse &amp; Aufnahme</span></div>
+              <div class="ve-card-desc">Bestehende Prozesse erfassen und Potenziale identifizieren</div>
+            </div>
+          </div>
+
+          <div class="ve-phase">Phase 2 — Planen</div>
+          <div class="ve-item">
+            <div class="ve-dot"><div class="ve-dot-ring"></div><div class="ve-dot-inner"></div></div>
+            <div class="ve-card">
+              <div class="ve-card-head"><span class="ve-card-icon" style="color:#E8731A"><i class="bi bi-chat-dots"></i></span><span class="ve-card-title">Strategie &amp; Konzept</span></div>
+              <div class="ve-card-desc">Digitalisierungsstrategie und Architektur entwerfen</div>
+            </div>
+          </div>
+
+          <div class="ve-phase">Phase 3 — Umsetzen</div>
+          <div class="ve-item">
+            <div class="ve-dot"><div class="ve-dot-ring"></div><div class="ve-dot-inner"></div></div>
+            <div class="ve-card">
+              <div class="ve-card-head"><span class="ve-card-icon" style="color:#34D399"><i class="bi bi-code-slash"></i></span><span class="ve-card-title">Entwicklung &amp; Test</span></div>
+              <div class="ve-card-desc">Agile Umsetzung mit kontinuierlicher Qualitaetssicherung</div>
+            </div>
+          </div>
+
+          <div class="ve-phase">Phase 4 — Wirken</div>
+          <div class="ve-item">
+            <div class="ve-dot"><div class="ve-dot-ring"></div><div class="ve-dot-inner"></div></div>
+            <div class="ve-card">
+              <div class="ve-card-head"><span class="ve-card-icon" style="color:#FBBF24"><i class="bi bi-rocket-takeoff"></i></span><span class="ve-card-title">Go-Live &amp; Betrieb</span></div>
+              <div class="ve-card-desc">Produktivgang, Monitoring und kontinuierliche Optimierung</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /variants -->
+</body>
+</html>

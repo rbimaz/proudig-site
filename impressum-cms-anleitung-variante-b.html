@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variante B — Schritt-f&uuml;r-Schritt-Anleitung</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#F0F2F5;color:#1A1D23;}
+  .header{background:#0F2B3C;color:white;padding:2.5rem 2rem;text-align:center;}
+  .header h1{font-size:1.4rem;font-weight:700;margin-bottom:.3rem;}
+  .header p{color:rgba(255,255,255,.55);font-size:.82rem;max-width:620px;margin:0 auto;}
+  .content{max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+  .intro{background:white;border-radius:10px;padding:1.5rem;margin-bottom:2rem;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .intro h2{font-size:1rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;}
+  .intro h2 i{color:#E8731A;}
+  .intro p{font-size:.82rem;color:#4A5568;line-height:1.6;}
+
+  .step{background:white;border-radius:10px;padding:1.5rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;gap:1rem;align-items:flex-start;}
+  .step-num{width:32px;height:32px;border-radius:50%;background:#E8731A;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex-shrink:0;margin-top:.1rem;}
+  .step-body h3{font-size:.92rem;font-weight:700;margin-bottom:.4rem;}
+  .step-body p{font-size:.8rem;color:#4A5568;line-height:1.55;margin-bottom:.5rem;}
+  .step-body .file-tag{display:inline-flex;align-items:center;gap:.25rem;background:#F1F5F9;padding:.15rem .55rem;border-radius:4px;font-size:.7rem;font-family:'SF Mono',monospace;color:#0F2B3C;margin-right:.3rem;margin-bottom:.25rem;}
+  .step-body .file-tag i{color:#E8731A;font-size:.65rem;}
+
+  .code-block{background:#0F2B3C;color:#E2E8F0;border-radius:6px;padding:1rem 1.25rem;font-family:'SF Mono',monospace;font-size:.72rem;line-height:1.7;overflow-x:auto;margin:.6rem 0;white-space:pre;}
+  .code-block .kw{color:#F59E0B;}
+  .code-block .str{color:#34D399;}
+  .code-block .cmt{color:#64748b;font-style:italic;}
+  .code-block .fn{color:#60A5FA;}
+  .code-block .tag{color:#F472B6;}
+  .code-block .attr{color:#A78BFA;}
+
+  .note{background:#FEF3C7;border-left:3px solid #F59E0B;border-radius:0 6px 6px 0;padding:.65rem 1rem;font-size:.78rem;color:#92400E;margin:.6rem 0;line-height:1.5;}
+  .note i{margin-right:.3rem;}
+
+  .summary{background:white;border-radius:10px;padding:1.5rem;margin-top:2rem;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #10B981;}
+  .summary h2{font-size:.95rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;}
+  .summary h2 i{color:#10B981;}
+  .summary p{font-size:.8rem;color:#4A5568;line-height:1.55;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Impressum via CMS — Variante B: StaticPage-System</h1>
+  <p>Schritt-f&uuml;r-Schritt-Anleitung: Impressum als STATIC-Page im bestehenden Pages-System pflegen</p>
+</div>
+
+<div class="content">
+
+<div class="intro">
+  <h2><i class="bi bi-info-circle-fill"></i> &Uuml;bersicht</h2>
+  <p>Variante B nutzt das bereits vorhandene <strong>Pages-System</strong> (Page-Entity mit HTML-Editor). Das Impressum wird als STATIC-Page angelegt und &uuml;ber den Slug <code>impressum</code> &ouml;ffentlich ausgeliefert. <strong>Kein Backend-Code muss ge&auml;ndert werden</strong> — nur Frontend-Routing und eine neue Renderer-Komponente.</p>
+</div>
+
+<!-- ── SCHRITT 1 ── -->
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h3>StaticPageRenderer-Komponente erstellen</h3>
+    <p>Eine neue Komponente, die per Slug die ver&ouml;ffentlichte Page vom API-Endpunkt <code>GET /api/pages/{slug}</code> l&auml;dt und das HTML rendert.</p>
+    <span class="file-tag"><i class="bi bi-file-earmark-code"></i> Neu: src/pages/StaticPageRenderer.jsx</span>
+    <div class="code-block"><span class="kw">import</span> React, { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+<span class="kw">import</span> { useParams } <span class="kw">from</span> <span class="str">'react-router-dom'</span>;
+<span class="kw">import</span> { Footer } <span class="kw">from</span> <span class="str">'../components/Footer'</span>;
+<span class="kw">import</span> { Navbar } <span class="kw">from</span> <span class="str">'../components/Navbar'</span>;
+
+<span class="kw">export const</span> <span class="fn">StaticPageRenderer</span> = () => {
+  <span class="kw">const</span> { slug } = <span class="fn">useParams</span>();
+  <span class="kw">const</span> [page, setPage] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [error, setError] = <span class="fn">useState</span>(<span class="kw">false</span>);
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="fn">fetch</span>(<span class="str">`/api/pages/${slug}`</span>)
+      .then(res => {
+        <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> Error();
+        <span class="kw">return</span> res.json();
+      })
+      .then(data => setPage(data))
+      .catch(() => setError(<span class="kw">true</span>));
+  }, [slug]);
+
+  <span class="kw">if</span> (error) <span class="kw">return</span> (<span class="tag">&lt;div&gt;</span>Seite nicht gefunden<span class="tag">&lt;/div&gt;</span>);
+  <span class="kw">if</span> (!page) <span class="kw">return</span> (<span class="tag">&lt;div&gt;</span>Laden...<span class="tag">&lt;/div&gt;</span>);
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;Navbar /&gt;</span>
+      <span class="tag">&lt;main</span> <span class="attr">className</span>=<span class="str">"static-page-content"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="attr">dangerouslySetInnerHTML</span>={{ __html: page.content }} /&gt;
+      <span class="tag">&lt;/main&gt;</span>
+      <span class="tag">&lt;Footer /&gt;</span>
+    <span class="tag">&lt;/&gt;</span>
+  );
+};</div>
+  </div>
+</div>
+
+<!-- ── SCHRITT 2 ── -->
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h3>Route in App.jsx hinzuf&uuml;gen</h3>
+    <p>Die bisherige hardcodierte <code>/impressum</code>-Route durch den dynamischen Renderer ersetzen. Zus&auml;tzlich eine Catch-all-Route f&uuml;r weitere Seiten (Datenschutz, AGB) einrichten.</p>
+    <span class="file-tag"><i class="bi bi-file-earmark-code"></i> &Auml;ndern: src/App.jsx</span>
+    <div class="code-block"><span class="cmt">// Bisherig (entfernen):</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/impressum"</span> <span class="attr">element</span>={<span class="tag">&lt;ImpressumPage /&gt;</span>} /&gt;
+
+<span class="cmt">// Neu (hinzuf&uuml;gen):</span>
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/impressum"</span>
+  <span class="attr">element</span>={<span class="tag">&lt;StaticPageRenderer</span> <span class="attr">slug</span>=<span class="str">"impressum"</span> /&gt;} /&gt;
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/datenschutz"</span>
+  <span class="attr">element</span>={<span class="tag">&lt;StaticPageRenderer</span> <span class="attr">slug</span>=<span class="str">"datenschutz"</span> /&gt;} /&gt;
+<span class="tag">&lt;Route</span> <span class="attr">path</span>=<span class="str">"/seite/:slug"</span>
+  <span class="attr">element</span>={<span class="tag">&lt;StaticPageRenderer /&gt;</span>} /&gt;</div>
+    <div class="note"><i class="bi bi-lightbulb-fill"></i> Die festen Routen <code>/impressum</code> und <code>/datenschutz</code> bleiben f&uuml;r SEO erhalten. Die generische Route <code>/seite/:slug</code> f&auml;ngt alle weiteren Seiten auf.</div>
+  </div>
+</div>
+
+<!-- ── SCHRITT 3 ── -->
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h3>StaticPageRenderer um festen Slug erweitern</h3>
+    <p>Damit sowohl <code>/impressum</code> (mit festem Slug-Prop) als auch <code>/seite/:slug</code> (mit URL-Parameter) funktionieren:</p>
+    <div class="code-block"><span class="kw">export const</span> <span class="fn">StaticPageRenderer</span> = ({ slug: fixedSlug }) => {
+  <span class="kw">const</span> { slug: paramSlug } = <span class="fn">useParams</span>();
+  <span class="kw">const</span> slug = fixedSlug || paramSlug;
+  <span class="cmt">// ... Rest wie in Schritt 1</span>
+};</div>
+  </div>
+</div>
+
+<!-- ── SCHRITT 4 ── -->
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h3>CSS f&uuml;r die gerenderten Seiten</h3>
+    <p>Minimale Styles, damit die HTML-Inhalte im ProuDig-Design dargestellt werden. Die CSS-Klassen aus dem StaticPageEditor (section, container, grid, card) greifen bereits.</p>
+    <span class="file-tag"><i class="bi bi-file-earmark-code"></i> &Auml;ndern: src/App.css</span>
+    <div class="code-block"><span class="cmt">/* Static Page Renderer */</span>
+.static-page-content {
+  <span class="attr">padding-top</span>: 100px;  <span class="cmt">/* Navbar-H&ouml;he */</span>
+  <span class="attr">min-height</span>: 60vh;
+}
+.static-page-content .section {
+  <span class="attr">padding</span>: 4rem 0;
+}
+.static-page-content .container {
+  <span class="attr">max-width</span>: 900px;
+  <span class="attr">margin</span>: 0 auto;
+  <span class="attr">padding</span>: 0 1.5rem;
+}
+.static-page-content h3 {
+  <span class="attr">margin</span>: 1.5rem 0 0.5rem;
+  <span class="attr">color</span>: var(--c-text);
+}
+.static-page-content p {
+  <span class="attr">line-height</span>: 1.7;
+  <span class="attr">color</span>: var(--c-text-muted);
+}</div>
+  </div>
+</div>
+
+<!-- ── SCHRITT 5 ── -->
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <h3>Impressum-Inhalt im Admin anlegen</h3>
+    <p>Im Admin-Panel unter <strong>Seiten &rarr; Neue Seite</strong> eine neue STATIC-Page erstellen:</p>
+    <p><strong>Titel:</strong> <code>Impressum</code><br>
+    <strong>Slug:</strong> <code>impressum</code></p>
+    <p>Den bisherigen Impressum-Inhalt als HTML eintragen — der StaticPageEditor stellt eine CSS-Klassen-Referenz und Vorlagen bereit. Beispiel:</p>
+    <div class="code-block"><span class="tag">&lt;section</span> <span class="attr">class</span>=<span class="str">"section"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"container"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"section-header"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"section-tag"</span><span class="tag">&gt;</span>RECHTLICHES<span class="tag">&lt;/span&gt;</span>
+      <span class="tag">&lt;h2</span> <span class="attr">class</span>=<span class="str">"section-title"</span><span class="tag">&gt;</span>Impressum<span class="tag">&lt;/h2&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+
+    <span class="tag">&lt;h3&gt;</span>Angaben gem&auml;&szlig; &sect; 5 TMG<span class="tag">&lt;/h3&gt;</span>
+    <span class="tag">&lt;p&gt;</span>ProuDig GmbH<span class="tag">&lt;br&gt;</span>
+    Musterstra&szlig;e 123<span class="tag">&lt;br&gt;</span>
+    70173 Stuttgart<span class="tag">&lt;/p&gt;</span>
+
+    <span class="cmt">&lt;!-- Weitere Abschnitte ... --&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/section&gt;</span></div>
+  </div>
+</div>
+
+<!-- ── SCHRITT 6 ── -->
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body">
+    <h3>Ver&ouml;ffentlichen und testen</h3>
+    <p>Im Admin-Editor auf <strong>&bdquo;Ver&ouml;ffentlichen&rdquo;</strong> klicken. Danach:</p>
+    <p>1. <code>localhost:5173/impressum</code> &ouml;ffnen — die Seite sollte den CMS-Inhalt anzeigen<br>
+    2. Im Admin den Text &auml;ndern und erneut ver&ouml;ffentlichen<br>
+    3. Seite im Browser neu laden — &Auml;nderung sofort sichtbar, <strong>kein Deployment n&ouml;tig</strong></p>
+  </div>
+</div>
+
+<!-- ── SCHRITT 7 ── -->
+<div class="step">
+  <div class="step-num">7</div>
+  <div class="step-body">
+    <h3>Optional: Navbar-Links zu weiteren CMS-Seiten</h3>
+    <p>Im Footer oder in der Navbar k&ouml;nnen Links zu <code>/datenschutz</code>, <code>/agb</code> etc. gesetzt werden. Sobald eine STATIC-Page mit dem passenden Slug ver&ouml;ffentlicht wird, ist die Seite live.</p>
+    <div class="note"><i class="bi bi-lightbulb-fill"></i> Die alte <code>Impressum.jsx</code>-Komponente und <code>ImpressumPage.jsx</code> k&ouml;nnen nach erfolgreicher Migration gel&ouml;scht werden.</div>
+  </div>
+</div>
+
+<div class="summary">
+  <h2><i class="bi bi-check-circle-fill"></i> Zusammenfassung</h2>
+  <p><strong>Ge&auml;nderte Dateien:</strong> App.jsx (Routing), App.css (Styles)<br>
+  <strong>Neue Dateien:</strong> StaticPageRenderer.jsx<br>
+  <strong>Gel&ouml;schte Dateien:</strong> ImpressumPage.jsx, Impressum.jsx (nach Migration)<br>
+  <strong>Backend:</strong> Keine &Auml;nderungen — API-Endpunkt <code>GET /api/pages/{slug}</code> existiert bereits<br>
+  <strong>Ergebnis:</strong> Impressum, Datenschutz, AGB und beliebige weitere Seiten k&ouml;nnen vollst&auml;ndig aus dem CMS gepflegt werden — ohne Code-&Auml;nderung oder Deployment.</p>
+</div>
+
+</div>
+</body>
+</html>

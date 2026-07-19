@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig Landing Page — 3 Hero-Varianten im Vergleich</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#E2E8F0;color:#1A1D23;}
+
+  /* ── Tab Navigation ── */
+  .tab-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#0F2B3C;display:flex;align-items:center;padding:0 2rem;height:52px;gap:0;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+  .tab-bar-title{color:rgba(255,255,255,.5);font-size:.72rem;font-weight:600;margin-right:1.5rem;white-space:nowrap;}
+  .tab-btn{background:none;border:none;color:rgba(255,255,255,.5);font-size:.78rem;font-weight:600;padding:.55rem 1.2rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+  .tab-btn:hover{color:rgba(255,255,255,.8);}
+  .tab-btn.active{color:#E8731A;border-bottom-color:#E8731A;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  .page-wrap{margin-top:52px;}
+
+  /* ── Shared Navbar Mock ── */
+  .nav-mock{height:60px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);display:flex;align-items:center;padding:0 2rem;border-bottom:1px solid #E2E8F0;position:sticky;top:52px;z-index:100;}
+  .nav-logo{font-weight:800;font-size:1.1rem;color:#1A1D23;}
+  .nav-logo span{color:#E8731A;}
+  .nav-logo-dot{color:#E8731A;font-weight:800;}
+  .nav-links{margin-left:auto;display:flex;gap:1.8rem;align-items:center;}
+  .nav-links a{text-decoration:none;font-size:.8rem;font-weight:500;color:#64748b;transition:color .2s;}
+  .nav-links a:hover{color:#E8731A;}
+  .nav-cta{margin-left:1.5rem;background:#E8731A;color:white;border:none;padding:.45rem 1rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;}
+
+  /* ── Hero Shared ── */
+  .hero-section{min-height:520px;position:relative;overflow:hidden;display:flex;align-items:center;background:linear-gradient(160deg,#0F2B3C 0%,#061520 100%);}
+  .hero-container{display:flex;align-items:center;padding:0 3rem;gap:3rem;width:100%;max-width:1200px;margin:0 auto;}
+  .hero-text{flex:1;min-width:0;}
+  .hero-title{font-size:2.2rem;font-weight:800;color:white;line-height:1.2;margin-bottom:.8rem;}
+  .hero-title .acc{color:#E8731A;}
+  .hero-desc{font-size:.9rem;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:1.2rem;max-width:440px;}
+  .hero-btns{display:flex;gap:.6rem;}
+  .btn-primary{background:#E8731A;color:white;border:none;padding:.6rem 1.2rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;transition:background .2s;}
+  .btn-primary:hover{background:#d4670f;}
+  .btn-secondary{background:transparent;color:white;border:1px solid rgba(255,255,255,.25);padding:.6rem 1.2rem;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;}
+  .btn-secondary:hover{border-color:rgba(255,255,255,.5);}
+  .hero-visual{flex:0 0 380px;display:flex;align-items:center;justify-content:center;position:relative;}
+
+  /* ── Current Rings Visual ── */
+  .rings-visual{position:relative;width:380px;height:380px;display:flex;align-items:center;justify-content:center;}
+  .rings-visual svg{width:100%;height:100%;}
+
+  /* ══════════════════════════════════════════
+     VARIANTE A — Vertikaler Prozessfluss
+     (Exakt aus hero-varianten-vergleich.html)
+     ══════════════════════════════════════════ */
+  .va-flow{position:relative;width:280px;height:360px;}
+  .va-node{position:absolute;display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.45rem .65rem;cursor:default;backdrop-filter:blur(4px);transition:border-color .2s;}
+  .va-node:hover{border-color:rgba(232,115,26,.4);}
+  .va-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+  .va-label{font-size:.65rem;font-weight:600;color:white;line-height:1.3;}
+  .va-sub{font-size:.52rem;color:rgba(255,255,255,.4);margin-top:.05rem;}
+  .va-step{position:absolute;top:-5px;left:-5px;width:16px;height:16px;border-radius:50%;background:#E8731A;color:white;font-size:.5rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:2;}
+  .va-n1{top:5px;left:15px;} .va-n2{top:75px;right:5px;} .va-n3{top:145px;left:5px;} .va-n4{top:215px;right:10px;} .va-n5{top:285px;left:30px;}
+  .ic-a{background:rgba(96,165,250,.15);color:#60A5FA;} .ic-b{background:rgba(232,115,26,.15);color:#E8731A;} .ic-c{background:rgba(52,211,153,.15);color:#34D399;} .ic-d{background:rgba(167,139,250,.15);color:#A78BFA;} .ic-e{background:rgba(251,191,36,.15);color:#FBBF24;}
+  .va-lines{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .va-line{stroke:rgba(232,115,26,.2);stroke-width:1.5;fill:none;stroke-dasharray:6,4;}
+  @keyframes dashA{from{stroke-dashoffset:0;}to{stroke-dashoffset:-30;}}
+  .va-line{animation:dashA 3s linear infinite;}
+
+  /* ══════════════════════════════════════════
+     VARIANTE D — Netzwerk / Zentraler Hub
+     (Exakt aus hero-varianten-vergleich.html)
+     ══════════════════════════════════════════ */
+  .vd-network{position:relative;width:300px;height:340px;}
+  .vd-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+  .vd-edge{stroke:rgba(255,255,255,.07);stroke-width:1;fill:none;}
+  .vd-edge-active{stroke:rgba(232,115,26,.2);stroke-width:1.5;fill:none;stroke-dasharray:5,4;}
+  @keyframes vdDash{from{stroke-dashoffset:0;}to{stroke-dashoffset:-27;}}
+  .vd-edge-active{animation:vdDash 2.5s linear infinite;}
+  .vd-node{position:absolute;transform:translate(-50%,-50%);cursor:default;transition:all .2s;}
+  .vd-node:hover .vd-pill{border-color:rgba(232,115,26,.5);background:rgba(232,115,26,.06);}
+  .vd-pill{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.4rem .6rem;backdrop-filter:blur(4px);}
+  .vd-ic{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+  .vd-name{font-size:.62rem;font-weight:600;color:white;}
+  .vd-detail{font-size:.48rem;color:rgba(255,255,255,.35);}
+  .vd-hub{position:absolute;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;border:2px solid rgba(232,115,26,.3);display:flex;align-items:center;justify-content:center;background:rgba(232,115,26,.08);}
+  .vd-hub i{color:#E8731A;font-size:1.1rem;}
+  .vd-hub-pulse{position:absolute;width:54px;height:54px;border-radius:50%;border:1px solid rgba(232,115,26,.15);animation:vdPulse 2.5s ease-out infinite;}
+  @keyframes vdPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.6;}100%{transform:translate(-50%,-50%) scale(2);opacity:0;}}
+  .vd-n1{top:45px;left:70px;} .vd-n2{top:45px;left:230px;} .vd-n3{top:170px;left:150px;} .vd-n4{top:265px;left:60px;} .vd-n5{top:265px;left:240px;}
+
+  /* ── Leistungen Section ── */
+  .leistungen-section{padding:4rem 2rem;background:white;}
+  .leistungen-inner{max-width:1100px;margin:0 auto;}
+  .section-tag{display:inline-block;font-size:.7rem;font-weight:600;color:#E8731A;background:rgba(232,115,26,.08);padding:.3rem .8rem;border-radius:20px;margin-bottom:.6rem;letter-spacing:.03em;}
+  .section-title{font-size:1.6rem;font-weight:800;color:#1A1D23;margin-bottom:.4rem;}
+  .section-subtitle{font-size:.85rem;color:#64748b;margin-bottom:2.5rem;max-width:500px;}
+  .leistungen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  .leistung-card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:1.5rem;transition:all .25s;}
+  .leistung-card:hover{border-color:#E8731A;box-shadow:0 4px 16px rgba(232,115,26,.08);}
+  .leistung-icon{width:40px;height:40px;border-radius:10px;background:rgba(232,115,26,.08);color:#E8731A;display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.8rem;}
+  .leistung-name{font-size:.9rem;font-weight:700;color:#1A1D23;margin-bottom:.3rem;}
+  .leistung-desc{font-size:.75rem;color:#64748b;line-height:1.6;}
+
+  /* ── Dark Footer ── */
+  .footer-section{background:#0F2B3C;color:rgba(255,255,255,.85);padding:3rem 2rem;}
+  .footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:2rem;margin-bottom:2rem;}
+  .footer-brand h3{color:#fff;font-size:1.1rem;font-weight:800;margin-bottom:.5rem;}
+  .footer-brand h3 span{color:#E8731A;}
+  .footer-brand p{font-size:.8rem;color:rgba(255,255,255,.5);max-width:280px;line-height:1.6;}
+  .footer-links{display:flex;gap:1.5rem;}
+  .footer-links a{color:rgba(255,255,255,.5);text-decoration:none;font-size:.8rem;transition:color .2s;}
+  .footer-links a:hover{color:#E8731A;}
+  .footer-divider{max-width:1100px;margin:0 auto 1.5rem;height:1px;background:rgba(255,255,255,.1);}
+  .footer-copy{text-align:center;color:rgba(255,255,255,.35);font-size:.75rem;}
+
+  /* ── Responsive ── */
+  @media(max-width:900px){
+    .hero-container{flex-direction:column;padding:2rem 1.5rem;}
+    .hero-visual{flex:none;width:100%;}
+    .leistungen-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media(max-width:600px){
+    .leistungen-grid{grid-template-columns:1fr;}
+    .footer-inner{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     TAB NAVIGATION
+     ═══════════════════════════════════════════ -->
+<div class="tab-bar">
+  <span class="tab-bar-title">Hero-Vergleich:</span>
+  <button class="tab-btn active" onclick="switchTab('current')">Aktuell — Ringe</button>
+  <button class="tab-btn" onclick="switchTab('varA')">Variante A — Prozessfluss</button>
+  <button class="tab-btn" onclick="switchTab('varD')">Variante D — Netzwerk-Hub</button>
+</div>
+
+<div class="page-wrap">
+
+<!-- ═══════════════════════════════════════════
+     TAB 1 — AKTUELLE LANDING PAGE (Ringe)
+     ═══════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-current">
+
+  <div class="nav-mock">
+    <div class="nav-logo">Prou<span>Dig</span><span class="nav-logo-dot">.</span></div>
+    <div class="nav-links">
+      <a href="#">Leistungen</a>
+      <a href="#">Unser Prozess</a>
+      <a href="#">Kontakt</a>
+      <button class="nav-cta">Beratung</button>
+    </div>
+  </div>
+
+  <div class="hero-section">
+    <div class="hero-container">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns">
+          <button class="btn-primary">Beratungsgespräch <i class="bi bi-arrow-right"></i></button>
+          <button class="btn-secondary">Leistungen entdecken</button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="rings-visual">
+          <svg viewBox="0 0 500 500">
+            <circle cx="250" cy="250" r="240" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <circle cx="250" cy="250" r="200" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <circle cx="250" cy="250" r="160" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            <circle cx="250" cy="250" r="120" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5"/>
+            <circle cx="250" cy="250" r="80" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+            <circle cx="250" cy="250" r="40" fill="none" stroke="#E8731A" stroke-width="2" opacity="0.6"/>
+            <circle cx="250" cy="250" r="8" fill="#E8731A" opacity="0.8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="leistungen-section">
+    <div class="leistungen-inner">
+      <div class="section-tag">Was wir bieten</div>
+      <h2 class="section-title">Unsere Leistungen</h2>
+      <p class="section-subtitle">Strategische Beratung und technische Umsetzung aus einer Hand.</p>
+      <div class="leistungen-grid">
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-easel"></i></div><div class="leistung-name">Vorträge</div><div class="leistung-desc">Inspirierende Fachvorträge zu Digitalisierung, KI und modernen Technologien.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-chat-square-text"></i></div><div class="leistung-name">Beratung</div><div class="leistung-desc">Strategische Technologieberatung für nachhaltige digitale Transformation.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-file-earmark-text"></i></div><div class="leistung-name">Studien</div><div class="leistung-desc">Fundierte Analysen und Machbarkeitsstudien für Ihre Digitalprojekte.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-book"></i></div><div class="leistung-name">Weiterbildung</div><div class="leistung-desc">Praxisnahe Schulungen und Workshops für Ihr Team.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-code-slash"></i></div><div class="leistung-name">Software-Lösungen</div><div class="leistung-desc">Massgeschneiderte Softwareentwicklung für Ihre Anforderungen.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-cpu"></i></div><div class="leistung-name">KI-Anwendungen</div><div class="leistung-desc">Intelligente KI-Systeme und Machine-Learning-Lösungen.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-section">
+    <div class="footer-inner">
+      <div class="footer-brand"><h3>Prou<span>Dig</span>.</h3><p>Prozesse und Digitalisierung — strategisch, massgeschneidert, innovativ.</p></div>
+      <div class="footer-links"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">Kontakt</a></div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-copy">&copy; 2026 ProuDig GmbH. Alle Rechte vorbehalten.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TAB 2 — VARIANTE A: Vertikaler Prozessfluss
+     (Exakt aus hero-varianten-vergleich.html)
+     ═══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-varA">
+
+  <div class="nav-mock">
+    <div class="nav-logo">Prou<span>Dig</span><span class="nav-logo-dot">.</span></div>
+    <div class="nav-links">
+      <a href="#">Leistungen</a>
+      <a href="#">Unser Prozess</a>
+      <a href="#">Kontakt</a>
+      <button class="nav-cta">Beratung</button>
+    </div>
+  </div>
+
+  <div class="hero-section">
+    <div class="hero-container">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns">
+          <button class="btn-primary">Beratungsgespräch <i class="bi bi-arrow-right"></i></button>
+          <button class="btn-secondary">Leistungen entdecken</button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <!-- Exakt aus hero-varianten-vergleich.html Variante A -->
+        <div class="va-flow">
+          <svg class="va-lines" viewBox="0 0 280 360"><path class="va-line" d="M95 30 C155 45,175 65,195 85"/><path class="va-line" d="M175 110 C135 130,75 145,85 170"/><path class="va-line" d="M115 195 C155 210,195 225,185 250"/><path class="va-line" d="M165 270 C135 290,105 305,115 325"/></svg>
+          <div class="va-node va-n1"><div class="va-step">1</div><div class="va-icon ic-a"><i class="bi bi-search"></i></div><div><div class="va-label">Analyse</div><div class="va-sub">Prozesse verstehen</div></div></div>
+          <div class="va-node va-n2"><div class="va-step">2</div><div class="va-icon ic-b"><i class="bi bi-chat-dots"></i></div><div><div class="va-label">Strategie</div><div class="va-sub">Konzept entwickeln</div></div></div>
+          <div class="va-node va-n3"><div class="va-step">3</div><div class="va-icon ic-c"><i class="bi bi-code-slash"></i></div><div><div class="va-label">Entwicklung</div><div class="va-sub">Lösung bauen</div></div></div>
+          <div class="va-node va-n4"><div class="va-step">4</div><div class="va-icon ic-d"><i class="bi bi-shield-check"></i></div><div><div class="va-label">Qualität</div><div class="va-sub">Testen &amp; sichern</div></div></div>
+          <div class="va-node va-n5"><div class="va-step">5</div><div class="va-icon ic-e"><i class="bi bi-rocket-takeoff"></i></div><div><div class="va-label">Go-Live</div><div class="va-sub">Wirkung entfalten</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="leistungen-section">
+    <div class="leistungen-inner">
+      <div class="section-tag">Was wir bieten</div>
+      <h2 class="section-title">Unsere Leistungen</h2>
+      <p class="section-subtitle">Strategische Beratung und technische Umsetzung aus einer Hand.</p>
+      <div class="leistungen-grid">
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-easel"></i></div><div class="leistung-name">Vorträge</div><div class="leistung-desc">Inspirierende Fachvorträge zu Digitalisierung, KI und modernen Technologien.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-chat-square-text"></i></div><div class="leistung-name">Beratung</div><div class="leistung-desc">Strategische Technologieberatung für nachhaltige digitale Transformation.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-file-earmark-text"></i></div><div class="leistung-name">Studien</div><div class="leistung-desc">Fundierte Analysen und Machbarkeitsstudien für Ihre Digitalprojekte.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-book"></i></div><div class="leistung-name">Weiterbildung</div><div class="leistung-desc">Praxisnahe Schulungen und Workshops für Ihr Team.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-code-slash"></i></div><div class="leistung-name">Software-Lösungen</div><div class="leistung-desc">Massgeschneiderte Softwareentwicklung für Ihre Anforderungen.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-cpu"></i></div><div class="leistung-name">KI-Anwendungen</div><div class="leistung-desc">Intelligente KI-Systeme und Machine-Learning-Lösungen.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-section">
+    <div class="footer-inner">
+      <div class="footer-brand"><h3>Prou<span>Dig</span>.</h3><p>Prozesse und Digitalisierung — strategisch, massgeschneidert, innovativ.</p></div>
+      <div class="footer-links"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">Kontakt</a></div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-copy">&copy; 2026 ProuDig GmbH. Alle Rechte vorbehalten.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     TAB 3 — VARIANTE D: Netzwerk mit zentralem Hub
+     (Exakt aus hero-varianten-vergleich.html)
+     ═══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-varD">
+
+  <div class="nav-mock">
+    <div class="nav-logo">Prou<span>Dig</span><span class="nav-logo-dot">.</span></div>
+    <div class="nav-links">
+      <a href="#">Leistungen</a>
+      <a href="#">Unser Prozess</a>
+      <a href="#">Kontakt</a>
+      <button class="nav-cta">Beratung</button>
+    </div>
+  </div>
+
+  <div class="hero-section">
+    <div class="hero-container">
+      <div class="hero-text">
+        <h1 class="hero-title">Von der Idee zur<br>digitalen <span class="acc">Wirkung</span></h1>
+        <p class="hero-desc">Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer Beratung, massgeschneiderter Software und intelligenten KI-Systemen.</p>
+        <div class="hero-btns">
+          <button class="btn-primary">Beratungsgespräch <i class="bi bi-arrow-right"></i></button>
+          <button class="btn-secondary">Leistungen entdecken</button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <!-- Exakt aus hero-varianten-vergleich.html Variante D -->
+        <div class="vd-network">
+          <svg class="vd-svg" viewBox="0 0 300 340">
+            <line class="vd-edge" x1="70" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge" x1="230" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge" x1="60" y1="265" x2="150" y2="170"/>
+            <line class="vd-edge" x1="240" y1="265" x2="150" y2="170"/>
+            <line class="vd-edge-active" x1="70" y1="45" x2="230" y2="45"/>
+            <line class="vd-edge-active" x1="230" y1="45" x2="150" y2="170"/>
+            <line class="vd-edge-active" x1="150" y1="170" x2="60" y2="265"/>
+            <line class="vd-edge-active" x1="60" y1="265" x2="240" y2="265"/>
+          </svg>
+          <div class="vd-hub" style="top:170px;left:150px;"><i class="bi bi-gear-wide-connected"></i></div>
+          <div class="vd-hub-pulse" style="top:170px;left:150px;"></div>
+          <div class="vd-node vd-n1"><div class="vd-pill"><div class="vd-ic ic-a"><i class="bi bi-search"></i></div><div><div class="vd-name">Analyse</div><div class="vd-detail">Prozesse erfassen</div></div></div></div>
+          <div class="vd-node vd-n2"><div class="vd-pill"><div class="vd-ic ic-b"><i class="bi bi-chat-dots"></i></div><div><div class="vd-name">Strategie</div><div class="vd-detail">Konzept planen</div></div></div></div>
+          <div class="vd-node vd-n4"><div class="vd-pill"><div class="vd-ic ic-d"><i class="bi bi-shield-check"></i></div><div><div class="vd-name">Qualität</div><div class="vd-detail">Absichern</div></div></div></div>
+          <div class="vd-node vd-n5"><div class="vd-pill"><div class="vd-ic ic-e"><i class="bi bi-rocket-takeoff"></i></div><div><div class="vd-name">Go-Live</div><div class="vd-detail">Wirken</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="leistungen-section">
+    <div class="leistungen-inner">
+      <div class="section-tag">Was wir bieten</div>
+      <h2 class="section-title">Unsere Leistungen</h2>
+      <p class="section-subtitle">Strategische Beratung und technische Umsetzung aus einer Hand.</p>
+      <div class="leistungen-grid">
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-easel"></i></div><div class="leistung-name">Vorträge</div><div class="leistung-desc">Inspirierende Fachvorträge zu Digitalisierung, KI und modernen Technologien.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-chat-square-text"></i></div><div class="leistung-name">Beratung</div><div class="leistung-desc">Strategische Technologieberatung für nachhaltige digitale Transformation.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-file-earmark-text"></i></div><div class="leistung-name">Studien</div><div class="leistung-desc">Fundierte Analysen und Machbarkeitsstudien für Ihre Digitalprojekte.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-book"></i></div><div class="leistung-name">Weiterbildung</div><div class="leistung-desc">Praxisnahe Schulungen und Workshops für Ihr Team.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-code-slash"></i></div><div class="leistung-name">Software-Lösungen</div><div class="leistung-desc">Massgeschneiderte Softwareentwicklung für Ihre Anforderungen.</div></div>
+        <div class="leistung-card"><div class="leistung-icon"><i class="bi bi-cpu"></i></div><div class="leistung-name">KI-Anwendungen</div><div class="leistung-desc">Intelligente KI-Systeme und Machine-Learning-Lösungen.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-section">
+    <div class="footer-inner">
+      <div class="footer-brand"><h3>Prou<span>Dig</span>.</h3><p>Prozesse und Digitalisierung — strategisch, massgeschneidert, innovativ.</p></div>
+      <div class="footer-links"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">Kontakt</a></div>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-copy">&copy; 2026 ProuDig GmbH. Alle Rechte vorbehalten.</div>
+  </div>
+</div>
+
+</div><!-- /page-wrap -->
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const map = { current: 0, varA: 1, varD: 2 };
+  document.querySelectorAll('.tab-btn')[map[id]].classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

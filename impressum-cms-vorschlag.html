@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig — Impressum via CMS: Analyse &amp; Vorschlag</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #F0F2F5; color: #1A1D23; }
+
+  .page-header { background: #0F2B3C; color: white; padding: 2.5rem 2rem; text-align: center; }
+  .page-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .page-header p { color: rgba(255,255,255,0.55); font-size: 0.85rem; max-width: 600px; margin: 0 auto; }
+
+  .content { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── Analysis Section ── */
+  .analysis { margin-bottom: 3rem; }
+  .analysis h2 {
+    font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .analysis h2 i { color: #E8731A; }
+
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+  .status-card {
+    background: white; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border-left: 4px solid transparent;
+  }
+  .status-card.exists { border-left-color: #10B981; }
+  .status-card.missing { border-left-color: #EF4444; }
+  .status-card.partial { border-left-color: #F59E0B; }
+  .status-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+  .status-card p { font-size: 0.78rem; color: #4A5568; line-height: 1.5; }
+  .badge-ok { background: #D1FAE5; color: #065F46; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
+  .badge-warn { background: #FEF3C7; color: #92400E; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
+  .badge-err { background: #FEE2E2; color: #991B1B; font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .arch-diagram h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; padding: 1rem 0; }
+  .arch-box {
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0.75rem 1rem;
+    text-align: center; min-width: 130px;
+  }
+  .arch-box.highlight { border-color: #E8731A; background: rgba(232,115,26,0.04); }
+  .arch-box .box-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.25rem; }
+  .arch-box .box-name { font-size: 0.8rem; font-weight: 600; }
+  .arch-box .box-file { font-size: 0.65rem; color: #94a3b8; font-family: monospace; margin-top: 0.2rem; }
+  .arch-arrow { color: #94a3b8; font-size: 1.2rem; }
+
+  /* ── Proposal Section ── */
+  .proposal { margin-bottom: 2.5rem; }
+  .proposal h2 {
+    font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .proposal h2 i { color: #E8731A; }
+
+  .option-card {
+    background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 2px solid transparent;
+  }
+  .option-card.recommended { border-color: #E8731A; }
+  .option-card .option-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .option-card .option-letter {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
+  }
+  .option-card .option-letter.a { background: #E8731A; color: white; }
+  .option-card .option-letter.b { background: #64748b; color: white; }
+  .option-card h3 { font-size: 0.95rem; font-weight: 700; }
+  .option-card .rec-badge { background: #E8731A; color: white; font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; margin-left: 0.5rem; }
+  .option-card p { font-size: 0.82rem; color: #4A5568; line-height: 1.55; margin-bottom: 0.75rem; }
+  .option-card .option-details { font-size: 0.8rem; color: #4A5568; line-height: 1.55; }
+
+  .pro-con { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem; }
+  .pro-list, .con-list { font-size: 0.78rem; line-height: 1.6; }
+  .pro-list strong, .con-list strong { display: block; margin-bottom: 0.3rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pro-list strong { color: #065F46; }
+  .con-list strong { color: #991B1B; }
+  .pro-list li, .con-list li { margin-bottom: 0.2rem; color: #4A5568; }
+
+  /* Steps */
+  .steps { margin-top: 2rem; }
+  .steps h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
+  .steps h3 i { color: #E8731A; }
+
+  .step-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .step-item {
+    display: flex; gap: 0.75rem; align-items: flex-start;
+    background: white; border-radius: 8px; padding: 1rem 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: #E8731A; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+  }
+  .step-body h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .step-body p { font-size: 0.78rem; color: #4A5568; line-height: 1.5; }
+  .step-body code {
+    background: #F1F5F9; padding: 0.1rem 0.4rem; border-radius: 3px;
+    font-size: 0.72rem; color: #0F2B3C; font-family: 'SF Mono', monospace;
+  }
+
+  /* New architecture diagram */
+  .new-arch {
+    background: white; border-radius: 10px; padding: 1.5rem; margin-top: 2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .new-arch h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
+  .new-arch h3 i { color: #E8731A; }
+
+  .flow-row { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .flow-box {
+    background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 0.6rem 0.9rem;
+    text-align: center; min-width: 100px; font-size: 0.75rem;
+  }
+  .flow-box.new { border-color: #E8731A; background: rgba(232,115,26,0.06); font-weight: 600; }
+  .flow-box.existing { border-color: #10B981; background: rgba(16,185,129,0.04); }
+  .flow-box.remove { border-color: #EF4444; background: rgba(239,68,68,0.04); text-decoration: line-through; color: #94a3b8; }
+  .flow-box .fb-label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; margin-bottom: 0.15rem; }
+  .flow-arrow { color: #94a3b8; font-size: 0.9rem; }
+
+  @media (max-width: 700px) {
+    .status-grid { grid-template-columns: 1fr; }
+    .pro-con { grid-template-columns: 1fr; }
+    .arch-flow, .flow-row { flex-direction: column; }
+    .arch-arrow, .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Impressum vollstaendig aus dem CMS</h1>
+  <p>Analyse des Ist-Zustands und Vorschlag, wie das Impressum ohne Neu-Deployment gepflegt werden kann</p>
+</div>
+
+<div class="content">
+
+  <!-- ════════════════════════════════════════════════════════
+       ANALYSE
+       ════════════════════════════════════════════════════════ -->
+  <div class="analysis">
+    <h2><i class="bi bi-search"></i> Analyse: Ist-Zustand</h2>
+
+    <div class="status-grid">
+      <div class="status-card exists">
+        <h3><i class="bi bi-check-circle-fill" style="color:#10B981"></i> ContentBlock-System <span class="badge-ok">Vorhanden</span></h3>
+        <p>Backend komplett: <code>ContentBlock</code>-Entity, <code>ContentService</code>, <code>AdminContentController</code> (<code>/api/admin/content/{key}</code>), <code>ContentController</code> (<code>/api/content/{key}</code>). Unterstuetzt Draft/Publish-Workflow.</p>
+      </div>
+      <div class="status-card exists">
+        <h3><i class="bi bi-check-circle-fill" style="color:#10B981"></i> ImpressumEditor <span class="badge-ok">Vorhanden</span></h3>
+        <p>Formular-basierter Editor fuer strukturierte Impressum-Daten (Firma, Adresse, Kontakt, Register, Geschaeftsfuehrer, USt-IdNr.). Speichert als JSON ueber <code>/api/admin/content/IMPRESSUM</code>.</p>
+      </div>
+      <div class="status-card exists">
+        <h3><i class="bi bi-check-circle-fill" style="color:#10B981"></i> Pages-System <span class="badge-ok">Vorhanden</span></h3>
+        <p>Zweites CMS: <code>Page</code>-Entity mit Slug, HTML-Inhalt, Kategorien (BLOG, SEMINAR, STATIC), Status-Workflow. Admin-UI mit HTML-Editor + Split-Vorschau existiert.</p>
+      </div>
+      <div class="status-card missing">
+        <h3><i class="bi bi-x-circle-fill" style="color:#EF4444"></i> ImpressumEditor nicht geroutet <span class="badge-err">Fehlt</span></h3>
+        <p>Der <code>ImpressumEditor</code> existiert als Datei, ist aber in <code>App.jsx</code> nicht als Route eingebunden. Er ist im Admin-Panel nicht erreichbar.</p>
+      </div>
+      <div class="status-card missing">
+        <h3><i class="bi bi-x-circle-fill" style="color:#EF4444"></i> Frontend liest nicht vom CMS <span class="badge-err">Fehlt</span></h3>
+        <p><code>Impressum.jsx</code> ist komplett hardcoded (statisches JSX). Es gibt keinen <code>useEffect</code>/<code>fetch</code> zum oeffentlichen Endpunkt <code>/api/content/IMPRESSUM</code>.</p>
+      </div>
+      <div class="status-card partial">
+        <h3><i class="bi bi-exclamation-triangle-fill" style="color:#F59E0B"></i> Fehlende Abschnitte im Editor <span class="badge-warn">Unvollstaendig</span></h3>
+        <p>Der ImpressumEditor kennt nur: Firma, Adresse, Kontakt, Register, Geschaeftsfuehrer, USt-IdNr. Es fehlen: Streitschlichtung, Urheberrecht, Verantwortlich fuer Inhalte, Haftungsausschluss.</p>
+      </div>
+    </div>
+
+    <!-- Architecture: Current State -->
+    <div class="arch-diagram">
+      <h3>Aktueller Datenfluss (unterbrochen)</h3>
+      <div class="arch-flow">
+        <div class="arch-box">
+          <div class="box-label">Admin-Editor</div>
+          <div class="box-name">ImpressumEditor.jsx</div>
+          <div class="box-file">Nicht geroutet!</div>
+        </div>
+        <span class="arch-arrow"><i class="bi bi-arrow-right"></i></span>
+        <div class="arch-box">
+          <div class="box-label">Backend</div>
+          <div class="box-name">ContentBlock</div>
+          <div class="box-file">/api/admin/content/IMPRESSUM</div>
+        </div>
+        <span class="arch-arrow" style="color:#EF4444"><i class="bi bi-x-lg"></i></span>
+        <div class="arch-box" style="border-color:#EF4444">
+          <div class="box-label">Frontend</div>
+          <div class="box-name">Impressum.jsx</div>
+          <div class="box-file">Hardcoded! Kein fetch.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       VORSCHLAG
+       ════════════════════════════════════════════════════════ -->
+  <div class="proposal">
+    <h2><i class="bi bi-lightbulb-fill"></i> Vorschlag</h2>
+
+    <!-- Option A -->
+    <div class="option-card recommended">
+      <div class="option-header">
+        <div class="option-letter a">A</div>
+        <h3>ContentBlock-System vervollstaendigen <span class="rec-badge">Empfohlen</span></h3>
+      </div>
+      <p>Das bestehende ContentBlock-System wird vollstaendig verdrahtet. Der ImpressumEditor erhaelt alle fehlenden Abschnitte, wird im Admin-Panel geroutet, und das Frontend liest die veroeffentlichten Daten dynamisch vom API-Endpunkt.</p>
+
+      <div class="pro-con">
+        <ul class="pro-list" style="list-style:none; padding:0;">
+          <strong><i class="bi bi-plus-circle-fill" style="color:#10B981"></i> Vorteile</strong>
+          <li>+ Strukturiertes Formular — kein HTML-Wissen noetig</li>
+          <li>+ Validierung moeglich (Pflichtfelder, E-Mail-Format)</li>
+          <li>+ Draft/Publish-Workflow bereits implementiert</li>
+          <li>+ 90% der Infrastruktur existiert bereits</li>
+          <li>+ Daten als JSON — saubere Trennung von Inhalt und Layout</li>
+        </ul>
+        <ul class="con-list" style="list-style:none; padding:0;">
+          <strong><i class="bi bi-dash-circle-fill" style="color:#991B1B"></i> Nachteile</strong>
+          <li>- Feste Struktur — neue Abschnitte erfordern Code-Aenderung</li>
+          <li>- Kein Freitext/Rich-Text fuer unstrukturierte Abschnitte</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Option B -->
+    <div class="option-card">
+      <div class="option-header">
+        <div class="option-letter b">B</div>
+        <h3>StaticPage-System nutzen (HTML-Editor)</h3>
+      </div>
+      <p>Das Impressum wird als STATIC-Page im bestehenden Pages-System gepflegt. Der StaticPageEditor (HTML + Split-Vorschau) erlaubt voellig freie Gestaltung. Die Route <code>/impressum</code> liest per Slug die veroeffentlichte Page.</p>
+
+      <div class="pro-con">
+        <ul class="pro-list" style="list-style:none; padding:0;">
+          <strong><i class="bi bi-plus-circle-fill" style="color:#10B981"></i> Vorteile</strong>
+          <li>+ Voellig flexible Inhalte — keine Code-Aenderung noetig</li>
+          <li>+ Neue Abschnitte jederzeit hinzufuegbar</li>
+          <li>+ CSS-Klassen-Referenz bereits im Editor</li>
+          <li>+ Funktioniert auch fuer Datenschutz, AGB etc.</li>
+        </ul>
+        <ul class="con-list" style="list-style:none; padding:0;">
+          <strong><i class="bi bi-dash-circle-fill" style="color:#991B1B"></i> Nachteile</strong>
+          <li>- HTML-Kenntnisse erforderlich</li>
+          <li>- Keine Feldvalidierung</li>
+          <li>- Anfaellig fuer Formatierungsfehler</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       UMSETZUNGSSCHRITTE (Vorschlag A)
+       ════════════════════════════════════════════════════════ -->
+  <div class="steps">
+    <h3><i class="bi bi-list-check"></i> Umsetzungsschritte (Vorschlag A)</h3>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>ImpressumEditor erweitern</h4>
+          <p>Fehlende Abschnitte zum Editor hinzufuegen: <code>Verantwortlicher</code> (Name + Adresse), <code>Streitschlichtung</code> (Textarea), <code>Urheberrecht</code> (Textarea), optional <code>Haftungsausschluss</code> (Textarea). Jeder Abschnitt wird als eigenes Feld im JSON gespeichert.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Route im Admin-Panel einbinden</h4>
+          <p>In <code>App.jsx</code> eine Route <code>/admin/impressum</code> hinzufuegen, die den <code>ImpressumEditor</code> rendert. Zusaetzlich einen Navigationseintrag im Admin-Menue ergaenzen.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Impressum.jsx dynamisch machen</h4>
+          <p>Die hardcodierten Daten durch einen <code>useEffect</code> + <code>fetch('/api/content/IMPRESSUM')</code> ersetzen. Die JSON-Daten werden in die bestehende JSX-Struktur gemappt. Fallback: bei leerem CMS die bisherigen Platzhalterdaten anzeigen.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Erstbefuellung im CMS</h4>
+          <p>Die aktuellen Impressum-Daten (ProuDig GmbH, Musterstrasse 123, etc.) einmalig ueber den Admin-Editor eingeben und veroeffentlichen. Danach ist die hardcodierte Version obsolet.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Optional: Datenschutz + AGB als StaticPages</h4>
+          <p>Fuer <code>/datenschutz</code> und <code>/agb</code> das Pages-System (Option B) nutzen, da diese Seiten weniger strukturiert sind. Route <code>/seite/:slug</code> existiert bereits im Backend (<code>StaticPageController</code>).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New architecture -->
+  <div class="new-arch">
+    <h3><i class="bi bi-diagram-3-fill"></i> Neuer Datenfluss (Vorschlag A)</h3>
+
+    <div class="flow-row">
+      <div class="flow-box new">
+        <div class="fb-label">Admin</div>
+        ImpressumEditor
+      </div>
+      <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+      <div class="flow-box existing">
+        <div class="fb-label">API (Draft)</div>
+        PUT /api/admin/content/IMPRESSUM
+      </div>
+      <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+      <div class="flow-box existing">
+        <div class="fb-label">Datenbank</div>
+        ContentBlock (JSON)
+      </div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-box existing">
+        <div class="fb-label">Publish</div>
+        POST .../publish
+      </div>
+      <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+      <div class="flow-box existing">
+        <div class="fb-label">Public API</div>
+        GET /api/content/IMPRESSUM
+      </div>
+      <span class="flow-arrow"><i class="bi bi-arrow-right"></i></span>
+      <div class="flow-box new">
+        <div class="fb-label">Frontend (neu)</div>
+        Impressum.jsx + fetch()
+      </div>
+    </div>
+
+    <div class="flow-row" style="margin-top: 0.5rem;">
+      <div class="flow-box remove">
+        <div class="fb-label">Entfaellt</div>
+        Hardcodiertes JSX
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

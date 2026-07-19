@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProuDig Portal — Sidebar Baumdarstellung Vorschlag</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #E2E8F0; }
+
+  .page-header {
+    background: #0F2B3C;
+    color: white;
+    padding: 2rem 2.5rem;
+    text-align: center;
+  }
+  .page-header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .page-header p { color: rgba(255,255,255,0.6); font-size: 0.85rem; }
+
+  .comparison { display: flex; gap: 2rem; padding: 2rem; max-width: 1400px; margin: 0 auto; }
+  .panel { flex: 1; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .panel-label {
+    padding: 0.75rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .panel-label.before { background: #FEE2E2; color: #991B1B; }
+  .panel-label.after { background: #D1FAE5; color: #065F46; }
+
+  /* ── Portal mock ── */
+  .portal-mock { display: flex; height: 540px; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    min-width: 250px;
+    background: #0F2B3C;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .sidebar-header .dot { color: #E8731A; font-weight: 800; }
+  .sidebar-section-label {
+    padding: 0.75rem 1.25rem 0.35rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    font-weight: 600;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 1.25rem;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.06); }
+  .nav-item.active {
+    color: #E8731A;
+    background: rgba(232,115,26,0.1);
+    border-left: 3px solid #E8731A;
+    padding-left: calc(1.25rem - 3px);
+  }
+  .nav-item i { font-size: 1rem; width: 1.1rem; text-align: center; }
+
+  /* Tree section in sidebar */
+  .sidebar-tree-section {
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    flex: 1;
+    overflow-y: auto;
+  }
+  .tree-label {
+    padding: 0.6rem 1.25rem 0.35rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tree-label .tree-collapse {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .tree-label .tree-collapse:hover { color: rgba(255,255,255,0.7); }
+
+  /* Tree items */
+  .tree-node {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 1.25rem;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tree-node:hover {
+    color: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.04);
+  }
+  .tree-node.active-folder {
+    color: #E8731A;
+    background: rgba(232,115,26,0.08);
+  }
+  .tree-node .tree-icon { font-size: 0.8rem; flex-shrink: 0; width: 0.9rem; text-align: center; }
+  .tree-node .tree-chevron {
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    width: 0.7rem;
+    text-align: center;
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.15s;
+  }
+  .tree-node .tree-chevron.open { transform: rotate(90deg); }
+  .tree-node .tree-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Badge */
+  .tree-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 16px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+  .tree-badge.has-files {
+    background: rgba(232,115,26,0.25);
+    color: #F5A623;
+  }
+  .tree-badge.empty {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.25);
+    font-size: 0.55rem;
+  }
+
+  /* Indentation levels */
+  .tree-depth-0 { padding-left: 1.25rem; }
+  .tree-depth-1 { padding-left: 2.1rem; }
+  .tree-depth-2 { padding-left: 3rem; }
+  .tree-depth-3 { padding-left: 3.9rem; }
+
+  /* Vertical guide lines */
+  .tree-guide {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+  .tree-depth-1 .tree-guide { left: 1.75rem; }
+  .tree-depth-2 .tree-guide { left: 2.6rem; }
+  .tree-depth-3 .tree-guide { left: 3.5rem; }
+
+  /* Main content area */
+  .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    background: white;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 0.65rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+  .content-scroll { flex: 1; padding: 1.25rem; overflow-y: auto; background: #F5F7FA; }
+
+  .doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .doc-header h1 {
+    font-size: 1.2rem;
+    color: #1A1D23;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .doc-header h1 i { color: #E8731A; }
+
+  .btn-sec {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 5px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #1A1D23;
+    transition: all 0.15s;
+  }
+  .btn-sec:hover { border-color: #E8731A; color: #E8731A; }
+
+  .breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+  .breadcrumb-bar .bc-item { color: #4A5568; cursor: pointer; padding: 0.2rem 0.3rem; border-radius: 3px; }
+  .breadcrumb-bar .bc-item:hover { color: #E8731A; background: rgba(232,115,26,0.06); }
+  .breadcrumb-bar .bc-item.active { color: #1A1D23; font-weight: 600; }
+  .breadcrumb-bar .bc-sep { color: #94a3b8; font-size: 0.65rem; }
+
+  /* Mini table */
+  .mini-table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .mini-table th {
+    background: #F8FAFC;
+    color: #4A5568;
+    font-weight: 600;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .mini-table td {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.78rem;
+    color: #1A1D23;
+    border-bottom: 1px solid #F3F4F6;
+  }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table .fname { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
+  .mini-table .fname i { color: #E8731A; font-size: 0.95rem; }
+  .mini-table .meta { color: #718096; font-size: 0.72rem; }
+  .section-title {
+    font-size: 0.85rem;
+    color: #1A1D23;
+    margin: 1.25rem 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .section-title i { color: #E8731A; }
+
+  /* Annotation */
+  .annotations { padding: 2rem 2.5rem 3rem; max-width: 1400px; margin: 0 auto; }
+  .anno-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .anno-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .anno-card h3 {
+    font-size: 0.85rem;
+    color: #0F2B3C;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .anno-card h3 i { color: #E8731A; }
+  .anno-card p { font-size: 0.8rem; color: #4A5568; line-height: 1.55; }
+
+  /* highlight pulse on new element */
+  @keyframes highlight-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232,115,26,0); }
+    50% { box-shadow: 0 0 0 4px rgba(232,115,26,0.15); }
+  }
+  .highlight { animation: highlight-pulse 2s ease-in-out infinite; border-radius: 4px; }
+
+  @media (max-width: 900px) {
+    .comparison { flex-direction: column; }
+    .anno-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Dokumente-Sidebar: Baumdarstellung mit Badges</h1>
+  <p>Vorschlag zur Verbesserung der Navigation im Dokumenten-Portal</p>
+</div>
+
+<div class="comparison">
+
+  <!-- ── VORHER (Ist-Zustand) ── -->
+  <div class="panel">
+    <div class="panel-label before">Ist-Zustand</div>
+    <div class="portal-mock">
+      <div class="sidebar">
+        <div class="sidebar-header"><span class="dot">P</span>ortal</div>
+        <div class="sidebar-section-label">Navigation</div>
+        <div class="nav-item"><i class="bi bi-grid-1x2-fill"></i> Dashboard</div>
+        <div class="nav-item active"><i class="bi bi-folder-fill"></i> Meine Dokumente</div>
+        <div class="nav-item"><i class="bi bi-share-fill"></i> Geteilt mit mir</div>
+        <div class="nav-item"><i class="bi bi-people-fill"></i> Benutzer</div>
+        <!-- No tree — just these 4 links -->
+      </div>
+      <div class="main-content">
+        <div class="topbar"><i class="bi bi-person-circle"></i>&nbsp; Max Mustermann</div>
+        <div class="content-scroll">
+          <div class="doc-header">
+            <h1><i class="bi bi-folder2-open"></i> Meine Dokumente</h1>
+            <div class="btn-sec"><i class="bi bi-folder-plus"></i> Neuer Ordner</div>
+          </div>
+          <div class="breadcrumb-bar">
+            <span class="bc-item active"><i class="bi bi-house-fill" style="color:#E8731A"></i> Stammverzeichnis</span>
+          </div>
+          <div class="section-title"><i class="bi bi-folder-fill"></i> Ordner</div>
+          <table class="mini-table">
+            <thead><tr><th>Name</th><th>Aktion</th></tr></thead>
+            <tbody>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Projekt Alpha</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Vertraege</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Rechnungen</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Archiv</span></td><td class="meta">Oeffnen</td></tr>
+            </tbody>
+          </table>
+          <div class="section-title"><i class="bi bi-file-earmark-fill"></i> Dateien</div>
+          <table class="mini-table">
+            <thead><tr><th>Name</th><th>Groesse</th></tr></thead>
+            <tbody>
+              <tr><td><span class="fname"><i class="bi bi-file-earmark-pdf-fill"></i> Uebersicht.pdf</span></td><td class="meta">1.2 MB</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NACHHER (Vorschlag) ── -->
+  <div class="panel">
+    <div class="panel-label after">Vorschlag</div>
+    <div class="portal-mock">
+      <div class="sidebar">
+        <div class="sidebar-header"><span class="dot">P</span>ortal</div>
+        <div class="sidebar-section-label">Navigation</div>
+        <div class="nav-item"><i class="bi bi-grid-1x2-fill"></i> Dashboard</div>
+        <div class="nav-item active"><i class="bi bi-folder-fill"></i> Meine Dokumente</div>
+        <div class="nav-item"><i class="bi bi-share-fill"></i> Geteilt mit mir</div>
+        <div class="nav-item"><i class="bi bi-people-fill"></i> Benutzer</div>
+
+        <!-- ── NEW: Folder tree ── -->
+        <div class="sidebar-tree-section highlight">
+          <div class="tree-label">
+            Ordnerstruktur
+            <button class="tree-collapse"><i class="bi bi-dash-lg"></i></button>
+          </div>
+
+          <!-- Root: Stammverzeichnis -->
+          <div class="tree-node tree-depth-0 active-folder">
+            <span class="tree-chevron open"><i class="bi bi-chevron-right"></i></span>
+            <span class="tree-icon"><i class="bi bi-house-fill"></i></span>
+            <span class="tree-name">Stammverzeichnis</span>
+            <span class="tree-badge has-files">1</span>
+          </div>
+
+          <!-- Projekt Alpha (expanded, has children) -->
+          <div class="tree-node tree-depth-1">
+            <div class="tree-guide"></div>
+            <span class="tree-chevron open"><i class="bi bi-chevron-right"></i></span>
+            <span class="tree-icon"><i class="bi bi-folder-fill"></i></span>
+            <span class="tree-name">Projekt Alpha</span>
+            <span class="tree-badge has-files">5</span>
+          </div>
+
+            <!-- Sub: Entwuerfe -->
+            <div class="tree-node tree-depth-2">
+              <div class="tree-guide"></div>
+              <span class="tree-chevron"><i class="bi bi-chevron-right"></i></span>
+              <span class="tree-icon"><i class="bi bi-folder-fill"></i></span>
+              <span class="tree-name">Entwuerfe</span>
+              <span class="tree-badge has-files">3</span>
+            </div>
+
+            <!-- Sub: Freigaben (empty) -->
+            <div class="tree-node tree-depth-2">
+              <div class="tree-guide"></div>
+              <span class="tree-chevron"><i class="bi bi-chevron-right"></i></span>
+              <span class="tree-icon"><i class="bi bi-folder"></i></span>
+              <span class="tree-name">Freigaben</span>
+              <span class="tree-badge empty">0</span>
+            </div>
+
+          <!-- Vertraege -->
+          <div class="tree-node tree-depth-1">
+            <div class="tree-guide"></div>
+            <span class="tree-chevron"><i class="bi bi-chevron-right"></i></span>
+            <span class="tree-icon"><i class="bi bi-folder-fill"></i></span>
+            <span class="tree-name">Vertraege</span>
+            <span class="tree-badge has-files">8</span>
+          </div>
+
+          <!-- Rechnungen -->
+          <div class="tree-node tree-depth-1">
+            <div class="tree-guide"></div>
+            <span class="tree-chevron"><i class="bi bi-chevron-right"></i></span>
+            <span class="tree-icon"><i class="bi bi-folder-fill"></i></span>
+            <span class="tree-name">Rechnungen</span>
+            <span class="tree-badge has-files">12</span>
+          </div>
+
+          <!-- Archiv (empty) -->
+          <div class="tree-node tree-depth-1">
+            <div class="tree-guide"></div>
+            <span class="tree-chevron"><i class="bi bi-chevron-right"></i></span>
+            <span class="tree-icon"><i class="bi bi-folder"></i></span>
+            <span class="tree-name">Archiv</span>
+            <span class="tree-badge empty">0</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="topbar"><i class="bi bi-person-circle"></i>&nbsp; Max Mustermann</div>
+        <div class="content-scroll">
+          <div class="doc-header">
+            <h1><i class="bi bi-folder2-open"></i> Meine Dokumente</h1>
+            <div class="btn-sec"><i class="bi bi-folder-plus"></i> Neuer Ordner</div>
+          </div>
+          <div class="breadcrumb-bar">
+            <span class="bc-item active"><i class="bi bi-house-fill" style="color:#E8731A"></i> Stammverzeichnis</span>
+          </div>
+          <div class="section-title"><i class="bi bi-folder-fill"></i> Ordner</div>
+          <table class="mini-table">
+            <thead><tr><th>Name</th><th>Aktion</th></tr></thead>
+            <tbody>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Projekt Alpha</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Vertraege</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Rechnungen</span></td><td class="meta">Oeffnen</td></tr>
+              <tr><td><span class="fname"><i class="bi bi-folder-fill"></i> Archiv</span></td><td class="meta">Oeffnen</td></tr>
+            </tbody>
+          </table>
+          <div class="section-title"><i class="bi bi-file-earmark-fill"></i> Dateien</div>
+          <table class="mini-table">
+            <thead><tr><th>Name</th><th>Groesse</th></tr></thead>
+            <tbody>
+              <tr><td><span class="fname"><i class="bi bi-file-earmark-pdf-fill"></i> Uebersicht.pdf</span></td><td class="meta">1.2 MB</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Annotations ── -->
+<div class="annotations">
+  <div class="anno-grid">
+    <div class="anno-card">
+      <h3><i class="bi bi-diagram-3-fill"></i> Baumdarstellung</h3>
+      <p>Unterhalb der Hauptnavigation erscheint eine aufklappbare Ordnerstruktur. Ordner lassen sich per Klick auf den Chevron aufklappen, um Unterordner zu sehen. Ein Klick auf den Ordnernamen navigiert direkt dorthin.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-circle-fill"></i> Badges mit Dateianzahl</h3>
+      <p>Jeder Ordner zeigt rechts ein Badge mit der Anzahl enthaltener Dateien. Leere Ordner erhalten ein dezentes "0"-Badge in grau, gefuellte Ordner ein oranges Badge. So erkennt man sofort, wo Inhalte liegen.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-arrows-angle-expand"></i> Aufklappbare Ebenen</h3>
+      <p>Die Baumstruktur unterstuetzt beliebig tiefe Verschachtelung. Vertikale Fuehrungslinien helfen, die Zugehoerigkeit der Unterordner visuell nachzuvollziehen. Der aktuell aktive Ordner wird orange hervorgehoben.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-folder-symlink-fill"></i> Synchronisierte Navigation</h3>
+      <p>Baum und Hauptbereich sind synchronisiert: Klickt man einen Ordner im Baum, oeffnet sich der Inhalt rechts. Navigiert man per Breadcrumb, passt sich der Baum an. So hat der Benutzer jederzeit den vollen Ueberblick.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-folder2"></i> Voller/Leerer Ordner-Icon</h3>
+      <p>Ordner mit Inhalt zeigen ein gefuelltes Icon (bi-folder-fill), leere Ordner ein leeres Icon (bi-folder). Zusammen mit dem Badge ergibt sich ein klares visuelles Signal auf einen Blick.</p>
+    </div>
+    <div class="anno-card">
+      <h3><i class="bi bi-lightning-fill"></i> Lazy Loading</h3>
+      <p>Unterordner werden erst beim Aufklappen vom Server geladen (Lazy Loading). So bleibt die Sidebar performant, auch bei grossen Ordnerstrukturen. Ein kurzer Spinner zeigt den Ladevorgang an.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

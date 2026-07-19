@@ -1,0 +1,249 @@
+---
+###############################################################################
+# ProuDig — Ansible Tasks
+#
+# Nutzt die bestehende docker-compose.yml mit:
+#   - PostgreSQL 14 (proudig-db)
+#   - Spring Boot App (proudig-app) — Multi-Stage Dockerfile
+#   - Caddy Reverse Proxy (proudig-proxy)
+#
+# Tags:
+#   setup    — Docker installieren, Firewall, Verzeichnisse
+#   deploy   — Code uebertragen, Docker-Build, Container starten
+#   rollback — Vorheriges Image wiederherstellen
+###############################################################################
+
+# ══════════════════════════════════════════════════════════════
+# 1. SERVER-SETUP
+# ══════════════════════════════════════════════════════════════
+
+- name: System-Pakete aktualisieren
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  tags: [setup]
+
+- name: Grundpakete installieren
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - git
+      - ufw
+    state: present
+  tags: [setup]
+
+# ── Docker installieren ──
+
+- name: Docker GPG-Key hinzufuegen
+  shell: |
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+  args:
+    creates: /etc/apt/keyrings/docker.asc
+  tags: [setup]
+
+- name: Docker Repository hinzufuegen
+  apt_repository:
+    repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+  tags: [setup]
+
+- name: Docker Engine installieren
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+  tags: [setup]
+
+- name: Docker-Dienst aktivieren und starten
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+  tags: [setup]
+
+- name: Deploy-User zur Docker-Gruppe hinzufuegen
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
+  tags: [setup]
+
+# ── Firewall ──
+
+- name: UFW — SSH, HTTP, HTTPS erlauben
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: ["22", "80", "443"]
+  tags: [setup]
+
+#- name: UFW aktivieren
+#  ufw:
+#    state: enabled
+#    default: deny
+#  tags: [setup]
+
+# ── Verzeichnisse ──
+
+- name: App-Verzeichnis erstellen
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  tags: [setup, deploy]
+
+- name: Daten-Verzeichnis fuer Uploads erstellen
+  file:
+    path: "{{ app_dir }}/data/files"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  tags: [setup, deploy]
+
+
+# ══════════════════════════════════════════════════════════════
+# 2. DEPLOYMENT
+# ══════════════════════════════════════════════════════════════
+
+- name: Alten Systemd-Service stoppen (falls vorhanden)
+  shell: |
+    CHANGED=0
+    # Alter Java-Service
+    if systemctl is-active --quiet proudig-site 2>/dev/null; then
+      systemctl stop proudig-site
+      systemctl disable proudig-site
+      echo "proudig-site gestoppt"
+      CHANGED=1
+    fi
+    # Alter Host-Apache (blockiert Port 80 fuer Docker)
+    if systemctl is-active --quiet apache2 2>/dev/null; then
+      systemctl stop apache2
+      systemctl disable apache2
+      echo "apache2 gestoppt"
+      CHANGED=1
+    fi
+    [ "$CHANGED" -eq 1 ] && echo "changed" || echo "not running"
+  register: old_service
+  changed_when: "'changed' in old_service.stdout"
+  tags: [deploy]
+
+- name: Projekt-Dateien synchronisieren
+  synchronize:
+    src: "{{ project_src }}/"
+    dest: "{{ app_dir }}/"
+    delete: no
+    rsync_opts:
+      - "--exclude=node_modules"
+      - "--exclude=.git"
+      - "--exclude=target"
+      - "--exclude=*.class"
+      - "--exclude=.idea"
+      - "--exclude=.vscode"
+      - "--exclude=hero-varianten-vergleich.html"
+      - "--exclude=hero-landing-vergleich.html"
+  tags: [deploy]
+
+- name: Environment-Datei (.env) erstellen
+  template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+    force: no
+  tags: [deploy]
+
+- name: Vorheriges Docker-Image taggen (fuer Rollback)
+  shell: |
+    IMAGE_ID=$(docker images -q proudig-proudig-app 2>/dev/null | head -1)
+    if [ -n "$IMAGE_ID" ]; then
+      docker tag "$IMAGE_ID" proudig-app:previous
+      echo "changed"
+    else
+      echo "skip"
+    fi
+  become_user: "{{ ansible_user }}"
+  register: tag_result
+  changed_when: "'changed' in tag_result.stdout"
+  tags: [deploy]
+
+- name: Docker-Image bauen
+  shell: |
+    cd {{ app_dir }}
+    docker compose build --no-cache proudig-app
+  become_user: "{{ ansible_user }}"
+  tags: [deploy]
+
+- name: Alle Container starten
+  shell: |
+    cd {{ app_dir }}
+    docker compose --env-file .env up -d --remove-orphans
+  become_user: "{{ ansible_user }}"
+  tags: [deploy]
+
+- name: Warten bis Anwendung healthy ist (max 5 Min)
+  shell: |
+    for i in $(seq 1 30); do
+      STATUS=$(docker inspect --format='{{ '{{' }}.State.Health.Status{{ '}}' }}' proudig-app 2>/dev/null || echo "starting")
+      if [ "$STATUS" = "healthy" ]; then
+        echo "healthy after ${i}0s"
+        exit 0
+      fi
+      sleep 10
+    done
+    echo "TIMEOUT"
+    docker logs proudig-app --tail 50
+    exit 1
+  become_user: "{{ ansible_user }}"
+  register: health_check
+  tags: [deploy]
+
+- name: Alte Docker-Images aufraeumen
+  shell: docker image prune -f
+  become_user: "{{ ansible_user }}"
+  changed_when: false
+  tags: [deploy]
+
+- name: Deployment-Status anzeigen
+  shell: |
+    cd {{ app_dir }}
+    echo "── Container-Status ──"
+    docker compose ps
+    echo ""
+    SERVER_IP=$(hostname -I | awk '{print $1}')
+    echo "Website: http://${SERVER_IP}"
+  become_user: "{{ ansible_user }}"
+  register: deploy_status
+  changed_when: false
+  tags: [deploy]
+
+- name: Status ausgeben
+  debug:
+    msg: "{{ deploy_status.stdout_lines }}"
+  tags: [deploy]
+
+
+# ══════════════════════════════════════════════════════════════
+# 3. ROLLBACK
+# ══════════════════════════════════════════════════════════════
+
+- name: "Rollback: Vorheriges Image wiederherstellen"
+  shell: |
+    cd {{ app_dir }}
+    docker tag proudig-app:previous proudig-proudig-app:latest
+    docker compose --env-file .env up -d --remove-orphans proudig-app
+  become_user: "{{ ansible_user }}"
+  tags: [rollback, never]

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-content-blocks-table" author="ProuDig">
+        <createTable tableName="content_blocks">
+            <column name="id" type="VARCHAR(36)" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="section_key" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="content" type="TEXT"/>
+            <column name="draft_content" type="TEXT"/>
+            <column name="updated_by" type="VARCHAR(36)"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="published_at" type="TIMESTAMP"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="content_blocks" baseColumnNames="updated_by"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_content_blocks_updated_by"/>
+    </changeSet>
+
+</databaseChangeLog>

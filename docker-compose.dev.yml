@@ -1,0 +1,32 @@
+# ==============================================================================
+# Docker Compose — ProuDig (nur für lokale Entwicklung)
+#
+# Startet nur die PostgreSQL-Datenbank mit exponiertem Port 5434.
+# Die Spring Boot App wird lokal in der IDE gestartet.
+#
+# Verwendung:
+#   Starten:  docker compose -f docker-compose.dev.yml up -d
+#   Stoppen:  docker compose -f docker-compose.dev.yml down
+#   Logs:     docker compose -f docker-compose.dev.yml logs -f
+# ==============================================================================
+
+services:
+  proudig-db:
+    image: postgres:14-alpine
+    container_name: proudig-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: proudigdb
+      POSTGRES_USER: proudig
+      POSTGRES_PASSWORD: proudig123
+    volumes:
+      - proudig-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proudig -d proudigdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  proudig-pgdata:

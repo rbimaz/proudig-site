@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team-Cards Redesign — Kegon-Style Analyse &amp; Vorschlag</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F5F7F6;
+    color: #1A1D23;
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .page-header {
+    max-width: 1200px;
+    margin: 0 auto 2.5rem;
+    text-align: center;
+  }
+  .page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.5rem;
+  }
+  .page-header p {
+    font-size: 0.95rem;
+    color: #5A6178;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .comparison {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+  .section-label.kegon { background: #FB9C02; }
+  .section-label.vorschlag { background: #E8731A; }
+  .section-label.aktuell { background: #94A3B8; }
+
+  .demo-section {
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    border: 1px solid #E5EAF0;
+  }
+
+  .section-header {
+    margin-bottom: 1.5rem;
+  }
+  .section-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #E8731A;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1A1D23;
+  }
+  .about-description {
+    font-size: 0.95rem;
+    color: #5A6178;
+    margin-bottom: 2rem;
+    max-width: 700px;
+    line-height: 1.6;
+  }
+
+  /* ═══════════════════════════════════════════════
+     ANALYSE: KEGON-STYLE (Referenz)
+     ═══════════════════════════════════════════════ */
+  .kegon-section {
+    background: linear-gradient(135deg, #FFF9F0 0%, #FFFFFF 100%);
+  }
+
+  .kegon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .kegon-card {
+    background: #FFFFFF;
+    border: 1px solid #E7EAF3;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+  .kegon-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .kegon-card-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 590 / 390;
+    overflow: hidden;
+    background: #E0E0E0;
+  }
+  .kegon-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%);
+  }
+
+  .kegon-social {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+  }
+  .kegon-social a {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #5A6178;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+  .kegon-social a:hover {
+    background: #FB9C02;
+    color: #fff;
+  }
+
+  .kegon-card-body {
+    padding: 1.25rem 1.25rem 1.5rem;
+  }
+  .kegon-card-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #FB9C02;
+    margin-bottom: 0.25rem;
+  }
+  .kegon-card-role {
+    font-size: 0.85rem;
+    color: #1E2022;
+  }
+
+  /* placeholder for demo */
+  .kegon-card-media .placeholder-person {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .kegon-card-media .placeholder-person svg {
+    width: 64px;
+    height: 64px;
+    color: #fff;
+    opacity: 0.5;
+  }
+
+  /* ═══════════════════════════════════════════════
+     VORSCHLAG: ProuDig im Kegon-Style
+     ═══════════════════════════════════════════════ */
+  .vorschlag-section {
+    background: linear-gradient(135deg, #FDF2E8 0%, #FFFFFF 100%);
+  }
+
+  .proudig-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .proudig-card {
+    background: #FFFFFF;
+    border: 1px solid #E5EAF0;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .proudig-card:hover {
+    border-color: #E8731A;
+    box-shadow: 0 6px 24px rgba(232, 115, 26, 0.10);
+  }
+
+  .proudig-card-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: #FDE8D3;
+  }
+  .proudig-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .proudig-social {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+  }
+  .proudig-social a {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #5A6178;
+    font-size: 0.7rem;
+    font-weight: 700;
+    transition: background 0.2s, color 0.2s;
+  }
+  .proudig-social a:hover {
+    background: #E8731A;
+    color: #fff;
+  }
+
+  .proudig-card-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+  .proudig-card-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #E8731A;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.15rem;
+    display: block;
+  }
+  .proudig-card-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #E8731A;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .proudig-card-divider {
+    width: 32px;
+    height: 2px;
+    background: #E8731A;
+    opacity: 0.25;
+    border-radius: 1px;
+    margin-bottom: 0.6rem;
+  }
+  .proudig-card-fokus {
+    font-size: 0.85rem;
+    color: #5A6178;
+    line-height: 1.5;
+  }
+
+  /* placeholder for demo */
+  .proudig-card-media .placeholder-person {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FDDCB5 0%, #F5B87A 50%, #E8731A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .proudig-card-media .placeholder-person svg {
+    width: 64px;
+    height: 64px;
+    color: #fff;
+    opacity: 0.45;
+  }
+
+  /* ═══════════════════════════════════════════════
+     AKTUELL: Current ProuDig Cards
+     ═══════════════════════════════════════════════ */
+  .aktuell-section {
+    background: linear-gradient(135deg, #FDF5EE 0%, #FFFFFF 100%);
+  }
+
+  .aktuell-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .aktuell-card {
+    background: #FFFFFF;
+    border: 1px solid #E5EAF0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .aktuell-card:hover {
+    border-color: #E8731A;
+    box-shadow: 0 4px 16px rgba(232, 115, 26, 0.08);
+  }
+
+  .aktuell-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #FDE8D3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    border: 2px solid rgba(232, 115, 26, 0.15);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .aktuell-avatar svg {
+    width: 48px;
+    height: 48px;
+    color: #E8731A;
+    opacity: 0.5;
+  }
+  .aktuell-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #E8731A;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+  }
+  .aktuell-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-bottom: 0.75rem;
+  }
+  .aktuell-divider {
+    width: 32px;
+    height: 2px;
+    background: #E8731A;
+    opacity: 0.3;
+    border-radius: 1px;
+    margin-bottom: 0.75rem;
+  }
+  .aktuell-fokus {
+    font-size: 0.85rem;
+    color: #5A6178;
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════════
+     ANALYSE / NOTES
+     ═══════════════════════════════════════════════ */
+  .analysis {
+    max-width: 1200px;
+    margin: 0 auto 2rem;
+    background: #fff;
+    border: 1px solid #E5EAF0;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+  .analysis h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    color: #1A1D23;
+  }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  .compare-table th {
+    text-align: left;
+    padding: 0.6rem 1rem;
+    background: #F5F7F6;
+    font-weight: 700;
+    color: #1A1D23;
+    border-bottom: 2px solid #E5EAF0;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .compare-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #F0F2F5;
+    color: #5A6178;
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table .feature { font-weight: 600; color: #1A1D23; white-space: nowrap; }
+  .compare-table .highlight { color: #E8731A; font-weight: 600; }
+  .compare-table .kegon-col { color: #FB9C02; font-weight: 600; }
+
+  .arrow { color: #E8731A; margin: 0 0.25rem; }
+
+  .notes-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+  }
+  .notes-list li {
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #5A6178;
+    line-height: 1.6;
+    border-bottom: 1px solid #F0F2F5;
+  }
+  .notes-list li:last-child { border-bottom: none; }
+  .notes-list li strong { color: #1A1D23; }
+  .check { color: #E8731A; margin-right: 0.5rem; }
+
+  @media (max-width: 968px) {
+    .kegon-grid, .proudig-grid, .aktuell-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .kegon-grid, .proudig-grid, .aktuell-grid { grid-template-columns: 1fr; }
+    body { padding: 1rem; }
+    .demo-section { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>ProuDig Team-Cards Redesign-Analyse</h1>
+  <p>Vergleich: Kegon-Referenz &rarr; ProuDig-Vorschlag &rarr; ProuDig Aktuell (Theme: udig2, Accent: #E8731A)</p>
+</div>
+
+<div class="comparison">
+
+  <!-- ═══════ ANALYSE-TABELLE ═══════ -->
+  <div class="analysis">
+    <h3>Vergleichsanalyse: Kegon vs. ProuDig (aktuell)</h3>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Merkmal</th>
+          <th>Kegon (Referenz)</th>
+          <th>ProuDig (aktuell)</th>
+          <th>Vorschlag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature">Bild</td>
+          <td class="kegon-col">Grosses Landscape-Foto (590&times;390), S/W, Outdoor</td>
+          <td>Kleiner runder Avatar (88px), SVG-Platzhalter</td>
+          <td class="highlight">Grosses Landscape-Foto (3:2), echte Bilder</td>
+        </tr>
+        <tr>
+          <td class="feature">Name</td>
+          <td class="kegon-col">Gross, farbig (Orange #FB9C02), 27px, semibold</td>
+          <td>Klein (1.05rem), dunkel, bold</td>
+          <td class="highlight">Gross, farbig (Accent #E8731A), 1.2rem, bold</td>
+        </tr>
+        <tr>
+          <td class="feature">Titel/Grad</td>
+          <td>Nicht separat dargestellt</td>
+          <td>Klein, Accent-farbig, oberhalb des Namens</td>
+          <td class="highlight">Klein, Accent-farbig, oberhalb des Namens (beibehalten)</td>
+        </tr>
+        <tr>
+          <td class="feature">Rolle/Fokus</td>
+          <td class="kegon-col">Kleine dunkle Schrift unter dem Namen</td>
+          <td>Unter Divider, grauer Text</td>
+          <td class="highlight">Unter Divider, grauer Text (beibehalten)</td>
+        </tr>
+        <tr>
+          <td class="feature">Social Links</td>
+          <td class="kegon-col">Xing/LinkedIn Icons auf Bild (unten rechts)</td>
+          <td>Keine</td>
+          <td class="highlight">LinkedIn Icon auf Bild (optional)</td>
+        </tr>
+        <tr>
+          <td class="feature">Card-Rahmen</td>
+          <td class="kegon-col">1px solid, border-radius 4px, kein Shadow</td>
+          <td>1px solid, border-radius 12px, dezenter Shadow</td>
+          <td class="highlight">1px solid, border-radius 12px, dezenter Shadow (beibehalten)</td>
+        </tr>
+        <tr>
+          <td class="feature">Hover</td>
+          <td class="kegon-col">Subtiler Shadow (0.2s transition)</td>
+          <td>Border-Color + Shadow in Accent</td>
+          <td class="highlight">Border-Color + Shadow in Accent (beibehalten)</td>
+        </tr>
+        <tr>
+          <td class="feature">Grid</td>
+          <td class="kegon-col">3 Spalten (col-lg-4)</td>
+          <td>3 Spalten (CSS Grid)</td>
+          <td class="highlight">3 Spalten (CSS Grid, beibehalten)</td>
+        </tr>
+        <tr>
+          <td class="feature">Badges</td>
+          <td>Keine</td>
+          <td>Keine</td>
+          <td class="highlight">Keine (wie gewuenscht)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════ 1. KEGON REFERENZ ═══════ -->
+  <span class="section-label kegon">Referenz: Kegon.de Team-Cards</span>
+  <div class="demo-section kegon-section">
+    <div class="section-header">
+      <h2 style="color: #FB9C02;">Unser Team</h2>
+    </div>
+    <p class="about-description">Darstellung wie auf kegon.de/unternehmen/team/ &mdash; grosse S/W-Fotos, Name in Orange, Rolle darunter, Social-Icons auf dem Bild.</p>
+
+    <div class="kegon-grid">
+      <div class="kegon-card">
+        <div class="kegon-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="kegon-social">
+            <a href="#" title="Xing">Xi</a>
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="kegon-card-body">
+          <div class="kegon-card-name">Roya Afshar</div>
+          <div class="kegon-card-role">Management Consultant</div>
+        </div>
+      </div>
+
+      <div class="kegon-card">
+        <div class="kegon-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="kegon-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="kegon-card-body">
+          <div class="kegon-card-name">Joseph Assaf</div>
+          <div class="kegon-card-role">Consultant</div>
+        </div>
+      </div>
+
+      <div class="kegon-card">
+        <div class="kegon-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="kegon-social">
+            <a href="#" title="Xing">Xi</a>
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="kegon-card-body">
+          <div class="kegon-card-name">David Baer</div>
+          <div class="kegon-card-role">Management Consultant</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 2. VORSCHLAG: ProuDig NEU ═══════ -->
+  <span class="section-label vorschlag">Vorschlag: ProuDig im Kegon-Style</span>
+  <div class="demo-section vorschlag-section">
+    <div class="section-header">
+      <span class="section-tag">UEBER UNS</span>
+      <h2>Unser Team &mdash; Ihre Partner auf Augenhoehe</h2>
+    </div>
+    <p class="about-description">
+      Digitalisierung ist Vertrauenssache. Deshalb setzen wir auf persoenliche Zusammenarbeit und direkte Kommunikation. Unsere Gesellschafter bringen nicht nur fundiertes Know-how mit, sondern begleiten Projekte aktiv und mit echter Hands-on Mentalitaet.
+    </p>
+
+    <div class="proudig-grid">
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Prof. Dr.</span>
+          <span class="proudig-card-name">Max Mustermann</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Kuenstliche Intelligenz &amp; Machine Learning</span>
+        </div>
+      </div>
+
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Prof. Dr.</span>
+          <span class="proudig-card-name">Maria Musterfrau</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Cloud-Architektur &amp; Digitale Plattformen</span>
+        </div>
+      </div>
+
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Dr.-Ing.</span>
+          <span class="proudig-card-name">Thomas Schmidt</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Software Engineering &amp; DevOps</span>
+        </div>
+      </div>
+
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Prof. Dr.-Ing.</span>
+          <span class="proudig-card-name">Anna Weber</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Medizininformatik &amp; Datenschutz</span>
+        </div>
+      </div>
+
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Dr. rer. nat.</span>
+          <span class="proudig-card-name">Stefan Braun</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Prozessautomatisierung &amp; ERP-Systeme</span>
+        </div>
+      </div>
+
+      <div class="proudig-card">
+        <div class="proudig-card-media">
+          <div class="placeholder-person">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <div class="proudig-social">
+            <a href="#" title="LinkedIn">in</a>
+          </div>
+        </div>
+        <div class="proudig-card-body">
+          <span class="proudig-card-title">Prof. Dr.</span>
+          <span class="proudig-card-name">Julia Fischer</span>
+          <div class="proudig-card-divider"></div>
+          <span class="proudig-card-fokus">Digitale Strategie &amp; Change Management</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 3. AKTUELL: ProuDig IST ═══════ -->
+  <span class="section-label aktuell">Aktuell: ProuDig Team-Cards (IST-Zustand)</span>
+  <div class="demo-section aktuell-section">
+    <div class="section-header">
+      <span class="section-tag">UEBER UNS</span>
+      <h2>Unser Team &mdash; Ihre Partner auf Augenhoehe</h2>
+    </div>
+    <p class="about-description">
+      Aktuelle Darstellung mit kleinen runden Avataren und zentriertem Layout.
+    </p>
+
+    <div class="aktuell-grid">
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Prof. Dr.</span>
+        <span class="aktuell-name">Max Mustermann</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Kuenstliche Intelligenz &amp; Machine Learning</span>
+      </div>
+
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Prof. Dr.</span>
+        <span class="aktuell-name">Maria Musterfrau</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Cloud-Architektur &amp; Digitale Plattformen</span>
+      </div>
+
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Dr.-Ing.</span>
+        <span class="aktuell-name">Thomas Schmidt</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Software Engineering &amp; DevOps</span>
+      </div>
+
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Prof. Dr.-Ing.</span>
+        <span class="aktuell-name">Anna Weber</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Medizininformatik &amp; Datenschutz</span>
+      </div>
+
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Dr. rer. nat.</span>
+        <span class="aktuell-name">Stefan Braun</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Prozessautomatisierung &amp; ERP-Systeme</span>
+      </div>
+
+      <div class="aktuell-card">
+        <div class="aktuell-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <span class="aktuell-title">Prof. Dr.</span>
+        <span class="aktuell-name">Julia Fischer</span>
+        <div class="aktuell-divider"></div>
+        <span class="aktuell-fokus">Digitale Strategie &amp; Change Management</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ ZUSAMMENFASSUNG ═══════ -->
+  <div class="analysis">
+    <h3>Zusammenfassung der Aenderungen</h3>
+    <ul class="notes-list">
+      <li><span class="check">&#10003;</span> <strong>Grosses Landscape-Foto statt rundem Avatar</strong> &mdash; Wie bei Kegon: echte Fotos im 3:2-Format ersetzen die kleinen 88px SVG-Kreise. Die Persoenlichkeit der Teammitglieder wird deutlich besser transportiert.</li>
+      <li><span class="check">&#10003;</span> <strong>Name in Accent-Farbe (Kegon: Orange, ProuDig: Orange #E8731A)</strong> &mdash; Der Name wird zum visuellen Anker der Card, groesser und in der Markenfarbe dargestellt.</li>
+      <li><span class="check">&#10003;</span> <strong>Akademischer Titel bleibt erhalten</strong> &mdash; Im Gegensatz zu Kegon behaelt ProuDig den akademischen Titel (Prof. Dr. etc.) bei, da dies fuer die Zielgruppe relevant ist.</li>
+      <li><span class="check">&#10003;</span> <strong>LinkedIn-Icon auf dem Bild</strong> &mdash; Wie bei Kegon: dezenter Social-Link unten rechts auf dem Foto. Optional und nicht zwingend.</li>
+      <li><span class="check">&#10003;</span> <strong>Fokus-Bereich unter Divider</strong> &mdash; Die Spezialisierung bleibt direkt sichtbar (kein Flip noetig). ProuDig-eigenes Element, das bei Kegon fehlt.</li>
+      <li><span class="check">&#10003;</span> <strong>Keine Badges</strong> &mdash; Wie gewuenscht, keine Zertifizierungs- oder Skill-Badges auf den Cards.</li>
+      <li><span class="check">&#10003;</span> <strong>ProuDig-Identitaet bewahrt</strong> &mdash; Rundere Ecken (12px vs. Kegon 4px), ProuDig Accent-Color (#E8731A), Divider-Element und Fokus-Text bleiben als eigenstaendige Designsprache bestehen.</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>
