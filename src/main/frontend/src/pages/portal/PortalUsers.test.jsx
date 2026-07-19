@@ -176,6 +176,34 @@ describe('PortalUsers', () => {
       expect(screen.getAllByText('Passwörter stimmen nicht überein').length).toBeGreaterThanOrEqual(1);
     });
 
+    it('Given die Checkbox "Passwortänderung beim ersten Login" ist aktiviert, When der Benutzer angelegt wird, Then wird forcePasswordChange: true gesendet', async () => {
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(mockAuthFetch).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: /neuer benutzer/i }));
+      fireEvent.change(screen.getByPlaceholderText('user@example.com'), { target: { value: 'p@example.com' } });
+      fireEvent.change(screen.getByPlaceholderText('Max'), { target: { value: 'Peter' } });
+      fireEvent.change(screen.getByPlaceholderText('Mustermann'), { target: { value: 'Pan' } });
+      fireEvent.change(screen.getByPlaceholderText('Initialpasswort'), { target: { value: 'Geheim123!' } });
+      fireEvent.change(screen.getByPlaceholderText('Passwort wiederholen'), { target: { value: 'Geheim123!' } });
+      fireEvent.click(screen.getByRole('checkbox'));
+
+      mockAuthFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: '1', email: 'p@example.com', firstName: 'Peter', lastName: 'Pan', roles: ['USER'] })
+      });
+
+      fireEvent.click(screen.getByText('Erstellen'));
+
+      await waitFor(() => {
+        const postCall = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'POST');
+        expect(postCall).toBeTruthy();
+        expect(JSON.parse(postCall[1].body).forcePasswordChange).toBe(true);
+      });
+    });
+
     it('Given ein Benutzer existiert, When eine Rolle geändert wird, Then wird PUT /api/users/{id} aufgerufen', async () => {
       const existingUser = {
         id: 'user-123',

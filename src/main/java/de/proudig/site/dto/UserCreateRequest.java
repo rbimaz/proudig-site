@@ -18,4 +18,5 @@ public class UserCreateRequest {
     private String lastName;
     private String company;
     private Set<String> roles;
+    private boolean forcePasswordChange;
 }

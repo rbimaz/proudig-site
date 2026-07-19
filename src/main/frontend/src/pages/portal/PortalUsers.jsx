@@ -11,7 +11,7 @@ const ROLE_OPTIONS = [
   { value: 'ADMIN', label: 'Administrator' },
 ];
 
-const emptyUser = { email: '', firstName: '', lastName: '', role: 'USER', password: '', passwordConfirm: '' };
+const emptyUser = { email: '', firstName: '', lastName: '', role: 'USER', password: '', passwordConfirm: '', forcePasswordChange: false };
 
 export const PortalUsers = () => {
   const { authFetch } = useAuth();
@@ -149,7 +149,8 @@ export const PortalUsers = () => {
           firstName: newUser.firstName,
           lastName: newUser.lastName,
           password: newUser.password,
-          roles: [newUser.role]
+          roles: [newUser.role],
+          forcePasswordChange: newUser.forcePasswordChange
         })
       });
 
@@ -345,6 +346,15 @@ export const PortalUsers = () => {
                     </p>
                   )}
                 </div>
+                <label className="ucd-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={newUser.forcePasswordChange}
+                    onChange={(e) => setNewUser({ ...newUser, forcePasswordChange: e.target.checked })}
+                    disabled={creating}
+                  />
+                  Passwortänderung beim ersten Login erforderlich
+                </label>
               </div>
               <div className="user-form-actions">
                 <button type="button" className="btn-secondary" onClick={closeCreate} disabled={creating}>

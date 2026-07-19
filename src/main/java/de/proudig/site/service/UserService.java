@@ -54,6 +54,7 @@ public class UserService {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setCompany(request.getCompany());
+        user.setForcePasswordChange(request.isForcePasswordChange());
         user.setCreatedAt(LocalDateTime.now());
 
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
