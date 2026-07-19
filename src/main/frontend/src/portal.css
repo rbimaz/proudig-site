@@ -1023,6 +1023,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  align-items: start;
+}
+
+.user-create-dialog .ucd-row.ucd-row-single {
+  grid-template-columns: 1fr;
 }
 
 @media (max-width: 640px) {
