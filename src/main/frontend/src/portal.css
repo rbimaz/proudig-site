@@ -1006,6 +1006,15 @@
   box-shadow: 0 30px 70px -30px rgba(20, 30, 45, 0.4);
 }
 
+/* Als eigene Route-Seite (statt Modal) */
+.portal-user-form {
+  padding: 8px 0 32px;
+}
+
+.portal-user-form .user-form-page {
+  background: var(--surface);
+}
+
 .user-create-dialog .ucd-header {
   display: flex;
   align-items: center;

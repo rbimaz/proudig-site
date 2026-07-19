@@ -38,6 +38,7 @@ import { PortalDashboard } from './pages/portal/PortalDashboard';
 import { PortalDocuments } from './pages/portal/PortalDocuments';
 import { PortalShared } from './pages/portal/PortalShared';
 import { PortalUsers } from './pages/portal/PortalUsers';
+import { PortalUserForm } from './pages/portal/PortalUserForm';
 
 function AppContent() {
   const [theme, setTheme] = useState('udig2');
@@ -104,6 +105,8 @@ function AppContent() {
           <Route path="documents" element={<PortalDocuments />} />
           <Route path="shared" element={<PortalShared />} />
           <Route path="users" element={<ProtectedRoute requiredRole="ADMIN"><PortalUsers /></ProtectedRoute>} />
+          <Route path="users/new" element={<ProtectedRoute requiredRole="ADMIN"><PortalUserForm /></ProtectedRoute>} />
+          <Route path="users/:id" element={<ProtectedRoute requiredRole="ADMIN"><PortalUserForm /></ProtectedRoute>} />
         </Route>
 
         {/* Legacy Redirects */}

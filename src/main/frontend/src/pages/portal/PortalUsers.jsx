@@ -1,141 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 
-const ROLE_OPTIONS = [
-  { value: 'USER', label: 'Benutzer' },
-  { value: 'CONSULTANT', label: 'Bearbeiter' },
-  { value: 'ADMIN', label: 'Administrator' },
-];
-
-const emptyUser = { email: '', firstName: '', lastName: '', role: 'USER', password: '', passwordConfirm: '', forcePasswordChange: false };
-
 export const PortalUsers = () => {
-  const { authFetch, user: currentUser } = useAuth();
+  const { authFetch } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newUser, setNewUser] = useState(emptyUser);
-  const [showPassword, setShowPassword] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [showEditPassword, setShowEditPassword] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState('');
-  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     fetchUsers();
   }, [authFetch]);
-
-  // Escape schließt den Dialog und Body-Scroll wird gesperrt, solange er offen ist
-  useEffect(() => {
-    if (!showCreate) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeCreate();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [showCreate]);
-
-  // Escape schließt den Bearbeiten-Dialog und sperrt Body-Scroll, solange er offen ist
-  useEffect(() => {
-    if (!editing) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') closeEdit();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [editing]);
-
-  const closeCreate = () => {
-    setShowCreate(false);
-    setNewUser(emptyUser);
-    setShowPassword(false);
-  };
-
-  const openEdit = (user) => {
-    setEditing({
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      roles: ROLE_OPTIONS.map(o => o.value).filter(v => user.roles?.includes(v)),
-      password: '',
-      passwordConfirm: '',
-    });
-    setShowEditPassword(false);
-  };
-
-  const closeEdit = () => {
-    setEditing(null);
-    setShowEditPassword(false);
-  };
-
-  const toggleEditRole = (value) => {
-    setEditing(prev => ({
-      ...prev,
-      roles: prev.roles.includes(value)
-        ? prev.roles.filter(r => r !== value)
-        : [...prev.roles, value],
-    }));
-  };
-
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-    if (!editing.firstName || !editing.lastName) {
-      setMessage('Bitte Vor- und Nachname ausfüllen');
-      return;
-    }
-    if (editing.roles.length === 0) {
-      setMessage('Bitte mindestens eine Rolle wählen');
-      return;
-    }
-    if (editing.password && editing.password !== editing.passwordConfirm) {
-      setMessage('Passwörter stimmen nicht überein');
-      return;
-    }
-
-    setSaving(true);
-    setMessage('');
-    try {
-      const payload = {
-        firstName: editing.firstName,
-        lastName: editing.lastName,
-        roles: editing.roles,
-      };
-      if (editing.password) payload.password = editing.password;
-
-      const res = await authFetch(`/api/users/${editing.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        const updated = await res.json();
-        setUsers(users.map(u => (u.id === updated.id ? updated : u)));
-        closeEdit();
-        setMessage('Benutzer aktualisiert');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        const detail = await res.text();
-        setMessage(detail ? 'Fehler beim Speichern: ' + detail : 'Fehler beim Speichern');
-      }
-    } catch (err) {
-      setMessage('Fehler: ' + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const fetchUsers = async () => {
     try {
@@ -148,50 +26,6 @@ export const PortalUsers = () => {
       console.error('Fehler beim Laden:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    if (!newUser.email || !newUser.firstName || !newUser.lastName || !newUser.password) {
-      setMessage('Bitte alle Felder ausfüllen');
-      return;
-    }
-    if (newUser.password !== newUser.passwordConfirm) {
-      setMessage('Passwörter stimmen nicht überein');
-      return;
-    }
-
-    setCreating(true);
-    setMessage('');
-    try {
-      const res = await authFetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          password: newUser.password,
-          roles: [newUser.role],
-          forcePasswordChange: newUser.forcePasswordChange
-        })
-      });
-
-      if (res.ok) {
-        const created = await res.json();
-        setUsers([created, ...users]);
-        closeCreate();
-        setMessage('Benutzer erstellt');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        const detail = await res.text();
-        setMessage(detail ? 'Fehler beim Erstellen: ' + detail : 'Fehler beim Erstellen');
-      }
-    } catch (err) {
-      setMessage('Fehler: ' + err.message);
-    } finally {
-      setCreating(false);
     }
   };
 
@@ -235,20 +69,6 @@ export const PortalUsers = () => {
 
   if (loading) return <div className="loading">Laden...</div>;
 
-  const initials = `${newUser.firstName.charAt(0)}${newUser.lastName.charAt(0)}`.toUpperCase();
-  const previewName = `${newUser.firstName} ${newUser.lastName}`.trim();
-  const passwordsMatch = newUser.password === newUser.passwordConfirm;
-
-  const editInitials = editing ? `${editing.firstName.charAt(0)}${editing.lastName.charAt(0)}`.toUpperCase() : '';
-  const editPreviewName = editing ? `${editing.firstName} ${editing.lastName}`.trim() : '';
-
-  // Schutz der Administratorrolle: eigener oder letzter Admin darf ADMIN nicht verlieren
-  const adminCount = users.filter(u => u.roles?.includes('ADMIN')).length;
-  const editingUser = editing ? users.find(u => u.id === editing.id) : null;
-  const editingHasAdmin = editingUser?.roles?.includes('ADMIN');
-  const isSelfEditing = !!editingUser?.email && editingUser.email === currentUser?.email;
-  const adminRoleLocked = !!editingHasAdmin && (isSelfEditing || adminCount <= 1);
-
   return (
     <div className="portal-users">
       <div className="users-header">
@@ -256,281 +76,10 @@ export const PortalUsers = () => {
           <h1>Benutzer</h1>
           <p className="subtitle">{users.length} Benutzer</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowCreate(true)}>
+        <button className="btn-primary" onClick={() => navigate('/admin/portal/users/new')}>
           <i className="bi bi-plus-lg"></i> Neuer Benutzer
         </button>
       </div>
-
-      {showCreate && (
-        <div
-          className="confirm-dialog-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) closeCreate(); }}
-        >
-          <div className="user-form-dialog user-create-dialog" role="dialog" aria-modal="true" aria-labelledby="user-form-title">
-            <div className="ucd-header">
-              <div className={`ucd-avatar ${initials ? 'filled' : ''}`}>{initials || '?'}</div>
-              <div className="ucd-heading">
-                <h2 id="user-form-title">Neuen Benutzer erstellen</h2>
-                <p className="ucd-preview">
-                  {previewName ? `Vorschau: ${previewName}` : 'Name erscheint hier als Vorschau.'}
-                </p>
-              </div>
-            </div>
-            <form onSubmit={handleCreateUser}>
-              <div className="ucd-body">
-                <div className="form-group">
-                  <label>E-Mail <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-envelope ucd-icon"></i>
-                    <input
-                      type="email"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                      placeholder="user@example.com"
-                      disabled={creating}
-                      autoFocus
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Vorname <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-person ucd-icon"></i>
-                    <input
-                      type="text"
-                      value={newUser.firstName}
-                      onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-                      placeholder="Max"
-                      disabled={creating}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Nachname <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-person ucd-icon"></i>
-                    <input
-                      type="text"
-                      value={newUser.lastName}
-                      onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
-                      placeholder="Mustermann"
-                      disabled={creating}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Rolle <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-shield ucd-icon"></i>
-                    <select
-                      className="ucd-select"
-                      value={newUser.role}
-                      onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                      disabled={creating}
-                    >
-                      {ROLE_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                    <i className="bi bi-chevron-down ucd-chevron"></i>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Passwort <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-lock ucd-icon"></i>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                      placeholder="Initialpasswort"
-                      autoComplete="new-password"
-                      disabled={creating}
-                    />
-                    <button
-                      type="button"
-                      className="ucd-eye"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Passwörter verbergen' : 'Passwörter anzeigen'}
-                    >
-                      <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-                    </button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Passwort bestätigen <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-lock ucd-icon"></i>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={newUser.passwordConfirm}
-                      onChange={(e) => setNewUser({ ...newUser, passwordConfirm: e.target.value })}
-                      placeholder="Passwort wiederholen"
-                      autoComplete="new-password"
-                      disabled={creating}
-                    />
-                  </div>
-                  {newUser.passwordConfirm && (
-                    <p className={`ucd-match ${passwordsMatch ? 'ok' : 'bad'}`}>
-                      <i className={`bi ${passwordsMatch ? 'bi-check-lg' : 'bi-x-lg'}`}></i>
-                      {passwordsMatch ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein'}
-                    </p>
-                  )}
-                </div>
-                <label className="ucd-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={newUser.forcePasswordChange}
-                    onChange={(e) => setNewUser({ ...newUser, forcePasswordChange: e.target.checked })}
-                    disabled={creating}
-                  />
-                  Passwortänderung beim ersten Login erforderlich
-                </label>
-              </div>
-              <div className="user-form-actions">
-                <button type="button" className="btn-secondary" onClick={closeCreate} disabled={creating}>
-                  Abbrechen
-                </button>
-                <button type="submit" disabled={creating} className="btn-primary">
-                  {creating ? 'Erstellt...' : 'Erstellen'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {editing && (
-        <div
-          className="confirm-dialog-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) closeEdit(); }}
-        >
-          <div className="user-form-dialog user-create-dialog" role="dialog" aria-modal="true" aria-labelledby="user-edit-title">
-            <div className="ucd-header">
-              <div className={`ucd-avatar ${editInitials ? 'filled' : ''}`}>{editInitials || '?'}</div>
-              <div className="ucd-heading">
-                <h2 id="user-edit-title">Benutzer bearbeiten</h2>
-                <p className="ucd-preview">
-                  {editPreviewName ? `Vorschau: ${editPreviewName}` : 'Name erscheint hier als Vorschau.'}
-                </p>
-              </div>
-            </div>
-            <form onSubmit={handleUpdateUser}>
-              <div className="ucd-body">
-                <div className="form-group">
-                  <label>E-Mail</label>
-                  <div className="ucd-field">
-                    <i className="bi bi-envelope ucd-icon"></i>
-                    <input type="email" value={editing.email} readOnly disabled />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Vorname <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-person ucd-icon"></i>
-                    <input
-                      type="text"
-                      value={editing.firstName}
-                      onChange={(e) => setEditing({ ...editing, firstName: e.target.value })}
-                      placeholder="Max"
-                      disabled={saving}
-                      autoFocus
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Nachname <span className="req">*</span></label>
-                  <div className="ucd-field">
-                    <i className="bi bi-person ucd-icon"></i>
-                    <input
-                      type="text"
-                      value={editing.lastName}
-                      onChange={(e) => setEditing({ ...editing, lastName: e.target.value })}
-                      placeholder="Mustermann"
-                      disabled={saving}
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Rollen <span className="req">*</span></label>
-                  <div className="ucd-roles">
-                    {ROLE_OPTIONS.map(({ value, label }) => (
-                      <label key={value} className="ucd-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={editing.roles.includes(value)}
-                          onChange={() => toggleEditRole(value)}
-                          disabled={saving || (value === 'ADMIN' && adminRoleLocked)}
-                        />
-                        {label}
-                      </label>
-                    ))}
-                  </div>
-                  {adminRoleLocked && (
-                    <p className="ucd-hint">
-                      {isSelfEditing
-                        ? 'Sie können sich Ihre eigene Administratorrolle nicht entziehen.'
-                        : 'Die letzte Administratorrolle kann nicht entzogen werden.'}
-                    </p>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Neues Passwort</label>
-                  <div className="ucd-field">
-                    <i className="bi bi-lock ucd-icon"></i>
-                    <input
-                      type={showEditPassword ? 'text' : 'password'}
-                      value={editing.password}
-                      onChange={(e) => setEditing({ ...editing, password: e.target.value })}
-                      placeholder="Leer lassen = unverändert"
-                      autoComplete="new-password"
-                      disabled={saving}
-                    />
-                    <button
-                      type="button"
-                      className="ucd-eye"
-                      onClick={() => setShowEditPassword(!showEditPassword)}
-                      aria-label={showEditPassword ? 'Passwörter verbergen' : 'Passwörter anzeigen'}
-                    >
-                      <i className={`bi ${showEditPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-                    </button>
-                  </div>
-                </div>
-                {editing.password && (
-                  <div className="form-group">
-                    <label>Neues Passwort bestätigen</label>
-                    <div className="ucd-field">
-                      <i className="bi bi-lock ucd-icon"></i>
-                      <input
-                        type={showEditPassword ? 'text' : 'password'}
-                        value={editing.passwordConfirm}
-                        onChange={(e) => setEditing({ ...editing, passwordConfirm: e.target.value })}
-                        placeholder="Passwort wiederholen"
-                        autoComplete="new-password"
-                        disabled={saving}
-                      />
-                    </div>
-                    {editing.passwordConfirm && (
-                      <p className={`ucd-match ${editing.password === editing.passwordConfirm ? 'ok' : 'bad'}`}>
-                        <i className={`bi ${editing.password === editing.passwordConfirm ? 'bi-check-lg' : 'bi-x-lg'}`}></i>
-                        {editing.password === editing.passwordConfirm ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein'}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="user-form-actions">
-                <button type="button" className="btn-secondary" onClick={closeEdit} disabled={saving}>
-                  Abbrechen
-                </button>
-                <button type="submit" disabled={saving} className="btn-primary">
-                  {saving ? 'Speichert...' : 'Speichern'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -580,7 +129,7 @@ export const PortalUsers = () => {
                   <div className="user-actions">
                     <button
                       className="btn-sm btn-edit"
-                      onClick={() => openEdit(user)}
+                      onClick={() => navigate(`/admin/portal/users/${user.id}`)}
                     >
                       Bearbeiten
                     </button>
