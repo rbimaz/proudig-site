@@ -1191,6 +1191,11 @@
   flex-wrap: wrap;
 }
 
+.user-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .role-badge {
   padding: 0.3rem 0.75rem;
   border: 1px solid #cbd5e1;

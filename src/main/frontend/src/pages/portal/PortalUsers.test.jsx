@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PortalUsers } from './PortalUsers';
 
@@ -25,7 +25,7 @@ vi.mock('../../contexts/AuthContext', () => ({
 
 describe('PortalUsers', () => {
   beforeEach(() => {
-    mockAuthFetch.mockClear();
+    mockAuthFetch.mockReset();
   });
 
   describe('API-Endpunkt Validierung (Regressionstest)', () => {
@@ -237,23 +237,25 @@ describe('PortalUsers', () => {
         json: () => Promise.resolve([existingUser])
       });
 
-      // Mock window.confirm
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
-
       render(<PortalUsers />);
 
       await waitFor(() => {
         expect(screen.getByText('Delete Me')).toBeInTheDocument();
       });
 
+      // Klicke auf Löschen in der Zeile -> öffnet Bestätigungsdialog (noch kein DELETE)
+      fireEvent.click(screen.getByText('Löschen'));
+      expect(screen.getByText('Benutzer löschen')).toBeInTheDocument();
+      expect(mockAuthFetch).toHaveBeenCalledTimes(1); // nur fetchUsers, noch kein DELETE
+
       // Mock für DELETE
       mockAuthFetch.mockResolvedValueOnce({
         ok: true
       });
 
-      // Klicke auf Löschen
-      const deleteButton = screen.getByText('Löschen');
-      fireEvent.click(deleteButton);
+      // Bestätigen im Dialog (Confirm-Button innerhalb des Dialogs)
+      const dialog = screen.getByRole('dialog');
+      fireEvent.click(within(dialog).getByText('Löschen'));
 
       await waitFor(() => {
         expect(mockAuthFetch).toHaveBeenCalledWith('/api/users/user-456', { method: 'DELETE' });
@@ -264,6 +266,56 @@ describe('PortalUsers', () => {
       const deleteCall = calls.find(call => call[1]?.method === 'DELETE');
       expect(deleteCall[0]).toBe('/api/users/user-456');
       expect(deleteCall[0]).not.toContain('/api/admin/');
+    });
+
+    it('Given der Löschen-Bestätigungsdialog ist offen, When abgebrochen wird, Then wird KEIN DELETE aufgerufen', async () => {
+      const existingUser = {
+        id: 'user-789', email: 'keep@example.com', firstName: 'Keep', lastName: 'Me', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Keep Me')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Löschen'));
+      fireEvent.click(screen.getByText('Abbrechen'));
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+      expect(mockAuthFetch).toHaveBeenCalledTimes(1); // kein DELETE
+      expect(screen.queryByText('Benutzer löschen')).not.toBeInTheDocument();
+    });
+
+    it('Given ein Benutzer existiert, When er bearbeitet und gespeichert wird, Then wird PUT /api/users/{id} mit den geänderten Feldern aufgerufen', async () => {
+      const existingUser = {
+        id: 'user-1', email: 'edit@example.com', firstName: 'Test', lastName: 'User', roles: ['USER']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([existingUser]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Test User')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+      expect(screen.getByText('Benutzer bearbeiten')).toBeInTheDocument();
+
+      fireEvent.change(screen.getByPlaceholderText('Max'), { target: { value: 'Neu' } });
+      fireEvent.change(screen.getByDisplayValue('Benutzer'), { target: { value: 'ADMIN' } });
+
+      mockAuthFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...existingUser, firstName: 'Neu', roles: ['ADMIN'] })
+      });
+
+      fireEvent.click(screen.getByText('Speichern'));
+
+      await waitFor(() => {
+        const putCall = mockAuthFetch.mock.calls.find(call => call[1]?.method === 'PUT');
+        expect(putCall).toBeTruthy();
+        expect(putCall[0]).toBe('/api/users/user-1');
+        const body = JSON.parse(putCall[1].body);
+        expect(body.firstName).toBe('Neu');
+        expect(body.lastName).toBe('User');
+        expect(body.roles).toEqual(['ADMIN']);
+      });
     });
   });
 

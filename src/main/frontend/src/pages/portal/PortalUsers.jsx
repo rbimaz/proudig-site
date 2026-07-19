@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+
+const ROLE_PRIORITY = ['ADMIN', 'CONSULTANT', 'USER'];
+const primaryRole = (user) => ROLE_PRIORITY.find(r => user.roles?.includes(r)) || 'USER';
 
 const ROLE_OPTIONS = [
   { value: 'USER', label: 'Benutzer' },
@@ -16,7 +20,9 @@ export const PortalUsers = () => {
   const [newUser, setNewUser] = useState(emptyUser);
   const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
@@ -38,10 +44,73 @@ export const PortalUsers = () => {
     };
   }, [showCreate]);
 
+  // Escape schließt den Bearbeiten-Dialog und sperrt Body-Scroll, solange er offen ist
+  useEffect(() => {
+    if (!editing) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeEdit();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [editing]);
+
   const closeCreate = () => {
     setShowCreate(false);
     setNewUser(emptyUser);
     setShowPassword(false);
+  };
+
+  const openEdit = (user) => {
+    setEditing({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      role: primaryRole(user),
+    });
+  };
+
+  const closeEdit = () => setEditing(null);
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editing.firstName || !editing.lastName) {
+      setMessage('Bitte Vor- und Nachname ausfüllen');
+      return;
+    }
+
+    setSaving(true);
+    setMessage('');
+    try {
+      const res = await authFetch(`/api/users/${editing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: editing.firstName,
+          lastName: editing.lastName,
+          roles: [editing.role],
+        })
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setUsers(users.map(u => (u.id === updated.id ? updated : u)));
+        closeEdit();
+        setMessage('Benutzer aktualisiert');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const detail = await res.text();
+        setMessage(detail ? 'Fehler beim Speichern: ' + detail : 'Fehler beim Speichern');
+      }
+    } catch (err) {
+      setMessage('Fehler: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const fetchUsers = async () => {
@@ -101,9 +170,9 @@ export const PortalUsers = () => {
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    if (!confirm('Benutzer wirklich löschen?')) return;
-
+  const handleDeleteUser = async () => {
+    const id = deleteTarget.id;
+    setDeleteTarget(null);
     try {
       const res = await authFetch(`/api/users/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -144,6 +213,9 @@ export const PortalUsers = () => {
   const initials = `${newUser.firstName.charAt(0)}${newUser.lastName.charAt(0)}`.toUpperCase();
   const previewName = `${newUser.firstName} ${newUser.lastName}`.trim();
   const passwordsMatch = newUser.password === newUser.passwordConfirm;
+
+  const editInitials = editing ? `${editing.firstName.charAt(0)}${editing.lastName.charAt(0)}`.toUpperCase() : '';
+  const editPreviewName = editing ? `${editing.firstName} ${editing.lastName}`.trim() : '';
 
   return (
     <div className="portal-users">
@@ -287,6 +359,98 @@ export const PortalUsers = () => {
         </div>
       )}
 
+      {editing && (
+        <div
+          className="confirm-dialog-backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) closeEdit(); }}
+        >
+          <div className="user-form-dialog user-create-dialog" role="dialog" aria-modal="true" aria-labelledby="user-edit-title">
+            <div className="ucd-header">
+              <div className={`ucd-avatar ${editInitials ? 'filled' : ''}`}>{editInitials || '?'}</div>
+              <div className="ucd-heading">
+                <h2 id="user-edit-title">Benutzer bearbeiten</h2>
+                <p className="ucd-preview">
+                  {editPreviewName ? `Vorschau: ${editPreviewName}` : 'Name erscheint hier als Vorschau.'}
+                </p>
+              </div>
+            </div>
+            <form onSubmit={handleUpdateUser}>
+              <div className="ucd-body">
+                <div className="form-group">
+                  <label>E-Mail</label>
+                  <div className="ucd-field">
+                    <i className="bi bi-envelope ucd-icon"></i>
+                    <input type="email" value={editing.email} readOnly disabled />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Vorname <span className="req">*</span></label>
+                  <div className="ucd-field">
+                    <i className="bi bi-person ucd-icon"></i>
+                    <input
+                      type="text"
+                      value={editing.firstName}
+                      onChange={(e) => setEditing({ ...editing, firstName: e.target.value })}
+                      placeholder="Max"
+                      disabled={saving}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Nachname <span className="req">*</span></label>
+                  <div className="ucd-field">
+                    <i className="bi bi-person ucd-icon"></i>
+                    <input
+                      type="text"
+                      value={editing.lastName}
+                      onChange={(e) => setEditing({ ...editing, lastName: e.target.value })}
+                      placeholder="Mustermann"
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Rolle <span className="req">*</span></label>
+                  <div className="ucd-field">
+                    <i className="bi bi-shield ucd-icon"></i>
+                    <select
+                      className="ucd-select"
+                      value={editing.role}
+                      onChange={(e) => setEditing({ ...editing, role: e.target.value })}
+                      disabled={saving}
+                    >
+                      {ROLE_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                    <i className="bi bi-chevron-down ucd-chevron"></i>
+                  </div>
+                </div>
+              </div>
+              <div className="user-form-actions">
+                <button type="button" className="btn-secondary" onClick={closeEdit} disabled={saving}>
+                  Abbrechen
+                </button>
+                <button type="submit" disabled={saving} className="btn-primary">
+                  {saving ? 'Speichert...' : 'Speichern'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        danger
+        title="Benutzer löschen"
+        message={deleteTarget ? `»${deleteTarget.firstName} ${deleteTarget.lastName}« wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.` : ''}
+        confirmText="Löschen"
+        onConfirm={handleDeleteUser}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
       {message && (
         <div className={`message ${message.includes('Fehler') ? 'error' : 'success'}`}>
           {message}
@@ -322,12 +486,20 @@ export const PortalUsers = () => {
                   </div>
                 </td>
                 <td>
-                  <button
-                    className="btn-sm danger"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    Löschen
-                  </button>
+                  <div className="user-actions">
+                    <button
+                      className="btn-sm btn-edit"
+                      onClick={() => openEdit(user)}
+                    >
+                      Bearbeiten
+                    </button>
+                    <button
+                      className="btn-sm btn-danger"
+                      onClick={() => setDeleteTarget(user)}
+                    >
+                      Löschen
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
