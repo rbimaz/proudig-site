@@ -9,7 +9,7 @@ export const ChangePassword = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { authFetch, logout } = useAuth();
+  const { authFetch, logout, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -44,10 +44,11 @@ export const ChangePassword = () => {
         throw new Error(data.message || 'Passwort konnte nicht geändert werden');
       }
 
+      const email = user?.email;
       setSuccess(true);
       setTimeout(async () => {
         await logout();
-        navigate('/admin/login');
+        navigate('/admin/login', { state: { email } });
       }, 3000);
     } catch (err) {
       setError(err.message || 'Fehler beim Ändern des Passworts');
