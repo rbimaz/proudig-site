@@ -1,0 +1,47 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  Produkt: ProuDig-Site — öffentliche Website + CMS + Dokumentenportal.
+  Rollen: ADMIN (Vollzugriff), CONSULTANT (CMS + Portal), CLIENT (nur Portal).
+  UI-Sprache: Deutsch. Requirements in Specs auf Deutsch formulieren.
+
+  Backend: Spring Boot 4.x, Java 21, Maven. Spring Data JPA/Hibernate auf
+  PostgreSQL 14+. Datenbankmigrationen mit Liquibase. Domain -> Service ->
+  Controller (REST unter /api/**). Auth: JWT (Access 2h, Refresh 7d), BCrypt,
+  RBAC via @PreAuthorize. Fehler im Portal: IllegalAccessError bei
+  Zugriffsverletzung, NoSuchElementException wenn Entität fehlt.
+
+  Frontend: React 19, Vite 6, React Router 7, eigene CSS-Stylesheets,
+  Bootstrap Icons. SPA, in das Backend-JAR gebaut (Monolith).
+
+  Deployment: einzelnes JAR, Caddy als Reverse Proxy mit automatischem HTTPS.
+  Portal-Speicher: Metadaten in PostgreSQL, Dateien im Dateisystem unter
+  data/files/. Max. Upload 50 MB.
+
+  Baseline-Konvention: openspec/specs/ beschreibt den TATSÄCHLICH gebauten
+  Ist-Zustand (aus dem Code abgeleitet), nicht den Soll-Zustand aus
+  docs/REQUIREMENTS.md. Abweichungen zwischen Code und REQUIREMENTS.md werden
+  in der jeweiligen Requirement als Hinweis dokumentiert.
+  Legacy-Referenz: docs/REQUIREMENTS.md (ID-Schema WEB-/CMS-/DOC-/FOLD-/…).
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
