@@ -40,8 +40,9 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(
             @PathVariable String id,
-            @RequestBody UserUpdateRequest request) {
-        UserDto user = userService.updateUser(id, request);
+            @RequestBody UserUpdateRequest request,
+            java.security.Principal principal) {
+        UserDto user = userService.updateUser(id, request, principal != null ? principal.getName() : null);
         return ResponseEntity.ok(user);
     }
 

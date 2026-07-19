@@ -11,7 +11,7 @@ const ROLE_OPTIONS = [
 const emptyUser = { email: '', firstName: '', lastName: '', role: 'USER', password: '', passwordConfirm: '', forcePasswordChange: false };
 
 export const PortalUsers = () => {
-  const { authFetch } = useAuth();
+  const { authFetch, user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newUser, setNewUser] = useState(emptyUser);
@@ -242,6 +242,13 @@ export const PortalUsers = () => {
   const editInitials = editing ? `${editing.firstName.charAt(0)}${editing.lastName.charAt(0)}`.toUpperCase() : '';
   const editPreviewName = editing ? `${editing.firstName} ${editing.lastName}`.trim() : '';
 
+  // Schutz der Administratorrolle: eigener oder letzter Admin darf ADMIN nicht verlieren
+  const adminCount = users.filter(u => u.roles?.includes('ADMIN')).length;
+  const editingUser = editing ? users.find(u => u.id === editing.id) : null;
+  const editingHasAdmin = editingUser?.roles?.includes('ADMIN');
+  const isSelfEditing = !!editingUser?.email && editingUser.email === currentUser?.email;
+  const adminRoleLocked = !!editingHasAdmin && (isSelfEditing || adminCount <= 1);
+
   return (
     <div className="portal-users">
       <div className="users-header">
@@ -453,12 +460,19 @@ export const PortalUsers = () => {
                           type="checkbox"
                           checked={editing.roles.includes(value)}
                           onChange={() => toggleEditRole(value)}
-                          disabled={saving}
+                          disabled={saving || (value === 'ADMIN' && adminRoleLocked)}
                         />
                         {label}
                       </label>
                     ))}
                   </div>
+                  {adminRoleLocked && (
+                    <p className="ucd-hint">
+                      {isSelfEditing
+                        ? 'Sie können sich Ihre eigene Administratorrolle nicht entziehen.'
+                        : 'Die letzte Administratorrolle kann nicht entzogen werden.'}
+                    </p>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Neues Passwort</label>

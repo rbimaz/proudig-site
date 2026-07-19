@@ -393,6 +393,21 @@ describe('PortalUsers', () => {
       expect(screen.getByText('Bitte mindestens eine Rolle wählen')).toBeInTheDocument();
     });
 
+    it('Given es gibt nur einen Administrator, When dessen Bearbeiten-Dialog geöffnet wird, Then ist die ADMIN-Checkbox deaktiviert', async () => {
+      const onlyAdmin = {
+        id: 'admin-1', email: 'admin@example.com', firstName: 'Ada', lastName: 'Admin', roles: ['ADMIN']
+      };
+      mockAuthFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([onlyAdmin]) });
+
+      render(<PortalUsers />);
+      await waitFor(() => expect(screen.getByText('Ada Admin')).toBeInTheDocument());
+
+      fireEvent.click(screen.getByText('Bearbeiten'));
+
+      expect(screen.getByLabelText('Administrator')).toBeDisabled();
+      expect(screen.getByText(/letzte Administratorrolle/i)).toBeInTheDocument();
+    });
+
     it('Given im Bearbeiten-Dialog ein neues Passwort gesetzt wird, When gespeichert wird, Then enthält der PUT-Payload das Passwort', async () => {
       const existingUser = {
         id: 'user-2', email: 'edit2@example.com', firstName: 'Erik', lastName: 'Muster', roles: ['USER']

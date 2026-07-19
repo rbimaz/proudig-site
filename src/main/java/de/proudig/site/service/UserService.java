@@ -69,7 +69,7 @@ public class UserService {
         return mapToDto(user);
     }
 
-    public UserDto updateUser(String id, UserUpdateRequest request) {
+    public UserDto updateUser(String id, UserUpdateRequest request, String currentUserEmail) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + id));
 
@@ -87,6 +87,16 @@ public class UserService {
         if (request.getRoles() != null) {
             if (request.getRoles().isEmpty()) {
                 throw new IllegalArgumentException("Mindestens eine Rolle erforderlich");
+            }
+            boolean hadAdmin = user.getRoles().stream().anyMatch(r -> "ADMIN".equals(r.getName()));
+            boolean removingAdmin = hadAdmin && !request.getRoles().contains("ADMIN");
+            if (removingAdmin) {
+                if (user.getEmail().equals(currentUserEmail)) {
+                    throw new IllegalArgumentException("Sie können sich Ihre eigene Administratorrolle nicht entziehen");
+                }
+                if (userRepository.countByRoles_Name("ADMIN") <= 1) {
+                    throw new IllegalArgumentException("Die letzte Administratorrolle kann nicht entzogen werden");
+                }
             }
             Set<Role> roles = request.getRoles().stream()
                     .map(roleName -> roleRepository.findByName(roleName)
