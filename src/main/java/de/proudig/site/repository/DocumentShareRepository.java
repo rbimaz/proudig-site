@@ -15,4 +15,6 @@ public interface DocumentShareRepository extends JpaRepository<DocumentShare, St
     List<DocumentShare> findByDocument(Document document);
     Optional<DocumentShare> findByDocumentAndSharedWith(Document document, User sharedWith);
     void deleteByDocument(Document document);
+    void deleteBySharedBy(User sharedBy);
+    void deleteBySharedWith(User sharedWith);
 }

@@ -40,6 +40,9 @@ export const PortalUsers = () => {
         setUsers(users.filter(u => u.id !== id));
         setMessage('Benutzer gelöscht');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        const detail = await res.text();
+        setMessage(detail ? 'Fehler beim Löschen: ' + detail : 'Fehler beim Löschen');
       }
     } catch (err) {
       setMessage('Fehler beim Löschen');

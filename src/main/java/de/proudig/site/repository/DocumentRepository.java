@@ -15,5 +15,6 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
     List<Document> findByFolder(Folder folder);
     List<Document> findByUploadedByAndFolderIsNull(User uploadedBy);
     Optional<Document> findByIdAndUploadedBy(String id, User uploadedBy);
+    boolean existsByUploadedBy(User uploadedBy);
     long countByFolder(Folder folder);
 }

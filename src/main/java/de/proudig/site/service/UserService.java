@@ -5,11 +5,20 @@ import de.proudig.site.domain.User;
 import de.proudig.site.dto.UserCreateRequest;
 import de.proudig.site.dto.UserDto;
 import de.proudig.site.dto.UserUpdateRequest;
+import de.proudig.site.repository.ActivityLogRepository;
+import de.proudig.site.repository.ContentBlockRepository;
+import de.proudig.site.repository.DocumentRepository;
+import de.proudig.site.repository.DocumentShareRepository;
+import de.proudig.site.repository.FolderRepository;
+import de.proudig.site.repository.MediaRepository;
+import de.proudig.site.repository.PageRepository;
+import de.proudig.site.repository.RefreshTokenRepository;
 import de.proudig.site.repository.RoleRepository;
 import de.proudig.site.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +33,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final ActivityLogRepository activityLogRepository;
+    private final DocumentShareRepository documentShareRepository;
+    private final ContentBlockRepository contentBlockRepository;
+    private final FolderRepository folderRepository;
+    private final DocumentRepository documentRepository;
+    private final MediaRepository mediaRepository;
+    private final PageRepository pageRepository;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll()
@@ -109,9 +126,28 @@ public class UserService {
         return mapToDto(user);
     }
 
+    @Transactional
     public void deleteUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + id));
+
+        // Eigentum schützen: Benutzer mit eigenen Inhalten nicht löschen
+        if (folderRepository.existsByOwner(user)
+                || documentRepository.existsByUploadedBy(user)
+                || mediaRepository.existsByUploadedBy(user)
+                || pageRepository.existsByAuthor(user)) {
+            throw new IllegalArgumentException(
+                    "Benutzer besitzt noch Inhalte (Ordner, Dokumente, Medien oder Seiten) "
+                            + "und kann nicht gelöscht werden. Bitte Inhalte zuvor übertragen oder löschen.");
+        }
+
+        // Abhängige, unkritische Daten bereinigen
+        refreshTokenRepository.deleteByUser(user);
+        activityLogRepository.deleteByUser(user);
+        documentShareRepository.deleteBySharedBy(user);
+        documentShareRepository.deleteBySharedWith(user);
+        contentBlockRepository.clearUpdatedBy(user);
+
         userRepository.delete(user);
     }
 
