@@ -7,10 +7,12 @@ import { HeroSaas } from './HeroSaas';
 import { HeroSaasAnim } from './HeroSaasAnim';
 import { HeroImageBlue } from './HeroImageBlue';
 import { HeroAoeDash } from './HeroAoeDash';
-import { HeroVisualCarousel } from './HeroVisualCarousel';
 
 const HeroUdig2 = ({ scrollTo }) => (
   <section className="hero hero-udig2">
+    <div className="orb" aria-hidden="true">
+      <img src="/proudig-orb.jpg" alt="" />
+    </div>
     <div className="container">
       <div className="hero-udig2-layout">
         <div className="hero-udig2-content">
@@ -29,9 +31,6 @@ const HeroUdig2 = ({ scrollTo }) => (
               Leistungen entdecken
             </button>
           </div>
-        </div>
-        <div className="hero-udig2-visual fade-up d3">
-          <HeroVisualCarousel />
         </div>
       </div>
     </div>
