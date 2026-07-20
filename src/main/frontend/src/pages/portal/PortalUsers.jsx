@@ -144,18 +144,21 @@ export const PortalUsers = () => {
                 <td>
                   <div className="user-actions">
                     <button
-                      className="btn-sm btn-edit"
+                      className="btn-sm"
                       onClick={() => navigate(`/admin/portal/users/${user.id}`)}
+                      aria-label="Bearbeiten"
+                      title="Bearbeiten"
                     >
-                      Bearbeiten
+                      <i className="bi bi-pencil"></i>
                     </button>
                     <button
                       className="btn-sm btn-danger"
                       onClick={() => setDeleteTarget(user)}
                       disabled={deleteDisabled}
-                      title={deleteTitle}
+                      aria-label="Löschen"
+                      title={deleteTitle || 'Löschen'}
                     >
-                      Löschen
+                      <i className="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>

@@ -48,7 +48,7 @@ describe('PortalUsers (Liste)', () => {
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Max Admin')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByText('Bearbeiten'));
+    fireEvent.click(screen.getByRole('button', { name: 'Bearbeiten' }));
     expect(mockNavigate).toHaveBeenCalledWith('/admin/portal/users/u1');
   });
 
@@ -58,7 +58,7 @@ describe('PortalUsers (Liste)', () => {
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Delete Me')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByText('Löschen'));
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }));
     expect(screen.getByText('Benutzer löschen')).toBeInTheDocument();
     expect(mockAuthFetch).toHaveBeenCalledTimes(1); // noch kein DELETE
 
@@ -77,7 +77,7 @@ describe('PortalUsers (Liste)', () => {
     render(<PortalUsers />);
     await waitFor(() => expect(screen.getByText('Keep Me')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByText('Löschen'));
+    fireEvent.click(screen.getByRole('button', { name: 'Löschen' }));
     fireEvent.click(screen.getByText('Abbrechen'));
     await new Promise(r => setTimeout(r, 30));
     expect(mockAuthFetch.mock.calls.find(c => c[1]?.method === 'DELETE')).toBeUndefined();

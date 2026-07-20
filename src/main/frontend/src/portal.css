@@ -1253,6 +1253,13 @@
 .user-actions {
   display: flex;
   gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+/* Aktionsspalte rechtsbündig */
+.portal-users .admin-table th:last-child,
+.portal-users .admin-table td:last-child {
+  text-align: right;
 }
 
 .role-badge {
