@@ -16,6 +16,8 @@ import { BlogPage } from './pages/BlogPage';
 import { BlogPostPage } from './pages/BlogPostPage';
 import { SeminarePage } from './pages/SeminarePage';
 import { SeminarDetailPage } from './pages/SeminarDetailPage';
+import { NewsPage } from './pages/NewsPage';
+import { NewsPostPage } from './pages/NewsPostPage';
 
 // Admin pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -27,6 +29,7 @@ import { StaticPageEditor } from './pages/admin/StaticPageEditor';
 import { BlogList } from './pages/admin/BlogList';
 import { PageEditor } from './pages/admin/PageEditor';
 import { SeminarList } from './pages/admin/SeminarList';
+import { NewsList } from './pages/admin/NewsList';
 import { MediaLibrary } from './pages/admin/MediaLibrary';
 import { MessageList } from './pages/admin/MessageList';
 import { MessageDetail } from './pages/admin/MessageDetail';
@@ -76,6 +79,8 @@ function AppContent() {
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/seminare" element={<SeminarePage />} />
         <Route path="/seminare/:slug" element={<SeminarDetailPage />} />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/:slug" element={<NewsPostPage />} />
 
         {/* Admin - Zentrale Einstiegsseite */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -93,6 +98,9 @@ function AppContent() {
           <Route path="seminare" element={<SeminarList />} />
           <Route path="seminare/new" element={<PageEditor category="SEMINAR" />} />
           <Route path="seminare/:id" element={<PageEditor category="SEMINAR" />} />
+          <Route path="news" element={<NewsList />} />
+          <Route path="news/new" element={<PageEditor category="NEWS" />} />
+          <Route path="news/:id" element={<PageEditor category="NEWS" />} />
           <Route path="media" element={<MediaLibrary />} />
           <Route path="nachrichten" element={<MessageList />} />
           <Route path="nachrichten/:id" element={<MessageDetail />} />

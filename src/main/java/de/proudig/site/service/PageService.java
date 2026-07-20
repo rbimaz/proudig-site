@@ -31,6 +31,11 @@ public class PageService {
         return pages.map(this::mapToDto);
     }
 
+    public org.springframework.data.domain.Page<PageDto> getPublishedNews(Pageable pageable) {
+        org.springframework.data.domain.Page<Page> pages = pageRepository.findByCategoryAndStatus(PageCategory.NEWS, PageStatus.PUBLISHED, pageable);
+        return pages.map(this::mapToDto);
+    }
+
     public org.springframework.data.domain.Page<PageDto> getPublishedSeminars(Pageable pageable) {
         org.springframework.data.domain.Page<Page> pages = pageRepository.findByCategoryAndStatus(PageCategory.SEMINAR, PageStatus.PUBLISHED, pageable);
         return pages.map(this::mapToDto);

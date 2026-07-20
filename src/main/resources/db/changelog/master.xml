@@ -13,5 +13,6 @@
     <include file="db/changelog/007-activity-log.xml"/>
     <include file="db/changelog/008-reset-admin-password.xml"/>
     <include file="db/changelog/009-contact-messages.xml"/>
+    <include file="db/changelog/010-news-seed.xml"/>
 
 </databaseChangeLog>
