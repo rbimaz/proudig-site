@@ -14,6 +14,7 @@ vi.mock('../contexts/AuthContext', () => ({
 let mockRefreshCounter = 0;
 const mockSetCurrentFolderId = vi.fn();
 const mockSetFolderPath = vi.fn();
+const mockTriggerRefresh = vi.fn();
 
 vi.mock('../contexts/FolderTreeContext', () => ({
   useFolderTree: () => ({
@@ -21,7 +22,8 @@ vi.mock('../contexts/FolderTreeContext', () => ({
     folderPath: [],
     setFolderPath: mockSetFolderPath,
     setCurrentFolderId: mockSetCurrentFolderId,
-    refreshCounter: mockRefreshCounter
+    refreshCounter: mockRefreshCounter,
+    triggerRefresh: mockTriggerRefresh
   })
 }));
 
@@ -213,6 +215,56 @@ describe('FolderTree', () => {
 
       // Nach Collapse sollten die Ordner nicht mehr sichtbar sein
       expect(screen.queryByText('Projekte')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Drag & Drop', () => {
+    it('Given ein Ordner wird auf einen anderen gezogen, When Drop, Then PUT /api/folders/{id}/move mit parentFolderId', async () => {
+      setupMocks();
+      render(<FolderTree />);
+      await waitFor(() => expect(screen.getByText('Projekte')).toBeInTheDocument());
+
+      // Move-Aufruf mocken (übrige Aufrufe weiter bedienen)
+      mockAuthFetch.mockImplementation((url, opts) => {
+        if (opts?.method === 'PUT') return Promise.resolve({ ok: true });
+        if (url === '/api/folders') return Promise.resolve({ ok: true, json: () => Promise.resolve(mockRootFolders) });
+        if (url === '/api/documents') return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      });
+
+      const target = screen.getByText('Projekte').closest('button'); // folder-1
+      const dataTransfer = { getData: () => 'folder-2', setData: vi.fn(), dropEffect: '' };
+      fireEvent.drop(target, { dataTransfer });
+
+      await waitFor(() => {
+        const moveCall = mockAuthFetch.mock.calls.find(c => c[0] === '/api/folders/folder-2/move');
+        expect(moveCall).toBeTruthy();
+        expect(moveCall[1].method).toBe('PUT');
+        expect(JSON.parse(moveCall[1].body).parentFolderId).toBe('folder-1');
+      });
+    });
+
+    it('Given ein Ordner wird auf das Stammverzeichnis gezogen, When Drop, Then parentFolderId ist null', async () => {
+      setupMocks();
+      render(<FolderTree />);
+      await waitFor(() => expect(screen.getByText('Projekte')).toBeInTheDocument());
+
+      mockAuthFetch.mockImplementation((url, opts) => {
+        if (opts?.method === 'PUT') return Promise.resolve({ ok: true });
+        if (url === '/api/folders') return Promise.resolve({ ok: true, json: () => Promise.resolve(mockRootFolders) });
+        if (url === '/api/documents') return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      });
+
+      const root = screen.getByText('Stammverzeichnis').closest('button');
+      const dataTransfer = { getData: () => 'folder-1', setData: vi.fn(), dropEffect: '' };
+      fireEvent.drop(root, { dataTransfer });
+
+      await waitFor(() => {
+        const moveCall = mockAuthFetch.mock.calls.find(c => c[0] === '/api/folders/folder-1/move');
+        expect(moveCall).toBeTruthy();
+        expect(JSON.parse(moveCall[1].body).parentFolderId).toBeNull();
+      });
     });
   });
 });

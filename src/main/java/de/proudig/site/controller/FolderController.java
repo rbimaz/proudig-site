@@ -60,10 +60,25 @@ public class FolderController {
         return ResponseEntity.ok(folder);
     }
 
+    @PutMapping("/{folderId}/move")
+    public ResponseEntity<FolderDto> moveFolder(
+            @PathVariable String folderId,
+            @RequestBody Map<String, String> request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String parentFolderId = request.get("parentFolderId");
+        FolderDto folder = folderService.moveFolder(folderId, parentFolderId, user);
+        return ResponseEntity.ok(folder);
+    }
+
     @DeleteMapping("/{folderId}")
     public ResponseEntity<Void> deleteFolder(@PathVariable String folderId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         folderService.deleteFolder(folderId, user);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

@@ -2,13 +2,39 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFolderTree } from '../contexts/FolderTreeContext';
 
-const TreeNode = ({ folder, depth, authFetch, currentFolderId, onNavigate, refreshCounter }) => {
+const TreeNode = ({ folder, depth, authFetch, currentFolderId, onNavigate, refreshCounter, onMove }) => {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(refreshCounter);
+  const [dragOver, setDragOver] = useState(false);
 
   const isActive = currentFolderId === folder.id;
+
+  const handleDragStart = (e) => {
+    e.stopPropagation();
+    e.dataTransfer.setData('text/plain', folder.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (!dragOver) setDragOver(true);
+  };
+
+  const handleDragLeave = () => setDragOver(false);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (draggedId && draggedId !== folder.id) {
+      onMove(draggedId, folder.id);
+    }
+  };
 
   const loadChildren = async () => {
     if (!folder.hasChildren) return;
@@ -50,9 +76,14 @@ const TreeNode = ({ folder, depth, authFetch, currentFolderId, onNavigate, refre
   return (
     <>
       <button
-        className={`tree-node tree-depth-${Math.min(depth, 4)} ${isActive ? 'active-folder' : ''}`}
+        className={`tree-node tree-depth-${Math.min(depth, 4)} ${isActive ? 'active-folder' : ''} ${dragOver ? 'drag-over' : ''}`}
         onClick={handleClick}
         title={folder.name}
+        draggable
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {depth > 0 && <span className="tree-guide" />}
         <span
@@ -82,6 +113,7 @@ const TreeNode = ({ folder, depth, authFetch, currentFolderId, onNavigate, refre
           currentFolderId={currentFolderId}
           onNavigate={onNavigate}
           refreshCounter={refreshCounter}
+          onMove={onMove}
         />
       ))}
     </>
@@ -90,10 +122,39 @@ const TreeNode = ({ folder, depth, authFetch, currentFolderId, onNavigate, refre
 
 export const FolderTree = () => {
   const { authFetch } = useAuth();
-  const { currentFolderId, folderPath, setFolderPath, setCurrentFolderId, refreshCounter } = useFolderTree();
+  const { currentFolderId, folderPath, setFolderPath, setCurrentFolderId, refreshCounter, triggerRefresh } = useFolderTree();
   const [rootFolders, setRootFolders] = useState([]);
   const [rootDocCount, setRootDocCount] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
+  const [rootDragOver, setRootDragOver] = useState(false);
+  const [moveError, setMoveError] = useState('');
+
+  const handleMove = async (folderId, parentFolderId) => {
+    try {
+      const res = await authFetch(`/api/folders/${folderId}/move`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentFolderId })
+      });
+      if (res.ok) {
+        triggerRefresh();
+      } else {
+        const detail = await res.text();
+        setMoveError(detail || 'Verschieben nicht möglich');
+        setTimeout(() => setMoveError(''), 4000);
+      }
+    } catch (err) {
+      setMoveError('Fehler beim Verschieben');
+      setTimeout(() => setMoveError(''), 4000);
+    }
+  };
+
+  const handleRootDrop = (e) => {
+    e.preventDefault();
+    setRootDragOver(false);
+    const draggedId = e.dataTransfer.getData('text/plain');
+    if (draggedId) handleMove(draggedId, null);
+  };
 
   const fetchRootData = useCallback(async () => {
     try {
@@ -144,8 +205,11 @@ export const FolderTree = () => {
         <div className="tree-nodes">
           {/* Root / Stammverzeichnis */}
           <button
-            className={`tree-node tree-depth-0 ${currentFolderId === null ? 'active-folder' : ''}`}
+            className={`tree-node tree-depth-0 ${currentFolderId === null ? 'active-folder' : ''} ${rootDragOver ? 'drag-over' : ''}`}
             onClick={handleNavigateToRoot}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (!rootDragOver) setRootDragOver(true); }}
+            onDragLeave={() => setRootDragOver(false)}
+            onDrop={handleRootDrop}
           >
             <span className={`tree-chevron ${rootFolders.length > 0 ? 'open' : 'invisible'}`}>
               <i className="bi bi-chevron-right" />
@@ -166,8 +230,11 @@ export const FolderTree = () => {
               currentFolderId={currentFolderId}
               onNavigate={handleNavigateToFolder}
               refreshCounter={refreshCounter}
+              onMove={handleMove}
             />
           ))}
+
+          {moveError && <div className="tree-move-error">{moveError}</div>}
         </div>
       )}
     </div>

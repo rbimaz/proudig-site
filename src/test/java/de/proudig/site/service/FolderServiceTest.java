@@ -292,4 +292,66 @@ class FolderServiceTest {
             assertThat(result.isHasChildren()).isTrue();
         }
     }
+
+    @Nested
+    @DisplayName("Ordner verschieben")
+    class MoveFolderTests {
+
+        @Test
+        @DisplayName("Given eigener Ordner und Ziel, When verschoben, Then parentFolder = Ziel")
+        void ownerCanMoveFolderIntoTarget() {
+            Folder target = Folder.builder().id("target-id").name("Ziel").owner(owner).build();
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(folderRepository.findById("target-id")).thenReturn(Optional.of(target));
+            when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
+            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
+            when(documentRepository.countByFolder(any())).thenReturn(0L);
+
+            FolderDto result = folderService.moveFolder("folder-id", "target-id", owner);
+
+            assertThat(testFolder.getParentFolder()).isEqualTo(target);
+            assertThat(result.getParentFolderId()).isEqualTo("target-id");
+        }
+
+        @Test
+        @DisplayName("Given Unterordner, When auf Wurzel verschoben, Then parentFolder = null")
+        void moveToRoot() {
+            testFolder.setParentFolder(Folder.builder().id("old-parent").owner(owner).build());
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
+            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
+            when(documentRepository.countByFolder(any())).thenReturn(0L);
+
+            FolderDto result = folderService.moveFolder("folder-id", null, owner);
+
+            assertThat(testFolder.getParentFolder()).isNull();
+            assertThat(result.getParentFolderId()).isNull();
+        }
+
+        @Test
+        @DisplayName("Given Ziel ist Nachfahre, When verschoben, Then IllegalArgumentException")
+        void cannotMoveIntoDescendant() {
+            // target ist Kind von testFolder -> Zyklus
+            Folder target = Folder.builder().id("target-id").name("Kind").owner(owner)
+                    .parentFolder(testFolder).build();
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(folderRepository.findById("target-id")).thenReturn(Optional.of(target));
+
+            assertThatThrownBy(() -> folderService.moveFolder("folder-id", "target-id", owner))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(folderRepository, never()).save(any(Folder.class));
+        }
+
+        @Test
+        @DisplayName("Given fremder Ordner, When Nicht-Admin verschiebt, Then Zugriff verweigert")
+        void nonOwnerCannotMove() {
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+
+            assertThatThrownBy(() -> folderService.moveFolder("folder-id", null, otherUser))
+                    .isInstanceOf(IllegalAccessError.class);
+
+            verify(folderRepository, never()).save(any(Folder.class));
+        }
+    }
 }

@@ -87,6 +87,39 @@ public class FolderService {
     }
 
     @Transactional
+    public FolderDto moveFolder(String folderId, String newParentId, User user) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId));
+
+        if (!canAccess(folder, user)) {
+            throw new IllegalAccessError("Access denied");
+        }
+
+        Folder newParent = null;
+        if (newParentId != null) {
+            newParent = folderRepository.findById(newParentId)
+                    .orElseThrow(() -> new NoSuchElementException("Target folder not found: " + newParentId));
+
+            if (!canAccess(newParent, user)) {
+                throw new IllegalAccessError("Access denied");
+            }
+
+            // Zyklus-Schutz: Ziel darf nicht der Ordner selbst oder ein Nachfahre sein
+            for (Folder cursor = newParent; cursor != null; cursor = cursor.getParentFolder()) {
+                if (cursor.getId().equals(folder.getId())) {
+                    throw new IllegalArgumentException(
+                            "Ein Ordner kann nicht in sich selbst oder einen seiner Unterordner verschoben werden.");
+                }
+            }
+        }
+
+        folder.setParentFolder(newParent);
+        folder.setUpdatedAt(Instant.now());
+        folder = folderRepository.save(folder);
+        return mapToDto(folder);
+    }
+
+    @Transactional
     public void deleteFolder(String folderId, User user) {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId));
