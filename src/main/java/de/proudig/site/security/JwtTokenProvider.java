@@ -2,27 +2,22 @@ package de.proudig.site.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 @Component
-@Slf4j
 public class JwtTokenProvider {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtTokenProvider.class);
     @Value("${app.jwt-secret}")
     private String jwtSecret;
-
     @Value("${app.jwt-expiration-ms}")
     private long jwtExpirationMs;
-
     @Value("${app.jwt-refresh-expiration-ms}")
     private long jwtRefreshExpirationMs;
 
@@ -39,32 +34,16 @@ public class JwtTokenProvider {
     }
 
     private String buildToken(UserDetails userDetails, long expirationTime) {
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .claim("roles", userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()))
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(getSigningKey())
-                .compact();
+        return Jwts.builder().subject(userDetails.getUsername()).claim("roles", userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())).issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + expirationTime)).signWith(getSigningKey()).compact();
     }
 
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload().getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
+            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
             return true;
         } catch (SecurityException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());

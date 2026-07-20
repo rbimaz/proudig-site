@@ -3,20 +3,15 @@ package de.proudig.site.service;
 import de.proudig.site.domain.RefreshToken;
 import de.proudig.site.domain.User;
 import de.proudig.site.repository.RefreshTokenRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class RefreshTokenService {
-
     private final RefreshTokenRepository refreshTokenRepository;
-
     @Value("${app.jwt-refresh-expiration-ms}")
     private long jwtRefreshExpirationMs;
 
@@ -42,5 +37,9 @@ public class RefreshTokenService {
 
     public void deleteByUser(User user) {
         refreshTokenRepository.deleteByUser(user);
+    }
+
+    public RefreshTokenService(final RefreshTokenRepository refreshTokenRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 }

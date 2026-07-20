@@ -3,25 +3,20 @@ package de.proudig.site.service;
 import de.proudig.site.domain.ContactMessage;
 import de.proudig.site.dto.ContactMessageDto;
 import de.proudig.site.repository.ContactMessageRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
-@RequiredArgsConstructor
 public class ContactMessageService {
-
     private final ContactMessageRepository contactMessageRepository;
-
     // Rate-Limiting: IP -> Liste von Timestamps
     private final Map<String, CopyOnWriteArrayList<Long>> requestLog = new ConcurrentHashMap<>();
     private static final int MAX_REQUESTS_PER_HOUR = 5;
-    private static final long ONE_HOUR_MS = 3600_000L;
+    private static final long ONE_HOUR_MS = 3600000L;
 
     /**
      * Prüft, ob die IP-Adresse das Rate-Limit überschritten hat.
@@ -29,14 +24,9 @@ public class ContactMessageService {
     public boolean isRateLimited(String ipAddress) {
         long now = System.currentTimeMillis();
         long oneHourAgo = now - ONE_HOUR_MS;
-
-        CopyOnWriteArrayList<Long> timestamps = requestLog.computeIfAbsent(
-                ipAddress, k -> new CopyOnWriteArrayList<>()
-        );
-
+        CopyOnWriteArrayList<Long> timestamps = requestLog.computeIfAbsent(ipAddress, k -> new CopyOnWriteArrayList<>());
         // Alte Einträge entfernen
         timestamps.removeIf(t -> t < oneHourAgo);
-
         return timestamps.size() >= MAX_REQUESTS_PER_HOUR;
     }
 
@@ -44,9 +34,7 @@ public class ContactMessageService {
      * Registriert eine Anfrage für Rate-Limiting.
      */
     public void recordRequest(String ipAddress) {
-        CopyOnWriteArrayList<Long> timestamps = requestLog.computeIfAbsent(
-                ipAddress, k -> new CopyOnWriteArrayList<>()
-        );
+        CopyOnWriteArrayList<Long> timestamps = requestLog.computeIfAbsent(ipAddress, k -> new CopyOnWriteArrayList<>());
         timestamps.add(System.currentTimeMillis());
     }
 
@@ -65,10 +53,7 @@ public class ContactMessageService {
      */
     @Transactional(readOnly = true)
     public List<ContactMessageDto> getAllMessages() {
-        return contactMessageRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
-                .map(ContactMessageDto::fromEntity)
-                .toList();
+        return contactMessageRepository.findAllByOrderByCreatedAtDesc().stream().map(ContactMessageDto::fromEntity).toList();
     }
 
     /**
@@ -76,10 +61,7 @@ public class ContactMessageService {
      */
     @Transactional(readOnly = true)
     public List<ContactMessageDto> getUnreadMessages() {
-        return contactMessageRepository.findByIsReadFalseOrderByCreatedAtDesc()
-                .stream()
-                .map(ContactMessageDto::fromEntity)
-                .toList();
+        return contactMessageRepository.findByIsReadFalseOrderByCreatedAtDesc().stream().map(ContactMessageDto::fromEntity).toList();
     }
 
     /**
@@ -95,9 +77,7 @@ public class ContactMessageService {
      */
     @Transactional(readOnly = true)
     public ContactMessageDto getMessage(String id) {
-        return contactMessageRepository.findById(id)
-                .map(ContactMessageDto::fromEntity)
-                .orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
+        return contactMessageRepository.findById(id).map(ContactMessageDto::fromEntity).orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
     }
 
     /**
@@ -105,8 +85,7 @@ public class ContactMessageService {
      */
     @Transactional
     public ContactMessageDto markAsRead(String id) {
-        ContactMessage message = contactMessageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
+        ContactMessage message = contactMessageRepository.findById(id).orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
         message.setIsRead(true);
         return ContactMessageDto.fromEntity(contactMessageRepository.save(message));
     }
@@ -116,8 +95,7 @@ public class ContactMessageService {
      */
     @Transactional
     public ContactMessageDto markAsUnread(String id) {
-        ContactMessage message = contactMessageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
+        ContactMessage message = contactMessageRepository.findById(id).orElseThrow(() -> new RuntimeException("Nachricht nicht gefunden"));
         message.setIsRead(false);
         return ContactMessageDto.fromEntity(contactMessageRepository.save(message));
     }
@@ -139,5 +117,9 @@ public class ContactMessageService {
     @Transactional
     public void deleteMessages(List<String> ids) {
         contactMessageRepository.deleteAllById(ids);
+    }
+
+    public ContactMessageService(final ContactMessageRepository contactMessageRepository) {
+        this.contactMessageRepository = contactMessageRepository;
     }
 }

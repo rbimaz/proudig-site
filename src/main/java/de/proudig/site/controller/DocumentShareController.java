@@ -6,20 +6,17 @@ import de.proudig.site.dto.DocumentDto;
 import de.proudig.site.dto.DocumentShareDto;
 import de.proudig.site.service.DocumentService;
 import de.proudig.site.service.DocumentShareService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/shares")
-@RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class DocumentShareController {
     private final DocumentShareService documentShareService;
@@ -32,13 +29,11 @@ public class DocumentShareController {
         String sharedWithEmail = (String) request.get("sharedWithEmail");
         String permissionStr = (String) request.getOrDefault("permission", "VIEW");
         DocumentPermission permission = DocumentPermission.valueOf(permissionStr);
-
         Object expiresAtObj = request.get("expiresAt");
         Instant expiresAt = null;
         if (expiresAtObj instanceof String) {
             expiresAt = Instant.parse((String) expiresAtObj);
         }
-
         DocumentShareDto share = documentShareService.shareDocument(documentId, sharedWithEmail, permission, expiresAt, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(share);
     }
@@ -77,5 +72,10 @@ public class DocumentShareController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+    }
+
+    public DocumentShareController(final DocumentShareService documentShareService, final DocumentService documentService) {
+        this.documentShareService = documentShareService;
+        this.documentService = documentService;
     }
 }

@@ -3,19 +3,16 @@ package de.proudig.site.controller;
 import de.proudig.site.domain.User;
 import de.proudig.site.dto.FolderDto;
 import de.proudig.site.service.FolderService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/folders")
-@RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class FolderController {
     private final FolderService folderService;
@@ -51,9 +48,7 @@ public class FolderController {
     }
 
     @PutMapping("/{folderId}")
-    public ResponseEntity<FolderDto> updateFolder(
-            @PathVariable String folderId,
-            @RequestBody Map<String, String> request) {
+    public ResponseEntity<FolderDto> updateFolder(@PathVariable String folderId, @RequestBody Map<String, String> request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String name = request.get("name");
         FolderDto folder = folderService.updateFolder(folderId, name, user);
@@ -61,9 +56,7 @@ public class FolderController {
     }
 
     @PutMapping("/{folderId}/move")
-    public ResponseEntity<FolderDto> moveFolder(
-            @PathVariable String folderId,
-            @RequestBody Map<String, String> request) {
+    public ResponseEntity<FolderDto> moveFolder(@PathVariable String folderId, @RequestBody Map<String, String> request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String parentFolderId = request.get("parentFolderId");
         FolderDto folder = folderService.moveFolder(folderId, parentFolderId, user);
@@ -80,5 +73,9 @@ public class FolderController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    public FolderController(final FolderService folderService) {
+        this.folderService = folderService;
     }
 }
