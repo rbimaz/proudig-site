@@ -7,7 +7,7 @@ import { HeroSaas } from './HeroSaas';
 import { HeroSaasAnim } from './HeroSaasAnim';
 import { HeroImageBlue } from './HeroImageBlue';
 import { HeroAoeDash } from './HeroAoeDash';
-import { HeroProcessFlow } from './HeroProcessFlow';
+import { HeroVisualCarousel } from './HeroVisualCarousel';
 
 const HeroUdig2 = ({ scrollTo }) => (
   <section className="hero hero-udig2">
@@ -31,7 +31,7 @@ const HeroUdig2 = ({ scrollTo }) => (
           </div>
         </div>
         <div className="hero-udig2-visual fade-up d3">
-          <HeroProcessFlow />
+          <HeroVisualCarousel />
         </div>
       </div>
     </div>

@@ -1415,6 +1415,44 @@ section {
   pointer-events: auto;
 }
 
+/* ── Hero Visual Carousel (Diagramm + Bild) ── */
+.hero-visual-carousel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.hero-visual-img {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  mix-blend-mode: screen;
+}
+.hero-visual-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+.hero-visual-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--c-text-light);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.hero-visual-dot:hover {
+  background: var(--c-white);
+}
+.hero-visual-dot.active {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--c-accent);
+}
+
 /* ══════════════════════════════════════════
    VARIANTE A — Vertikaler Prozessfluss
    ══════════════════════════════════════════ */
