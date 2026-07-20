@@ -113,13 +113,47 @@ class UserServiceTest {
         assertThat(adminUser.getRoles()).extracting(Role::getName).containsExactly("USER");
     }
 
+    private User normalUser() {
+        User u = new User();
+        u.setId("u-normal");
+        u.setEmail("client@example.com");
+        u.setRoles(new HashSet<>()); // kein ADMIN
+        return u;
+    }
+
+    @Test
+    @DisplayName("Eigenes Konto kann nicht gelöscht werden")
+    void deleteUserBlockedWhenSelf() {
+        when(userRepository.findById("admin-1")).thenReturn(Optional.of(adminUser));
+
+        assertThatThrownBy(() -> userService.deleteUser("admin-1", "admin@example.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("eigenes Konto");
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Letzter Administrator kann nicht gelöscht werden")
+    void deleteUserBlockedWhenLastAdmin() {
+        when(userRepository.findById("admin-1")).thenReturn(Optional.of(adminUser));
+        when(userRepository.countByRoles_Name("ADMIN")).thenReturn(1L);
+
+        assertThatThrownBy(() -> userService.deleteUser("admin-1", "someone-else@example.com"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("letzte");
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
     @Test
     @DisplayName("Löschen wird abgelehnt, wenn der Benutzer eigene Inhalte besitzt")
     void deleteUserBlockedWhenOwnsContent() {
-        when(userRepository.findById("admin-1")).thenReturn(Optional.of(adminUser));
-        when(folderRepository.existsByOwner(adminUser)).thenReturn(true);
+        User user = normalUser();
+        when(userRepository.findById("u-normal")).thenReturn(Optional.of(user));
+        when(folderRepository.existsByOwner(user)).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.deleteUser("admin-1"))
+        assertThatThrownBy(() -> userService.deleteUser("u-normal", "admin@example.com"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Inhalte");
 
@@ -129,16 +163,17 @@ class UserServiceTest {
     @Test
     @DisplayName("Löschen räumt abhängige Daten auf und löscht den Benutzer ohne eigene Inhalte")
     void deleteUserCleansUpAndDeletes() {
-        when(userRepository.findById("admin-1")).thenReturn(Optional.of(adminUser));
+        User user = normalUser();
+        when(userRepository.findById("u-normal")).thenReturn(Optional.of(user));
         // alle existsBy* liefern per Default false -> kein Eigentum
 
-        userService.deleteUser("admin-1");
+        userService.deleteUser("u-normal", "admin@example.com");
 
-        verify(refreshTokenRepository).deleteByUser(adminUser);
-        verify(activityLogRepository).deleteByUser(adminUser);
-        verify(documentShareRepository).deleteBySharedBy(adminUser);
-        verify(documentShareRepository).deleteBySharedWith(adminUser);
-        verify(contentBlockRepository).clearUpdatedBy(adminUser);
-        verify(userRepository).delete(adminUser);
+        verify(refreshTokenRepository).deleteByUser(user);
+        verify(activityLogRepository).deleteByUser(user);
+        verify(documentShareRepository).deleteBySharedBy(user);
+        verify(documentShareRepository).deleteBySharedWith(user);
+        verify(contentBlockRepository).clearUpdatedBy(user);
+        verify(userRepository).delete(user);
     }
 }

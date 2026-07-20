@@ -6,7 +6,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 const ROLE_LABELS = { ADMIN: 'Admin', CONSULTANT: 'Consultant', CLIENT: 'Customer' };
 
 export const PortalUsers = () => {
-  const { authFetch } = useAuth();
+  const { authFetch, user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +74,8 @@ export const PortalUsers = () => {
 
   if (loading) return <div className="loading">Laden...</div>;
 
+  const adminCount = users.filter(u => u.roles?.includes('ADMIN')).length;
+
   return (
     <div className="portal-users">
       <div className="users-header">
@@ -113,7 +115,16 @@ export const PortalUsers = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {users.map(user => {
+              const isSelf = !!currentUser?.email && user.email === currentUser.email;
+              const isLastAdmin = user.roles?.includes('ADMIN') && adminCount <= 1;
+              const deleteDisabled = isSelf || isLastAdmin;
+              const deleteTitle = isSelf
+                ? 'Sie können Ihr eigenes Konto nicht löschen.'
+                : isLastAdmin
+                  ? 'Der letzte Administrator kann nicht gelöscht werden.'
+                  : undefined;
+              return (
               <tr key={user.id}>
                 <td>{user.firstName} {user.lastName}</td>
                 <td>{user.email}</td>
@@ -141,13 +152,16 @@ export const PortalUsers = () => {
                     <button
                       className="btn-sm btn-danger"
                       onClick={() => setDeleteTarget(user)}
+                      disabled={deleteDisabled}
+                      title={deleteTitle}
                     >
                       Löschen
                     </button>
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

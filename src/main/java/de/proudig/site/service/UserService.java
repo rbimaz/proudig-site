@@ -127,9 +127,20 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(String id) {
+    public void deleteUser(String id, String currentUserEmail) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + id));
+
+        // Selbst-Löschung verhindern
+        if (user.getEmail().equals(currentUserEmail)) {
+            throw new IllegalArgumentException("Sie können Ihr eigenes Konto nicht löschen.");
+        }
+
+        // Letzten Administrator nicht löschen
+        boolean isAdmin = user.getRoles().stream().anyMatch(r -> "ADMIN".equals(r.getName()));
+        if (isAdmin && userRepository.countByRoles_Name("ADMIN") <= 1) {
+            throw new IllegalArgumentException("Der letzte Administrator kann nicht gelöscht werden.");
+        }
 
         // Eigentum schützen: Benutzer mit eigenen Inhalten nicht löschen
         if (folderRepository.existsByOwner(user)
