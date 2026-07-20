@@ -1262,6 +1262,19 @@
   text-align: right;
 }
 
+/* Kräftiger Hover der Aktions-Buttons (nur Benutzerliste) */
+.user-actions .btn-sm:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+
+.user-actions .btn-sm.btn-danger:hover {
+  background: #DC2626;
+  border-color: #DC2626;
+  color: #fff;
+}
+
 .role-badge {
   padding: 0.3rem 0.75rem;
   border: 1px solid #cbd5e1;
