@@ -62,7 +62,7 @@ export const BlogList = () => {
     <div className="admin-list-page">
       <div className="list-header">
         <h1><i className="bi bi-pencil-square"></i> Blog-Verwaltung</h1>
-        <button className="btn-primary" onClick={() => navigate('/admin/blog/new')}>
+        <button className="btn-primary" onClick={() => navigate('/admin/cms/blog/new')}>
           <i className="bi bi-plus-lg"></i> Neuer Beitrag
         </button>
       </div>
@@ -97,7 +97,7 @@ export const BlogList = () => {
                   </td>
                   <td>{formatDate(post.createdAt)}</td>
                   <td className="actions">
-                    <button className="btn-sm" onClick={() => navigate(`/admin/blog/${post.id}`)}>
+                    <button className="btn-sm" onClick={() => navigate(`/admin/cms/blog/${post.id}`)}>
                       <i className="bi bi-pencil"></i> Bearbeiten
                     </button>
                     {post.status !== 'published' && (

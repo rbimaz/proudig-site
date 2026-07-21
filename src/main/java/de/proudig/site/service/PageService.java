@@ -61,7 +61,7 @@ public class PageService {
 
     public PageDto createPage(PageCreateRequest request, User user) {
         Page page = Page.builder().slug(request.getSlug()).title(request.getTitle()).category(request.getCategory()).content(request.getContent()).excerpt(request.getExcerpt()).metaData(request.getMetaData()).status(PageStatus.DRAFT).author(user).build();
-        if (request.getCoverImageId() != null) {
+        if (request.getCoverImageId() != null && !request.getCoverImageId().isBlank()) {
             page.setCoverImage(mediaRepository.findById(request.getCoverImageId()).orElseThrow(() -> new NoSuchElementException("Cover image not found")));
         }
         if (request.getTags() != null) {
@@ -80,7 +80,7 @@ public class PageService {
         if (request.getContent() != null) page.setContent(request.getContent());
         if (request.getExcerpt() != null) page.setExcerpt(request.getExcerpt());
         if (request.getMetaData() != null) page.setMetaData(request.getMetaData());
-        if (request.getCoverImageId() != null) {
+        if (request.getCoverImageId() != null && !request.getCoverImageId().isBlank()) {
             page.setCoverImage(mediaRepository.findById(request.getCoverImageId()).orElseThrow(() -> new NoSuchElementException("Cover image not found")));
         }
         if (request.getTags() != null) {

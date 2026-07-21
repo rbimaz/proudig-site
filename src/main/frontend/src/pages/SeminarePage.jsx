@@ -7,7 +7,6 @@ import { formatDate } from '../utils/api';
 export const SeminarePage = () => {
   const [seminars, setSeminars] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('upcoming'); // upcoming, archived
 
   useEffect(() => {
     fetchSeminars();
@@ -15,12 +14,10 @@ export const SeminarePage = () => {
 
   const fetchSeminars = async () => {
     try {
-      const res = await fetch('/api/pages?category=SEMINAR&status=published');
+      const res = await fetch('/api/seminare?size=50');
       if (res.ok) {
         const data = await res.json();
-        // Sort by date
-        const sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
-        setSeminars(sorted);
+        setSeminars(data.content || []);
       }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
@@ -28,11 +25,6 @@ export const SeminarePage = () => {
       setLoading(false);
     }
   };
-
-  const now = new Date();
-  const upcoming = seminars.filter(s => new Date(s.date) >= now);
-  const archived = seminars.filter(s => new Date(s.date) < now);
-  const displaySeminars = filter === 'upcoming' ? upcoming : archived;
 
   return (
     <div className="page seminar-page">
@@ -48,68 +40,33 @@ export const SeminarePage = () => {
 
       <section className="seminar-section">
         <div className="container">
-          <div className="filter-buttons">
-            <button
-              className={`filter-btn ${filter === 'upcoming' ? 'active' : ''}`}
-              onClick={() => setFilter('upcoming')}
-            >
-              Kommende ({upcoming.length})
-            </button>
-            <button
-              className={`filter-btn ${filter === 'archived' ? 'active' : ''}`}
-              onClick={() => setFilter('archived')}
-            >
-              Vergangene ({archived.length})
-            </button>
-          </div>
-
           {loading ? (
             <div className="loading">Laden...</div>
-          ) : displaySeminars.length === 0 ? (
+          ) : seminars.length === 0 ? (
             <div className="no-seminars">Keine Seminare vorhanden</div>
           ) : (
-            <div className="seminar-list">
-              {displaySeminars.map(seminar => (
-                <Link key={seminar.id} to={`/seminare/${seminar.slug}`} className="seminar-card">
-                  <div className="seminar-card-image">
-                    {seminar.coverImageId ? (
+            <div className="blog-grid">
+              {seminars.map(seminar => (
+                <article key={seminar.id} className="blog-card">
+                  {seminar.coverImageId && (
+                    <div className="blog-card-image">
                       <img src={`/api/media/${seminar.coverImageId}`} alt={seminar.title} />
-                    ) : (
-                      <div className="placeholder">📚</div>
-                    )}
-                  </div>
-                  <div className="seminar-card-content">
+                    </div>
+                  )}
+                  <div className="blog-card-content">
+                    <span className="blog-date">{formatDate(seminar.publishedAt || seminar.createdAt)}</span>
                     <h2>{seminar.title}</h2>
                     <p className="excerpt">{seminar.excerpt}</p>
-
-                    <div className="seminar-meta">
-                      <div className="meta-item">
-                        <span className="icon">📅</span>
-                        <span>{formatDate(seminar.date)}</span>
+                    {seminar.tags && seminar.tags.length > 0 && (
+                      <div className="blog-tags">
+                        {seminar.tags.map((tag, idx) => (
+                          <span key={idx} className="tag">{tag}</span>
+                        ))}
                       </div>
-                      <div className="meta-item">
-                        <span className="icon">📍</span>
-                        <span>{seminar.location}</span>
-                      </div>
-                      {seminar.price && (
-                        <div className="meta-item">
-                          <span className="icon">💶</span>
-                          <span>{seminar.price} EUR</span>
-                        </div>
-                      )}
-                      {seminar.duration && (
-                        <div className="meta-item">
-                          <span className="icon">⏱</span>
-                          <span>{seminar.duration}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="seminar-card-footer">
-                      Mehr erfahren →
-                    </div>
+                    )}
+                    <Link to={`/seminare/${seminar.slug}`} className="read-more">Mehr erfahren →</Link>
                   </div>
-                </Link>
+                </article>
               ))}
             </div>
           )}
