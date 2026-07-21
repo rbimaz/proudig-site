@@ -11,6 +11,7 @@ export const PageEditor = ({ category }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id;
+  const routeSegment = { BLOG: 'blog', SEMINAR: 'seminare', NEWS: 'news' }[category] || category.toLowerCase();
 
   const [data, setData] = useState({
     title: '',
@@ -89,7 +90,7 @@ export const PageEditor = ({ category }) => {
         const result = await res.json();
         setMessage('Entwurf gespeichert');
         if (isNew) {
-          navigate(`/admin/${category.toLowerCase()}/${result.id}`);
+          navigate(`/admin/cms/${routeSegment}/${result.id}`);
         }
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -125,7 +126,7 @@ export const PageEditor = ({ category }) => {
         });
         if (pubRes.ok) {
           setMessage('Veröffentlicht');
-          navigate(`/admin/${category.toLowerCase()}/${saved.id}`);
+          navigate(`/admin/cms/${routeSegment}/${saved.id}`);
         } else {
           setMessage('Fehler beim Veröffentlichen');
         }
@@ -353,6 +354,11 @@ export const PageEditor = ({ category }) => {
                 >
                   Vorschau
                 </button>
+                <MediaPicker
+                  onInsert={(mediaId, item) =>
+                    handleChange('content', `${data.content || ''}\n![${item.name || ''}](/api/media/${mediaId})\n`)
+                  }
+                />
               </div>
               {!previewMode && (
                 <textarea

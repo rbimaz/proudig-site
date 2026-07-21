@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-export const MediaPicker = ({ value, onChange }) => {
+export const MediaPicker = ({ value, onChange, onInsert, buttonLabel }) => {
   const { authFetch } = useAuth();
   const [open, setOpen] = useState(false);
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Einfüge-Modus: nur ein Auslöse-Button, Auswahl geht an onInsert(id, item)
+  const insertMode = typeof onInsert === 'function';
 
   const openPicker = async () => {
     setOpen(true);
@@ -20,8 +23,12 @@ export const MediaPicker = ({ value, onChange }) => {
     }
   };
 
-  const pick = (id) => {
-    onChange(id);
+  const pick = (item) => {
+    if (insertMode) {
+      onInsert(item.id, item);
+    } else {
+      onChange(item.id);
+    }
     setOpen(false);
   };
 
@@ -29,7 +36,11 @@ export const MediaPicker = ({ value, onChange }) => {
 
   return (
     <div className="media-picker">
-      {value ? (
+      {insertMode ? (
+        <button type="button" className="btn-sm" onClick={openPicker}>
+          {buttonLabel || 'Bild aus Mediathek einfügen'}
+        </button>
+      ) : value ? (
         <div className="media-picker-current">
           <img src={`/api/media/${value}`} alt="Titelbild" />
           <div className="media-picker-actions">
@@ -39,7 +50,7 @@ export const MediaPicker = ({ value, onChange }) => {
         </div>
       ) : (
         <button type="button" className="btn-secondary" onClick={openPicker}>
-          Aus Mediathek wählen
+          {buttonLabel || 'Aus Mediathek wählen'}
         </button>
       )}
 
@@ -47,7 +58,7 @@ export const MediaPicker = ({ value, onChange }) => {
         <div className="media-picker-modal" onClick={() => setOpen(false)}>
           <div className="media-picker-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="media-picker-header">
-              <h3>Titelbild wählen</h3>
+              <h3>{insertMode ? 'Bild einfügen' : 'Titelbild wählen'}</h3>
               <button type="button" className="btn-sm" onClick={() => setOpen(false)}>✕</button>
             </div>
             {loading ? (
@@ -60,8 +71,8 @@ export const MediaPicker = ({ value, onChange }) => {
                   <button
                     type="button"
                     key={m.id}
-                    className={`media-picker-tile ${value === m.id ? 'selected' : ''}`}
-                    onClick={() => pick(m.id)}
+                    className={`media-picker-tile ${!insertMode && value === m.id ? 'selected' : ''}`}
+                    onClick={() => pick(m)}
                   >
                     <img src={`/api/media/${m.id}`} alt={m.name} />
                     <span>{m.name}</span>
