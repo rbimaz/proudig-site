@@ -16,14 +16,17 @@ export const SeminarDetailPage = () => {
   }, [slug]);
 
   const fetchSeminar = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/pages/slug/${slug}`);
+      const res = await fetch(`/api/seminare/${slug}`);
       if (res.ok) {
-        const data = await res.json();
-        setSeminar(data);
+        setSeminar(await res.json());
+      } else {
+        setSeminar(null);
       }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
+      setSeminar(null);
     } finally {
       setLoading(false);
     }
@@ -48,118 +51,33 @@ export const SeminarDetailPage = () => {
     <div className="page seminar-detail-page">
       <Navbar />
 
-      <article className="seminar-detail">
+      <article className="blog-post">
         {seminar.coverImageId && (
-          <div className="seminar-detail-cover">
+          <div className="blog-post-cover">
             <img src={`/api/media/${seminar.coverImageId}`} alt={seminar.title} />
           </div>
         )}
 
-        <div className="seminar-detail-container">
-          <div className="seminar-detail-header">
-            <div className="breadcrumb">
-              <Link to="/seminare">Seminare</Link>
-              <span>/</span>
-              <span>{seminar.title}</span>
-            </div>
+        <div className="container blog-post-body">
+          <div className="blog-post-header">
+            <Link to="/seminare" className="hero-tag blog-eyebrow">SEMINARE</Link>
             <h1>{seminar.title}</h1>
-            <p className="subtitle">{seminar.excerpt}</p>
+            <div className="blog-post-meta">
+              <span className="date">{formatDate(seminar.publishedAt || seminar.createdAt)}</span>
+              {seminar.tags && seminar.tags.length > 0 && (
+                <div className="tags">
+                  {seminar.tags.map((tag, idx) => (
+                    <span key={idx} className="tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="seminar-detail-layout">
-            <div className="seminar-detail-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {seminar.content}
-              </ReactMarkdown>
-            </div>
-
-            <aside className="seminar-info-box">
-              <h3>Seminar-Details</h3>
-
-              {seminar.date && (
-                <div className="info-item">
-                  <strong>📅 Datum:</strong>
-                  <p>
-                    {formatDate(seminar.date)}
-                    {seminar.endDate && seminar.date !== seminar.endDate && (
-                      <> - {formatDate(seminar.endDate)}</>
-                    )}
-                  </p>
-                </div>
-              )}
-
-              {seminar.time && (
-                <div className="info-item">
-                  <strong>⏰ Uhrzeit:</strong>
-                  <p>{seminar.time}</p>
-                </div>
-              )}
-
-              {seminar.location && (
-                <div className="info-item">
-                  <strong>📍 Ort:</strong>
-                  <p>{seminar.location}</p>
-                </div>
-              )}
-
-              {seminar.format && (
-                <div className="info-item">
-                  <strong>🖥️ Format:</strong>
-                  <p>
-                    {seminar.format === 'online' && 'Online'}
-                    {seminar.format === 'inperson' && 'Präsenz'}
-                    {seminar.format === 'hybrid' && 'Hybrid'}
-                  </p>
-                </div>
-              )}
-
-              {seminar.duration && (
-                <div className="info-item">
-                  <strong>⏱️ Dauer:</strong>
-                  <p>{seminar.duration}</p>
-                </div>
-              )}
-
-              {seminar.price !== undefined && (
-                <div className="info-item">
-                  <strong>💶 Preis:</strong>
-                  <p>{seminar.price === 0 ? 'Kostenlos' : `${seminar.price} EUR`}</p>
-                </div>
-              )}
-
-              {seminar.maxParticipants && (
-                <div className="info-item">
-                  <strong>👥 Max. Teilnehmer:</strong>
-                  <p>{seminar.maxParticipants}</p>
-                </div>
-              )}
-
-              {seminar.targetAudience && (
-                <div className="info-item">
-                  <strong>🎯 Zielgruppe:</strong>
-                  <p>{seminar.targetAudience}</p>
-                </div>
-              )}
-
-              {seminar.prerequisites && (
-                <div className="info-item">
-                  <strong>📋 Voraussetzungen:</strong>
-                  <p>{seminar.prerequisites}</p>
-                </div>
-              )}
-
-              {seminar.registrationLink && (
-                <a href={seminar.registrationLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
-                  Jetzt anmelden
-                </a>
-              )}
-
-              {seminar.registrationDeadline && (
-                <p className="registration-deadline">
-                  Anmeldungsfrist: {formatDate(seminar.registrationDeadline)}
-                </p>
-              )}
-            </aside>
+          <div className="blog-post-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {seminar.content}
+            </ReactMarkdown>
           </div>
         </div>
       </article>

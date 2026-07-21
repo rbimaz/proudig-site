@@ -46,3 +46,6 @@ data/
 
 ### Claude Code (lokale Overrides) ###
 .claude/settings.local.json
+
+### macOS ###
+.DS_Store

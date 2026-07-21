@@ -4,12 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { MediaPicker } from './MediaPicker';
 
 export const PageEditor = ({ category }) => {
   const { authFetch } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id;
+  const routeSegment = { BLOG: 'blog', SEMINAR: 'seminare', NEWS: 'news' }[category] || category.toLowerCase();
 
   const [data, setData] = useState({
     title: '',
@@ -51,7 +53,8 @@ export const PageEditor = ({ category }) => {
       const res = await authFetch(`/api/admin/pages/${id}`);
       if (res.ok) {
         const page = await res.json();
-        setData(page);
+        // tags kommt als Array vom Backend, das Eingabefeld arbeitet mit kommagetrenntem String
+        setData({ ...page, tags: Array.isArray(page.tags) ? page.tags.join(', ') : (page.tags || '') });
       }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
@@ -70,25 +73,34 @@ export const PageEditor = ({ category }) => {
     });
   };
 
+  // Payload fürs Backend: tags als Array (List<String>), nicht als String
+  const toPayload = () => ({
+    ...data,
+    category,
+    coverImageId: data.coverImageId || null,
+    tags: typeof data.tags === 'string'
+      ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
+      : (Array.isArray(data.tags) ? data.tags : [])
+  });
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
     try {
       const method = isNew ? 'POST' : 'PUT';
       const url = isNew ? '/api/admin/pages' : `/api/admin/pages/${id}`;
-      const body = { ...data, category };
 
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(toPayload())
       });
 
       if (res.ok) {
         const result = await res.json();
         setMessage('Entwurf gespeichert');
         if (isNew) {
-          navigate(`/admin/${category.toLowerCase()}/${result.id}`);
+          navigate(`/admin/cms/${routeSegment}/${result.id}`);
         }
         setTimeout(() => setMessage(''), 3000);
       } else {
@@ -113,7 +125,7 @@ export const PageEditor = ({ category }) => {
         const saveRes = await authFetch('/api/admin/pages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, category })
+          body: JSON.stringify(toPayload())
         });
         if (!saveRes.ok) throw new Error('Speichern fehlgeschlagen');
         const saved = await saveRes.json();
@@ -124,7 +136,7 @@ export const PageEditor = ({ category }) => {
         });
         if (pubRes.ok) {
           setMessage('Veröffentlicht');
-          navigate(`/admin/${category.toLowerCase()}/${saved.id}`);
+          navigate(`/admin/cms/${routeSegment}/${saved.id}`);
         } else {
           setMessage('Fehler beim Veröffentlichen');
         }
@@ -194,12 +206,10 @@ export const PageEditor = ({ category }) => {
             </div>
 
             <div className="form-group">
-              <label>Titelbild-ID (Mediathek)</label>
-              <input
-                type="text"
+              <label>Titelbild (Mediathek)</label>
+              <MediaPicker
                 value={data.coverImageId}
-                onChange={(e) => handleChange('coverImageId', e.target.value)}
-                placeholder="media-id-123"
+                onChange={(id) => handleChange('coverImageId', id)}
               />
             </div>
 
@@ -354,6 +364,11 @@ export const PageEditor = ({ category }) => {
                 >
                   Vorschau
                 </button>
+                <MediaPicker
+                  onInsert={(mediaId, item) =>
+                    handleChange('content', `${data.content || ''}\n![${item.name || ''}](/api/media/${mediaId})\n`)
+                  }
+                />
               </div>
               {!previewMode && (
                 <textarea

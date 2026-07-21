@@ -62,7 +62,7 @@ export const SeminarList = () => {
     <div className="admin-list-page">
       <div className="list-header">
         <h1>Seminar-Verwaltung</h1>
-        <button className="btn-primary" onClick={() => navigate('/admin/seminare/new')}>
+        <button className="btn-primary" onClick={() => navigate('/admin/cms/seminare/new')}>
           + Neues Seminar
         </button>
       </div>
@@ -97,7 +97,7 @@ export const SeminarList = () => {
                   </td>
                   <td>{seminar.maxParticipants || '-'}</td>
                   <td className="actions">
-                    <button className="btn-sm" onClick={() => navigate(`/admin/seminare/${seminar.id}`)}>
+                    <button className="btn-sm" onClick={() => navigate(`/admin/cms/seminare/${seminar.id}`)}>
                       Bearbeiten
                     </button>
                     {seminar.status !== 'published' && (
