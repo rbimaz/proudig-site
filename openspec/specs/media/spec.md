@@ -52,3 +52,50 @@ großen Dropzone SHALL eine kompakte Upload-Kachel im Raster stehen.
 - **WHEN** keine Dateien vorhanden sind
 - **THEN** zeigt die Galerie nur die Upload-Kachel und das Panel einen Platzhalter
 
+### Requirement: Titelbild ist optional
+Das System SHALL Seiten (News, Blog, Seminare, CMS) auch ohne Titelbild anlegen und speichern
+können. Ein leerer oder fehlender `coverImageId` SHALL als „kein Titelbild" behandelt werden und
+darf keinen Fehler auslösen.
+
+#### Scenario: Anlegen ohne Titelbild
+- **WHEN** ein Beitrag ohne ausgewähltes Titelbild gespeichert wird
+- **THEN** wird er ohne Titelbild angelegt (kein „Cover image not found")
+
+#### Scenario: Anlegen mit Titelbild
+- **WHEN** ein Beitrag mit gültigem Titelbild gespeichert wird
+- **THEN** wird das Titelbild verknüpft
+
+### Requirement: Mediathek-Dateien werden korrekt ausgeliefert
+Das System SHALL unter `/api/media/{id}` die zugehörige Datei aus dem Media-Speicher
+(`<location>/media/…`) korrekt ausliefern.
+
+#### Scenario: Bild abrufen
+- **WHEN** ein vorhandenes Bild über `/api/media/{id}` abgerufen wird
+- **THEN** liefert das System die Bilddatei mit passendem Content-Type (HTTP 200)
+
+#### Scenario: Fehlende Datei
+- **WHEN** zu einer ID keine Datei existiert
+- **THEN** antwortet das System mit HTTP 404
+
+### Requirement: Mediathek unterstützt alle CRUD-Operationen
+Die Admin-Mediathek SHALL das Hochladen (Create), Auflisten (Read), Umbenennen (Update) und
+Löschen (Delete) von Dateien ermöglichen. Für das Umbenennen SHALL ein Endpunkt
+`PUT /api/admin/media/{id}` bereitstehen, der den Anzeigenamen der Datei aktualisiert.
+
+#### Scenario: Datei umbenennen
+- **WHEN** eine Administratorin in der Mediathek eine Datei umbenennt
+- **THEN** wird der neue Name über `PUT /api/admin/media/{id}` gespeichert und in der Liste angezeigt
+
+#### Scenario: Datei löschen
+- **WHEN** eine Administratorin eine Datei löscht
+- **THEN** wird sie entfernt und verschwindet aus der Liste
+
+### Requirement: Mediathek ist bedienbar dargestellt
+Die Mediathek SHALL Vorschauen in einem gleichmäßigen Raster mit auf feste Größe beschnittenen
+Bildern darstellen. Die Aktionen (Umbenennen, URL, Löschen) SHALL für jeden Eintrag sichtbar und
+bedienbar sein.
+
+#### Scenario: Übersicht mit sichtbaren Aktionen
+- **WHEN** die Mediathek mit Dateien angezeigt wird
+- **THEN** erscheinen die Vorschauen in normierter Größe und die Aktionen sind je Eintrag sichtbar
+
