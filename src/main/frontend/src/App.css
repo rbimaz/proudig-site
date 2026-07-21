@@ -144,6 +144,10 @@
 
 :root {
   color-scheme: light;
+  /* Semantische Status-Tokens (theme-unabhängig) */
+  --c-danger: #E53E3E;
+  --c-danger-border: #FBD5D5;
+  --c-danger-light: #FEF2F2;
 }
 
 [data-theme="light"] {

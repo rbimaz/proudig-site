@@ -60,6 +60,14 @@ Kanonische Palette = `[data-theme="udig2"]`. **Immer die Variable verwenden, nie
 | `--c-text-muted` | `#4A5568` | Sekundärtext, Beschreibungen |
 | `--c-text-light` | `#718096` | Meta-Infos, Datums-/Lesezeit-Angaben |
 
+### Status / Semantik (theme-unabhängig, in `:root`)
+
+| Token | Wert | Verwendung |
+|---|---|---|
+| `--c-danger` | `#E53E3E` | Destruktive Aktion (Löschen), Fehlertext |
+| `--c-danger-border` | `#FBD5D5` | Rahmen destruktiver Outline-Buttons |
+| `--c-danger-light` | `#FEF2F2` | Hover-/Hintergrundfläche destruktiver Aktionen |
+
 ### Schatten
 
 | Token | Wert |
