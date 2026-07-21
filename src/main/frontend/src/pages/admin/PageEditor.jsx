@@ -77,6 +77,7 @@ export const PageEditor = ({ category }) => {
   const toPayload = () => ({
     ...data,
     category,
+    coverImageId: data.coverImageId || null,
     tags: typeof data.tags === 'string'
       ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
       : (Array.isArray(data.tags) ? data.tags : [])
