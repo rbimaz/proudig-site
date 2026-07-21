@@ -17,6 +17,10 @@ tatsächlich registrierten Editor-Routen unter `/admin/cms/…` zeigen (kein lee
 - **WHEN** ein neuer Beitrag gespeichert oder veröffentlicht wird
 - **THEN** wird auf `/admin/cms/<segment>/<id>` weitergeleitet (Segment `seminare` für Seminare), nicht auf eine unbekannte Route
 
+#### Scenario: Speichern ohne oder mit Tags funktioniert
+- **WHEN** ein Beitrag (mit leerem oder gefülltem Tag-Feld) gespeichert wird
+- **THEN** werden die Tags als Array (`List<String>`) übertragen und das Speichern gelingt ohne Deserialisierungsfehler
+
 ### Requirement: Mediathek-Inhalte in Seiteninhalte einfügen
 Der Editor SHALL das Einfügen von Bildern aus der Mediathek in den Inhalt von News, Seminaren,
 Blog und CMS-Seiten ermöglichen. Ausgewählte Medien SHALL über `/api/media/{id}` referenziert werden.

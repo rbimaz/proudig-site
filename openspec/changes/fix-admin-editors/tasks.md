@@ -3,6 +3,7 @@
 - [x] 1.1 `BlogList`: Navigation `/admin/blog/new` → `/admin/cms/blog/new`, Edit → `/admin/cms/blog/${id}`
 - [x] 1.2 `SeminarList`: Navigation `/admin/seminare/new` → `/admin/cms/seminare/new`, Edit → `/admin/cms/seminare/${id}`
 - [x] 1.3 `PageEditor`: Weiterleitung nach Speichern/Veröffentlichen → `/admin/cms/<segment>/<id>` (Segment `seminare` für `SEMINAR`)
+- [x] 1.4 `PageEditor`: `tags` als Array (`List<String>`) senden statt leerem String (behebt „Cannot coerce empty String to element of ArrayList"); beim Laden Array → kommagetrennter String fürs Eingabefeld
 
 ## 2. Mediathek in Inhalte einfügen
 

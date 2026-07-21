@@ -53,7 +53,8 @@ export const PageEditor = ({ category }) => {
       const res = await authFetch(`/api/admin/pages/${id}`);
       if (res.ok) {
         const page = await res.json();
-        setData(page);
+        // tags kommt als Array vom Backend, das Eingabefeld arbeitet mit kommagetrenntem String
+        setData({ ...page, tags: Array.isArray(page.tags) ? page.tags.join(', ') : (page.tags || '') });
       }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
@@ -72,18 +73,26 @@ export const PageEditor = ({ category }) => {
     });
   };
 
+  // Payload fürs Backend: tags als Array (List<String>), nicht als String
+  const toPayload = () => ({
+    ...data,
+    category,
+    tags: typeof data.tags === 'string'
+      ? data.tags.split(',').map(t => t.trim()).filter(Boolean)
+      : (Array.isArray(data.tags) ? data.tags : [])
+  });
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
     try {
       const method = isNew ? 'POST' : 'PUT';
       const url = isNew ? '/api/admin/pages' : `/api/admin/pages/${id}`;
-      const body = { ...data, category };
 
       const res = await authFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(toPayload())
       });
 
       if (res.ok) {
@@ -115,7 +124,7 @@ export const PageEditor = ({ category }) => {
         const saveRes = await authFetch('/api/admin/pages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, category })
+          body: JSON.stringify(toPayload())
         });
         if (!saveRes.ok) throw new Error('Speichern fehlgeschlagen');
         const saved = await saveRes.json();
