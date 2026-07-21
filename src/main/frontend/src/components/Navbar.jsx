@@ -38,6 +38,11 @@ export const Navbar = ({ theme }) => {
     setMobileOpen(false);
   };
 
+  const goToNews = () => {
+    navigate('/news');
+    setMobileOpen(false);
+  };
+
   const goToLogin = () => {
     navigate('/admin/login');
     setMobileOpen(false);
@@ -58,8 +63,9 @@ export const Navbar = ({ theme }) => {
           <ul className="nav-links">
             <li><button className="nav-link" onClick={() => scrollTo('leistungen')}>Leistungen</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('ueber')}>Über Proudig</button></li>
-            {/*<li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
-            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>*/}
+            <li><button className="nav-link" onClick={goToNews}>News</button></li>
+            <li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
+            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>
             <li><button className="nav-link" onClick={goToImpressum}>Impressum</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('prozess')}>Prozess</button></li>
             <li><button className="nav-link" onClick={goToLogin}><Person width={16} height={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />Login</button></li>
@@ -78,8 +84,9 @@ export const Navbar = ({ theme }) => {
           </button>
           <button className="mobile-link" onClick={() => scrollTo('leistungen')}>Leistungen</button>
           <button className="mobile-link" onClick={() => scrollTo('ueber')}>Über Proudig</button>
-          {/*<button className="mobile-link" onClick={goToBlog}>Blog</button>
-          <button className="mobile-link" onClick={goToSeminare}>Seminare</button>*/}
+          <button className="mobile-link" onClick={goToNews}>News</button>
+          <button className="mobile-link" onClick={goToBlog}>Blog</button>
+          <button className="mobile-link" onClick={goToSeminare}>Seminare</button>
           <button className="mobile-link" onClick={goToImpressum}>Impressum</button>
           <button className="mobile-link" onClick={() => scrollTo('prozess')}>Prozess</button>
           <button className="mobile-link" onClick={goToLogin}><Person width={16} height={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />Login</button>

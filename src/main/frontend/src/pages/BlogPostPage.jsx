@@ -18,15 +18,15 @@ export const BlogPostPage = () => {
 
   const fetchPost = async () => {
     try {
-      const res = await fetch(`/api/pages/slug/${slug}`);
+      const res = await fetch(`/api/blog/${slug}`);
       if (res.ok) {
         const data = await res.json();
         setPost(data);
-        // Fetch related posts (same category)
-        const relRes = await fetch(`/api/pages?category=BLOG&status=published&limit=3`);
+        // Verwandte Beiträge (gleiche Kategorie)
+        const relRes = await fetch(`/api/blog?size=4`);
         if (relRes.ok) {
           const relData = await relRes.json();
-          setRelatedPosts(relData.filter(p => p.id !== data.id).slice(0, 3));
+          setRelatedPosts((relData.content || []).filter(p => p.id !== data.id).slice(0, 3));
         }
       }
     } catch (err) {
@@ -62,20 +62,16 @@ export const BlogPostPage = () => {
           </div>
         )}
 
-        <div className="blog-post-container">
+        <div className="container blog-post-body">
           <div className="blog-post-header">
-            <div className="breadcrumb">
-              <Link to="/blog">Blog</Link>
-              <span>/</span>
-              <span>{post.title}</span>
-            </div>
+            <Link to="/blog" className="hero-tag blog-eyebrow">BLOG</Link>
             <h1>{post.title}</h1>
             <div className="blog-post-meta">
-              <span className="date">{formatDate(post.createdAt)}</span>
-              {post.tags && (
+              <span className="date">{formatDate(post.publishedAt || post.createdAt)}</span>
+              {post.tags && post.tags.length > 0 && (
                 <div className="tags">
-                  {post.tags.split(',').map((tag, idx) => (
-                    <span key={idx} className="tag">{tag.trim()}</span>
+                  {post.tags.map((tag, idx) => (
+                    <span key={idx} className="tag">{tag}</span>
                   ))}
                 </div>
               )}

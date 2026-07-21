@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Beispiel-Blog-Beiträge (nur Dev/Demo). Autor: Seed-Admin. -->
+    <changeSet id="011-seed-blog" author="ProuDig" context="dev">
+        <insert tableName="pages">
+            <column name="id" value="b2000000-0000-4000-8000-000000000001"/>
+            <column name="slug" value="prozesse-digitalisieren-schritt-fuer-schritt"/>
+            <column name="title" value="Prozesse digitalisieren – Schritt für Schritt zum Erfolg"/>
+            <column name="category" value="BLOG"/>
+            <column name="excerpt" value="Digitalisierung gelingt nicht über Nacht. Wir zeigen ein pragmatisches Vorgehen, das schnelle Erfolge liefert, ohne den Betrieb zu überfordern."/>
+            <column name="content" value="## Klein anfangen, groß wirken&#10;&#10;Der häufigste Fehler bei Digitalisierungsprojekten: zu viel auf einmal. Erfolgreicher ist ein **iteratives Vorgehen** mit klar abgegrenzten Schritten.&#10;&#10;1. Prozess sichtbar machen (Ist-Aufnahme)&#10;2. Engpässe und manuelle Medienbrüche identifizieren&#10;3. Einen Teilschritt automatisieren und messen&#10;4. Lernen, anpassen, ausweiten&#10;&#10;So entsteht Wirkung, die im Alltag spürbar ist — und Akzeptanz im Team."/>
+            <column name="tags" value="Prozesse, Digitalisierung, Methodik"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-14T09:00:00"/>
+            <column name="created_at" valueDate="2026-07-14T09:00:00"/>
+            <column name="updated_at" valueDate="2026-07-14T09:00:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="b2000000-0000-4000-8000-000000000002"/>
+            <column name="slug" value="ki-im-mittelstand-wo-anfangen"/>
+            <column name="title" value="KI im Mittelstand – wo fängt man an?"/>
+            <column name="category" value="BLOG"/>
+            <column name="excerpt" value="Nicht jedes Unternehmen braucht ein eigenes Sprachmodell. Ein Überblick, welche KI-Anwendungsfälle sich zuerst lohnen."/>
+            <column name="content" value="## Nutzen vor Technik&#10;&#10;Die Frage ist selten *welche* Technologie, sondern *welches Problem* zuerst gelöst werden soll. Bewährt haben sich Einstiege bei:&#10;&#10;- Dokumenten-Klassifikation und -Suche&#10;- Textbausteinen und Entwürfen im Kundenkontakt&#10;- Auswertung wiederkehrender Anfragen&#10;&#10;Wichtig ist ein sauberer Datenzugang und ein klar messbares Ziel. Dann zahlt sich KI schnell aus."/>
+            <column name="tags" value="KI, Mittelstand, Strategie"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-08T10:15:00"/>
+            <column name="created_at" valueDate="2026-07-08T10:15:00"/>
+            <column name="updated_at" valueDate="2026-07-08T10:15:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="b2000000-0000-4000-8000-000000000003"/>
+            <column name="slug" value="sichere-dokumentenablage-im-kundenportal"/>
+            <column name="title" value="Sichere Dokumentenablage im Kundenportal"/>
+            <column name="category" value="BLOG"/>
+            <column name="excerpt" value="Rollen, Freigaben, Nachvollziehbarkeit: Worauf es bei einer sicheren Dokumentenablage wirklich ankommt."/>
+            <column name="content" value="## Sicherheit, die nicht bremst&#10;&#10;Gute Sicherheit ist unsichtbar — sie schützt, ohne die Arbeit zu behindern. Im Kundenportal setzen wir auf:&#10;&#10;- Rollenbasierte Zugriffe statt geteilter Passwörter&#10;- Klare Freigabe-Workflows&#10;- Nachvollziehbare Aktivitäten (wer, was, wann)&#10;&#10;So bleibt die Ablage übersichtlich und auditierbar, ohne dass Ihr Team ausgebremst wird."/>
+            <column name="tags" value="Portal, Sicherheit, Dokumente"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-02T08:30:00"/>
+            <column name="created_at" valueDate="2026-07-02T08:30:00"/>
+            <column name="updated_at" valueDate="2026-07-02T08:30:00"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

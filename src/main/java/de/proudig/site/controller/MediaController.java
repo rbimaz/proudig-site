@@ -2,8 +2,9 @@ package de.proudig.site.controller;
 
 import de.proudig.site.domain.User;
 import de.proudig.site.dto.MediaDto;
+import de.proudig.site.dto.MediaUpdateRequest;
 import de.proudig.site.service.MediaService;
-import org.springframework.core.io.FileSystemResource;
+import de.proudig.site.service.FileStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,14 +15,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class MediaController {
     private final MediaService mediaService;
+    private final FileStorageService fileStorageService;
 
     @PostMapping("/admin/media")
     @PreAuthorize("hasAnyRole(\'ADMIN\', \'CONSULTANT\')")
@@ -38,6 +38,13 @@ public class MediaController {
         return ResponseEntity.ok(media);
     }
 
+    @PutMapping("/admin/media/{id}")
+    @PreAuthorize("hasAnyRole(\'ADMIN\', \'CONSULTANT\')")
+    public ResponseEntity<MediaDto> updateMedia(@PathVariable String id, @RequestBody MediaUpdateRequest request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(mediaService.updateMedia(id, request.name(), user));
+    }
+
     @DeleteMapping("/admin/media/{id}")
     @PreAuthorize("hasAnyRole(\'ADMIN\', \'CONSULTANT\')")
     public ResponseEntity<Void> deleteMedia(@PathVariable String id) {
@@ -49,13 +56,8 @@ public class MediaController {
     @GetMapping("/media/{id}")
     public ResponseEntity<Resource> serveMedia(@PathVariable String id) {
         try {
-            String storagePath = mediaService.getMediaFilePath(id);
-            Path filePath = Paths.get(storagePath).toAbsolutePath();
-            Resource resource = new FileSystemResource(filePath);
-            if (!resource.exists()) {
-                return ResponseEntity.notFound().build();
-            }
             MediaDto media = mediaService.getMedia(id);
+            Resource resource = fileStorageService.load(mediaService.getMediaFilePath(id), "media");
             return ResponseEntity.ok().contentType(MediaType.parseMediaType(media.getContentType())).header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + media.getName() + "\"").body(resource);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
@@ -65,20 +67,16 @@ public class MediaController {
     @GetMapping("/media/{id}/thumbnail")
     public ResponseEntity<Resource> serveThumbnail(@PathVariable String id) {
         try {
-            String storagePath = mediaService.getMediaFilePath(id);
-            Path filePath = Paths.get(storagePath).toAbsolutePath();
-            Resource resource = new FileSystemResource(filePath);
-            if (!resource.exists()) {
-                return ResponseEntity.notFound().build();
-            }
             MediaDto media = mediaService.getMedia(id);
+            Resource resource = fileStorageService.load(mediaService.getMediaFilePath(id), "media");
             return ResponseEntity.ok().contentType(MediaType.parseMediaType(media.getContentType())).header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + media.getName() + "\"").body(resource);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    public MediaController(final MediaService mediaService) {
+    public MediaController(final MediaService mediaService, final FileStorageService fileStorageService) {
         this.mediaService = mediaService;
+        this.fileStorageService = fileStorageService;
     }
 }

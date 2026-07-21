@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Beispiel-Seminare (nur Dev/Demo). Autor: Seed-Admin. -->
+    <changeSet id="012-seed-seminar" author="ProuDig" context="dev">
+        <insert tableName="pages">
+            <column name="id" value="c3000000-0000-4000-8000-000000000001"/>
+            <column name="slug" value="ki-grundlagen-fuer-entscheider"/>
+            <column name="title" value="KI-Grundlagen für Entscheider"/>
+            <column name="category" value="SEMINAR"/>
+            <column name="excerpt" value="Ein kompaktes Tagesseminar, das Führungskräften einen fundierten, praxisnahen Überblick über Künstliche Intelligenz gibt."/>
+            <column name="content" value="## Für wen&#10;&#10;Das Seminar richtet sich an Geschäftsführung und Bereichsleitung, die KI **einordnen und einsetzen** wollen — ohne tiefen technischen Vorlauf.&#10;&#10;## Inhalte&#10;&#10;- Was KI heute kann (und was nicht)&#10;- Anwendungsfälle im Mittelstand&#10;- Datenschutz, Governance und Risiken&#10;- Vom Pilotprojekt zur produktiven Nutzung&#10;&#10;## Format&#10;&#10;Ein Tag, kompakt und interaktiv — mit Beispielen aus realen Projekten. Details und Termine auf Anfrage."/>
+            <column name="tags" value="KI, Führung, Grundlagen"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-12T09:00:00"/>
+            <column name="created_at" valueDate="2026-07-12T09:00:00"/>
+            <column name="updated_at" valueDate="2026-07-12T09:00:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="c3000000-0000-4000-8000-000000000002"/>
+            <column name="slug" value="prozessautomatisierung-workshop"/>
+            <column name="title" value="Workshop: Prozessautomatisierung im Alltag"/>
+            <column name="category" value="SEMINAR"/>
+            <column name="excerpt" value="Hands-on Workshop, in dem Teams einen eigenen Prozess analysieren und einen ersten Automatisierungsschritt umsetzen."/>
+            <column name="content" value="## Ziel&#10;&#10;Am Ende des Workshops haben die Teilnehmenden **einen konkreten Prozess** durchleuchtet und einen ersten Automatisierungsschritt geplant.&#10;&#10;## Ablauf&#10;&#10;1. Prozess aufnehmen und visualisieren&#10;2. Engpässe und Medienbrüche markieren&#10;3. Automatisierungspotenzial bewerten&#10;4. Umsetzungsschritt definieren&#10;&#10;Praxisorientiert, in kleinen Gruppen. Individuelle Inhouse-Termine möglich."/>
+            <column name="tags" value="Prozesse, Automatisierung, Workshop"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-06T09:00:00"/>
+            <column name="created_at" valueDate="2026-07-06T09:00:00"/>
+            <column name="updated_at" valueDate="2026-07-06T09:00:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="c3000000-0000-4000-8000-000000000003"/>
+            <column name="slug" value="datenkompetenz-im-team-aufbauen"/>
+            <column name="title" value="Datenkompetenz im Team aufbauen"/>
+            <column name="category" value="SEMINAR"/>
+            <column name="excerpt" value="Wie Teams lernen, Daten zu verstehen, zu hinterfragen und für bessere Entscheidungen zu nutzen."/>
+            <column name="content" value="## Warum Datenkompetenz&#10;&#10;Gute Entscheidungen beruhen auf **verstandenen** Daten — nicht nur auf verfügbaren Zahlen. Dieses Seminar schafft ein gemeinsames Verständnis im Team.&#10;&#10;## Themen&#10;&#10;- Kennzahlen richtig lesen&#10;- Typische Fehlschlüsse vermeiden&#10;- Von der Auswertung zur Handlung&#10;&#10;Geeignet für gemischte Teams aus Fach- und Führungsebene."/>
+            <column name="tags" value="Daten, Weiterbildung, Team"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-06-28T09:00:00"/>
+            <column name="created_at" valueDate="2026-06-28T09:00:00"/>
+            <column name="updated_at" valueDate="2026-06-28T09:00:00"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

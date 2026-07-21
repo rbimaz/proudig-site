@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
+import { MediaPicker } from './MediaPicker';
 
 const CSS_REFERENCE = [
   {
@@ -295,6 +296,12 @@ export const StaticPageEditor = () => {
               <button className="btn-sm" onClick={() => insertSnippet(`<div class="grid grid-3">\n  <div class="card">\n    <h3>Karte 1</h3>\n    <p>Inhalt</p>\n  </div>\n  <div class="card">\n    <h3>Karte 2</h3>\n    <p>Inhalt</p>\n  </div>\n  <div class="card">\n    <h3>Karte 3</h3>\n    <p>Inhalt</p>\n  </div>\n</div>`)}>
                 + 3-Spalten Grid
               </button>
+              <MediaPicker
+                onInsert={(mediaId, item) =>
+                  insertSnippet(`<img src="/api/media/${mediaId}" alt="${item.name || ''}" />`)
+                }
+                buttonLabel="+ Bild aus Mediathek"
+              />
             </div>
           </aside>
         )}

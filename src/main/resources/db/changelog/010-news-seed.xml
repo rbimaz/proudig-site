@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Beispiel-News (nur Dev/Demo). Autor: Seed-Admin. -->
+    <changeSet id="010-seed-news" author="ProuDig" context="dev">
+        <insert tableName="pages">
+            <column name="id" value="a1000000-0000-4000-8000-000000000001"/>
+            <column name="slug" value="proudig-startet-ki-beratung"/>
+            <column name="title" value="ProuDig startet neue KI-Beratung für den Mittelstand"/>
+            <column name="category" value="NEWS"/>
+            <column name="excerpt" value="Mit einem neuen Beratungsangebot bringt ProuDig praxisnahe KI-Lösungen in mittelständische Unternehmen — von der Potenzialanalyse bis zur Umsetzung."/>
+            <column name="content" value="## KI, die im Alltag wirkt&#10;&#10;Viele Unternehmen fragen sich, **wo** Künstliche Intelligenz konkret hilft. Genau hier setzt unsere neue KI-Beratung an: In einem kompakten Workshop identifizieren wir gemeinsam die vielversprechendsten Anwendungsfälle — und priorisieren nach Aufwand und Wirkung.&#10;&#10;- Potenzialanalyse entlang Ihrer Prozesse&#10;- Prototyp innerhalb weniger Wochen&#10;- Klare Roadmap zur produktiven Einführung&#10;&#10;Interesse? Vereinbaren Sie ein unverbindliches Erstgespräch."/>
+            <column name="tags" value="KI, Beratung, Mittelstand"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-15T09:00:00"/>
+            <column name="created_at" valueDate="2026-07-15T09:00:00"/>
+            <column name="updated_at" valueDate="2026-07-15T09:00:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="a1000000-0000-4000-8000-000000000002"/>
+            <column name="slug" value="kundenportal-launch"/>
+            <column name="title" value="Erfolgreicher Launch des ProuDig-Kundenportals"/>
+            <column name="category" value="NEWS"/>
+            <column name="excerpt" value="Unser neues Kundenportal ist live: sichere Dokumentenablage, Freigaben und ein aufgeräumtes Dashboard — entwickelt für den Arbeitsalltag."/>
+            <column name="content" value="## Alles an einem Ort&#10;&#10;Das neue Kundenportal bündelt Dokumente, Freigaben und Kommunikation an einem sicheren Ort. Nutzerinnen und Nutzer profitieren von einer klaren Ordnerstruktur, rollenbasierten Zugriffen und schnellen Uploads.&#10;&#10;Wir danken allen Beteiligten für das wertvolle Feedback während der Beta-Phase."/>
+            <column name="tags" value="Produkt, Portal, Launch"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-10T11:30:00"/>
+            <column name="created_at" valueDate="2026-07-10T11:30:00"/>
+            <column name="updated_at" valueDate="2026-07-10T11:30:00"/>
+        </insert>
+
+        <insert tableName="pages">
+            <column name="id" value="a1000000-0000-4000-8000-000000000003"/>
+            <column name="slug" value="digital-konferenz-2026"/>
+            <column name="title" value="ProuDig auf der Digital-Konferenz 2026"/>
+            <column name="category" value="NEWS"/>
+            <column name="excerpt" value="Wir sind mit einem Vortrag zu praxistauglicher Digitalisierung dabei — kommen Sie an unserem Stand vorbei und diskutieren Sie mit uns."/>
+            <column name="content" value="## Treffen Sie uns vor Ort&#10;&#10;Auf der Digital-Konferenz 2026 sprechen wir über den Weg **von der Idee zur digitalen Wirkung** — mit konkreten Beispielen aus Kundenprojekten.&#10;&#10;Sichern Sie sich einen Termin für ein Gespräch am Stand. Wir freuen uns auf den Austausch!"/>
+            <column name="tags" value="Event, Digitalisierung"/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-05T08:00:00"/>
+            <column name="created_at" valueDate="2026-07-05T08:00:00"/>
+            <column name="updated_at" valueDate="2026-07-05T08:00:00"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

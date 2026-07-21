@@ -14,10 +14,10 @@ export const BlogPage = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/pages?category=BLOG&status=published');
+      const res = await fetch('/api/blog?size=50');
       if (res.ok) {
         const data = await res.json();
-        setPosts(data);
+        setPosts(data.content || []);
       }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
@@ -54,13 +54,13 @@ export const BlogPage = () => {
                     </div>
                   )}
                   <div className="blog-card-content">
-                    <span className="blog-date">{formatDate(post.createdAt)}</span>
+                    <span className="blog-date">{formatDate(post.publishedAt || post.createdAt)}</span>
                     <h2>{post.title}</h2>
                     <p className="excerpt">{post.excerpt}</p>
-                    {post.tags && (
+                    {post.tags && post.tags.length > 0 && (
                       <div className="blog-tags">
-                        {post.tags.split(',').map((tag, idx) => (
-                          <span key={idx} className="tag">{tag.trim()}</span>
+                        {post.tags.map((tag, idx) => (
+                          <span key={idx} className="tag">{tag}</span>
                         ))}
                       </div>
                     )}
