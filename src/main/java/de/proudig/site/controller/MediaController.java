@@ -2,6 +2,7 @@ package de.proudig.site.controller;
 
 import de.proudig.site.domain.User;
 import de.proudig.site.dto.MediaDto;
+import de.proudig.site.dto.MediaUpdateRequest;
 import de.proudig.site.service.MediaService;
 import de.proudig.site.service.FileStorageService;
 import org.springframework.core.io.Resource;
@@ -35,6 +36,13 @@ public class MediaController {
     public ResponseEntity<List<MediaDto>> getAllMedia() {
         List<MediaDto> media = mediaService.getAllMedia();
         return ResponseEntity.ok(media);
+    }
+
+    @PutMapping("/admin/media/{id}")
+    @PreAuthorize("hasAnyRole(\'ADMIN\', \'CONSULTANT\')")
+    public ResponseEntity<MediaDto> updateMedia(@PathVariable String id, @RequestBody MediaUpdateRequest request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(mediaService.updateMedia(id, request.name(), user));
     }
 
     @DeleteMapping("/admin/media/{id}")

@@ -41,6 +41,15 @@ public class MediaService {
         mediaRepository.delete(media);
     }
 
+    public MediaDto updateMedia(String id, String name, User user) {
+        Media media = mediaRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Media not found: " + id));
+        media.setName(name);
+        media.setTitle(name);
+        media = mediaRepository.save(media);
+        activityLogService.log(user, "UPDATE", "MEDIA", media.getId(), media.getName());
+        return mapToDto(media);
+    }
+
     public String getMediaFilePath(String id) {
         Media media = mediaRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Media not found: " + id));
         return media.getStoragePath();

@@ -72,6 +72,28 @@ export const MediaLibrary = () => {
     }
   };
 
+  const handleRename = async (item) => {
+    const name = window.prompt('Neuer Name', item.name);
+    if (!name || name.trim() === '' || name === item.name) return;
+    try {
+      const res = await authFetch(`/api/admin/media/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setMedia(media.map(m => (m.id === item.id ? updated : m)));
+        setMessage('Umbenannt');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Fehler beim Umbenennen');
+      }
+    } catch (err) {
+      setMessage('Fehler beim Umbenennen');
+    }
+  };
+
   const copyUrl = (id) => {
     navigator.clipboard.writeText(`/api/media/${id}`);
     setMessage('URL kopiert');
@@ -153,6 +175,9 @@ export const MediaLibrary = () => {
               <div className="media-info">
                 <p className="filename">{item.name}</p>
                 <div className="media-actions">
+                  <button className="btn-sm" onClick={() => handleRename(item)} title="Umbenennen">
+                    Umbenennen
+                  </button>
                   <button className="btn-sm" onClick={() => copyUrl(item.id)} title="URL kopieren">
                     URL
                   </button>
