@@ -38,7 +38,7 @@ export const MediaLibrary = () => {
       formData.append('file', file);
 
       try {
-        const res = await authFetch('/api/admin/media/upload', {
+        const res = await authFetch('/api/admin/media', {
           method: 'POST',
           body: formData
         });
@@ -72,8 +72,8 @@ export const MediaLibrary = () => {
     }
   };
 
-  const copyUrl = (url) => {
-    navigator.clipboard.writeText(url);
+  const copyUrl = (id) => {
+    navigator.clipboard.writeText(`/api/media/${id}`);
     setMessage('URL kopiert');
     setTimeout(() => setMessage(''), 2000);
   };
@@ -144,16 +144,16 @@ export const MediaLibrary = () => {
           media.map(item => (
             <div key={item.id} className="media-item">
               <div className="media-preview">
-                {item.type?.startsWith('image/') ? (
-                  <img src={item.url} alt={item.filename} />
+                {item.contentType?.startsWith('image/') ? (
+                  <img src={`/api/media/${item.id}`} alt={item.name} />
                 ) : (
-                  <div className="file-icon">{item.filename.split('.').pop()}</div>
+                  <div className="file-icon">{item.name?.split('.').pop() || 'Datei'}</div>
                 )}
               </div>
               <div className="media-info">
-                <p className="filename">{item.filename}</p>
+                <p className="filename">{item.name}</p>
                 <div className="media-actions">
-                  <button className="btn-sm" onClick={() => copyUrl(item.url)} title="URL kopieren">
+                  <button className="btn-sm" onClick={() => copyUrl(item.id)} title="URL kopieren">
                     URL
                   </button>
                   <button className="btn-sm danger" onClick={() => handleDelete(item.id)}>

@@ -4,13 +4,14 @@
 
 /* Blog Page */
 .blog-page {
-  background: white;
+  background: var(--c-bg);
 }
 
 .blog-hero,
 .seminar-hero {
-  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-  padding: 4rem 2rem;
+  background: var(--c-bg-alt);
+  padding: 7rem 0 3rem;
+  border-bottom: 1px solid var(--c-border);
   text-align: left;
 }
 
@@ -26,7 +27,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #f97316;
+  color: #E8731A;
   text-transform: uppercase;
   margin-bottom: 0.75rem;
 }
@@ -35,7 +36,7 @@
 .seminar-hero h1 {
   margin: 0 0 0.5rem;
   font-size: clamp(1.75rem, 3vw, 2.5rem);
-  color: #1a1a2e;
+  color: var(--c-text);
   font-weight: 800;
   line-height: 1.25;
 }
@@ -43,14 +44,14 @@
 .blog-hero p,
 .seminar-hero p {
   margin: 0;
-  color: #64748b;
+  color: var(--c-text-muted);
   font-size: 1rem;
   line-height: 1.6;
 }
 
 .blog-section,
 .seminar-section {
-  padding: 3rem 2rem;
+  padding: 3rem 0 6rem;
 }
 
 .blog-grid,
@@ -61,16 +62,16 @@
 }
 
 .blog-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background: var(--c-white);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .blog-card:hover {
-  border-color: #2563eb;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 14px 34px -14px rgba(20, 30, 45, 0.22);
+  transform: translateY(-2px);
 }
 
 .blog-card-image {
@@ -98,7 +99,7 @@
 .blog-date {
   display: inline-block;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--c-text-light);
   font-weight: 500;
   margin-bottom: 0.75rem;
 }
@@ -106,13 +107,13 @@
 .blog-card h2 {
   margin: 0 0 0.75rem;
   font-size: 1.3rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   line-height: 1.4;
 }
 
 .blog-card .excerpt {
   margin: 0 0 1rem;
-  color: #64748b;
+  color: var(--c-text-muted);
   font-size: 0.95rem;
   line-height: 1.6;
   display: -webkit-box;
@@ -130,48 +131,49 @@
 
 .tag {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: #f3f4f6;
-  color: #64748b;
+  padding: 0.2rem 0.6rem;
+  background: var(--c-bg-alt);
+  color: var(--c-text-muted);
+  border: 1px solid var(--c-border);
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .read-more {
   display: inline-block;
-  color: #2563eb;
+  color: #E8731A;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .read-more:hover {
-  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 .no-posts,
 .no-seminars {
   text-align: center;
   padding: 3rem 2rem;
-  color: #94a3b8;
+  color: var(--c-text-light);
 }
 
 /* Blog Post Page */
 .blog-post-page {
-  background: white;
+  background: var(--c-bg);
 }
 
 .blog-post {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .blog-post-cover {
   width: 100%;
   height: 400px;
   overflow: hidden;
-  background: #f3f4f6;
+  background: var(--c-bg-alt);
 }
 
 .blog-post-cover img {
@@ -180,38 +182,28 @@
   object-fit: cover;
 }
 
-.blog-post-container {
-  padding: 3rem 2rem;
+/* Voller Container (1200px, 32px Gutter via .container) + vertikale Polsterung */
+.blog-post-body {
+  padding-top: 3rem;
+  padding-bottom: 5rem;
+}
+/* Ohne Titelbild braucht der Kopf Abstand zur fixierten Navbar */
+.blog-post > .blog-post-body:first-child {
+  padding-top: 7rem;
 }
 
 .blog-post-header {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 2.5rem;
 }
 
-.breadcrumb {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  font-size: 0.9rem;
-  color: #64748b;
-  margin-bottom: 1rem;
-}
-
-.breadcrumb a {
-  color: #2563eb;
-  text-decoration: none;
-}
-
-.breadcrumb a:hover {
-  text-decoration: underline;
+.blog-eyebrow {
+  margin-bottom: 0.75rem;
 }
 
 .blog-post-header h1 {
   margin: 0 0 1rem;
   font-size: 2rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   line-height: 1.3;
 }
 
@@ -221,7 +213,7 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .blog-post-meta .date {
@@ -236,20 +228,24 @@
 
 .blog-post-content {
   line-height: 1.8;
-  color: #64748b;
+  color: var(--c-text);
   margin-bottom: 3rem;
+}
+
+.blog-post-content a {
+  color: #E8731A;
 }
 
 .blog-post-content h2 {
   margin: 2rem 0 1rem;
   font-size: 1.5rem;
-  color: #1a1a2e;
+  color: var(--c-text);
 }
 
 .blog-post-content h3 {
   margin: 1.5rem 0 0.75rem;
   font-size: 1.2rem;
-  color: #1a1a2e;
+  color: var(--c-text);
 }
 
 .blog-post-content p {
@@ -275,8 +271,8 @@
 }
 
 .blog-post-content pre {
-  background: #1a1a2e;
-  color: #e2e8f0;
+  background: var(--c-text);
+  color: var(--c-border);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
@@ -290,11 +286,11 @@
 }
 
 .blog-post-content blockquote {
-  border-left: 4px solid #2563eb;
+  border-left: 4px solid #E8731A;
   padding-left: 1rem;
   margin: 1rem 0;
   font-style: italic;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .blog-post-content table {
@@ -305,7 +301,7 @@
 
 .blog-post-content th,
 .blog-post-content td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--c-border);
   padding: 0.75rem;
   text-align: left;
 }
@@ -313,18 +309,18 @@
 .blog-post-content th {
   background: #f3f4f6;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--c-text);
 }
 
 .related-posts {
   margin-top: 3rem;
   padding-top: 3rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--c-border);
 }
 
 .related-posts h2 {
   margin: 0 0 1.5rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   font-size: 1.3rem;
 }
 
@@ -336,30 +332,29 @@
 
 .related-card {
   display: block;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 6px;
+  padding: 1.25rem;
+  background: var(--c-white);
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  border: 1px solid var(--c-border);
 }
 
 .related-card:hover {
-  background: #f3f4f6;
-  border-color: #2563eb;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 14px 34px -14px rgba(20, 30, 45, 0.22);
+  transform: translateY(-2px);
 }
 
 .related-card h3 {
   margin: 0 0 0.5rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   font-size: 1rem;
   line-height: 1.4;
 }
 
 .related-card p {
   margin: 0 0 0.75rem;
-  color: #64748b;
+  color: var(--c-text-muted);
   font-size: 0.9rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -370,7 +365,7 @@
 .related-card .date {
   display: block;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--c-text-light);
 }
 
 /* Seminar Page */
@@ -389,24 +384,24 @@
 
 .filter-btn {
   padding: 0.75rem 1.5rem;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--c-border);
   background: white;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .filter-btn:hover {
-  border-color: #2563eb;
-  color: #2563eb;
+  border-color: #E8731A;
+  color: #E8731A;
 }
 
 .filter-btn.active {
-  background: #2563eb;
+  background: #E8731A;
   color: white;
-  border-color: #2563eb;
+  border-color: #E8731A;
 }
 
 .seminar-list {
@@ -418,7 +413,7 @@
   gap: 1.5rem;
   padding: 1.5rem;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--c-border);
   border-radius: 8px;
   text-decoration: none;
   color: inherit;
@@ -426,7 +421,7 @@
 }
 
 .seminar-card:hover {
-  border-color: #2563eb;
+  border-color: #E8731A;
   box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
 }
 
@@ -464,13 +459,13 @@
 .seminar-card h2 {
   margin: 0 0 0.75rem;
   font-size: 1.3rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   line-height: 1.4;
 }
 
 .seminar-card .excerpt {
   margin: 0 0 1rem;
-  color: #64748b;
+  color: var(--c-text-muted);
   font-size: 0.95rem;
   line-height: 1.6;
   display: -webkit-box;
@@ -491,7 +486,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .meta-item .icon {
@@ -499,7 +494,7 @@
 }
 
 .seminar-card-footer {
-  color: #2563eb;
+  color: #E8731A;
   font-weight: 600;
 }
 
@@ -533,20 +528,20 @@
 .seminar-detail-header {
   margin-bottom: 3rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .seminar-detail-header h1 {
   margin: 0 0 0.75rem;
   font-size: 2rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   line-height: 1.3;
 }
 
 .seminar-detail-header .subtitle {
   margin: 0;
   font-size: 1.05rem;
-  color: #64748b;
+  color: var(--c-text-muted);
   line-height: 1.6;
 }
 
@@ -558,19 +553,19 @@
 
 .seminar-detail-content {
   line-height: 1.8;
-  color: #64748b;
+  color: var(--c-text-muted);
 }
 
 .seminar-detail-content h2 {
   margin: 2rem 0 1rem;
   font-size: 1.5rem;
-  color: #1a1a2e;
+  color: var(--c-text);
 }
 
 .seminar-detail-content h3 {
   margin: 1.5rem 0 0.75rem;
   font-size: 1.2rem;
-  color: #1a1a2e;
+  color: var(--c-text);
 }
 
 .seminar-detail-content p {
@@ -585,7 +580,7 @@
 
 .seminar-info-box {
   background: #f9fafb;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--c-border);
   border-radius: 8px;
   padding: 1.5rem;
   height: fit-content;
@@ -595,14 +590,14 @@
 
 .seminar-info-box h3 {
   margin: 0 0 1rem;
-  color: #1a1a2e;
+  color: var(--c-text);
   font-size: 1.1rem;
 }
 
 .info-item {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--c-border);
 }
 
 .info-item:last-child {
@@ -613,14 +608,14 @@
 
 .info-item strong {
   display: block;
-  color: #1a1a2e;
+  color: var(--c-text);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
 
 .info-item p {
   margin: 0;
-  color: #64748b;
+  color: var(--c-text-muted);
   font-size: 0.95rem;
 }
 
@@ -631,7 +626,7 @@
 
 .registration-deadline {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--c-text-light);
   margin: 0;
 }
 
@@ -650,12 +645,12 @@
 }
 
 .page.not-found h1 {
-  color: #1a1a2e;
+  color: var(--c-text);
   margin-bottom: 1rem;
 }
 
 .page.not-found a {
-  color: #2563eb;
+  color: #E8731A;
   text-decoration: none;
   font-weight: 600;
 }
@@ -709,7 +704,7 @@
 @media (max-width: 480px) {
   .blog-hero,
   .seminar-hero {
-    padding: 2rem 1rem;
+    padding: 6rem 0 2rem;
   }
 
   .blog-hero h1,
@@ -717,7 +712,14 @@
     font-size: 1.3rem;
   }
 
-  .blog-post-container,
+  .blog-post-body {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+  }
+  .blog-post > .blog-post-body:first-child {
+    padding-top: 6rem;
+  }
+
   .seminar-detail-container {
     padding: 1.5rem 1rem;
   }

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { MediaPicker } from './MediaPicker';
 
 export const PageEditor = ({ category }) => {
   const { authFetch } = useAuth();
@@ -194,12 +195,10 @@ export const PageEditor = ({ category }) => {
             </div>
 
             <div className="form-group">
-              <label>Titelbild-ID (Mediathek)</label>
-              <input
-                type="text"
+              <label>Titelbild (Mediathek)</label>
+              <MediaPicker
                 value={data.coverImageId}
-                onChange={(e) => handleChange('coverImageId', e.target.value)}
-                placeholder="media-id-123"
+                onChange={(id) => handleChange('coverImageId', id)}
               />
             </div>
 

@@ -14,5 +14,7 @@
     <include file="db/changelog/008-reset-admin-password.xml"/>
     <include file="db/changelog/009-contact-messages.xml"/>
     <include file="db/changelog/010-news-seed.xml"/>
+    <include file="db/changelog/011-blog-seed.xml"/>
+    <include file="db/changelog/012-seminar-seed.xml"/>
 
 </databaseChangeLog>
