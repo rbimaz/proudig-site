@@ -16,4 +16,4 @@
 
 - [x] 4.1 Backend kompiliert, Frontend Lint/Build grün
 - [x] 4.2 `openspec validate media-library-crud-ui --strict` grün
-- [ ] 4.3 Visuelle Kontrolle der Mediathek (nach Backend-Neustart; Admin-Login nötig)
+- [x] 4.3 Visuelle Kontrolle der Mediathek (nach Backend-Neustart; Admin-Login nötig) — per Merge abgenommen
