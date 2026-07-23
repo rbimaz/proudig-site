@@ -42,6 +42,8 @@ public class Page {
     private Instant createdAt;
     @Column(name = "updated_at")
     private Instant updatedAt;
+    @Column(name = "show_in_hero", nullable = false)
+    private boolean showInHero;
 
     @PrePersist
     public void prePersist() {
@@ -274,6 +276,14 @@ public class Page {
 
     public Instant getUpdatedAt() {
         return this.updatedAt;
+    }
+
+    public boolean isShowInHero() {
+        return this.showInHero;
+    }
+
+    public void setShowInHero(final boolean showInHero) {
+        this.showInHero = showInHero;
     }
 
     public void setId(final String id) {

@@ -21,6 +21,7 @@ public class PageDto {
     private Instant publishedAt;
     private Instant createdAt;
     private Instant updatedAt;
+    private boolean showInHero;
 
 
     public static class PageDtoBuilder {
@@ -211,6 +212,14 @@ public class PageDto {
 
     public String getMetaData() {
         return this.metaData;
+    }
+
+    public boolean isShowInHero() {
+        return this.showInHero;
+    }
+
+    public void setShowInHero(final boolean showInHero) {
+        this.showInHero = showInHero;
     }
 
     public PageStatus getStatus() {

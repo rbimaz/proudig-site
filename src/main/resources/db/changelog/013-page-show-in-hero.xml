@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Hero-Flag für News: im Landing-Hero anzeigen -->
+    <changeSet id="013-add-show-in-hero" author="ProuDig">
+        <addColumn tableName="pages">
+            <column name="show_in_hero" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Demo (nur Dev): eine Beispiel-News im Hero anzeigen -->
+    <changeSet id="013-seed-show-in-hero" author="ProuDig" context="dev">
+        <update tableName="pages">
+            <column name="show_in_hero" valueBoolean="true"/>
+            <where>id = 'a1000000-0000-4000-8000-000000000001'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

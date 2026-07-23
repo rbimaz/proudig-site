@@ -27,6 +27,10 @@ export const Navbar = ({ theme }) => {
     navigate('/impressum');
     setMobileOpen(false);
   };
+  const goToHome = () => {
+    navigate('/');
+    setMobileOpen(false);
+  };
 
   const goToBlog = () => {
     navigate('/blog');
@@ -63,11 +67,12 @@ export const Navbar = ({ theme }) => {
           <ul className="nav-links">
             <li><button className="nav-link" onClick={() => scrollTo('leistungen')}>Leistungen</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('ueber')}>Über Proudig</button></li>
-            <li><button className="nav-link" onClick={goToNews}>News</button></li>
-            <li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
-            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>
-            <li><button className="nav-link" onClick={goToImpressum}>Impressum</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('prozess')}>Prozess</button></li>
+            <li><button className="nav-link" onClick={goToNews}>News</button></li>
+            {/*<li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
+            <li><button className="nav-link" onClick={goToSeminare}>Seminare</button></li>*/}
+            <li><button className="nav-link" onClick={goToImpressum}>Impressum</button></li>
+
             <li><button className="nav-link" onClick={goToLogin}><Person width={16} height={16} style={{ marginRight: '0.4rem', verticalAlign: 'middle' }} />Login</button></li>
           </ul>
           <button className="nav-cta" onClick={() => scrollTo('kontakt')}>Beratungsgespräch</button>

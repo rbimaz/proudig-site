@@ -21,6 +21,7 @@ export const PageEditor = ({ category }) => {
     coverImageId: '',
     tags: '',
     status: 'draft',
+    showInHero: false,
     ...(category === 'SEMINAR' && {
       date: '',
       endDate: '',
@@ -222,6 +223,20 @@ export const PageEditor = ({ category }) => {
                 placeholder="tag1, tag2, tag3"
               />
             </div>
+
+            {category === 'NEWS' && (
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!data.showInHero}
+                    onChange={(e) => handleChange('showInHero', e.target.checked)}
+                    style={{ width: 'auto' }}
+                  />
+                  Im Hero anzeigen
+                </label>
+              </div>
+            )}
 
             {isSeminar && (
               <>

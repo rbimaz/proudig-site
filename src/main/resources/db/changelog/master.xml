@@ -16,5 +16,6 @@
     <include file="db/changelog/010-news-seed.xml"/>
     <include file="db/changelog/011-blog-seed.xml"/>
     <include file="db/changelog/012-seminar-seed.xml"/>
+    <include file="db/changelog/013-page-show-in-hero.xml"/>
 
 </databaseChangeLog>

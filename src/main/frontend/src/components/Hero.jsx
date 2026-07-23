@@ -8,39 +8,63 @@ import { HeroSaasAnim } from './HeroSaasAnim';
 import { HeroImageBlue } from './HeroImageBlue';
 import { HeroAoeDash } from './HeroAoeDash';
 import { HeroVisualCarousel } from './HeroVisualCarousel';
+import { HeroNewsBox } from './HeroNewsBox';
+import { useContent } from '../contexts/ContentContext';
+import { useHeroNews } from '../hooks/useHeroNews';
 
-const HeroUdig2 = ({ scrollTo }) => (
-  <section className="hero hero-udig2">
-    <div className="container">
-      <div className="hero-udig2-layout">
-        <div className="hero-udig2-content">
-          <h1 className="hero-udig2-title fade-up d2">
-            Von der Idee zur<br />digitalen <span className="accent-udig2">Wirkung</span>
-          </h1>
-          <p className="hero-udig2-desc fade-up d3">
-            Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
-            Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
-          </p>
-          <div className="hero-udig2-btns fade-up d4">
-            <button className="btn-udig2-primary" onClick={() => scrollTo('kontakt')}>
-              Beratungsgespräch <ArrowRight width={18} height={18} />
-            </button>
-            <button className="btn-udig2-secondary" onClick={() => scrollTo('leistungen')}>
-              Leistungen entdecken
-            </button>
-          </div>
+const HeroUdig2 = ({ scrollTo }) => {
+  const { blocks } = useContent();
+  // Konfig-Flag (CMS, HERO-Block): default neue Landing; nur explizit false -> alte Landing (Prozess-Bild)
+  const newLanding = blocks.HERO?.newLanding !== false;
+  const heroNews = useHeroNews(newLanding);
+  const showNewsBox = newLanding && heroNews.length > 0;
+  const showOrb = newLanding && heroNews.length === 0;
+
+  return (
+    <section className="hero hero-udig2">
+      {showOrb && (
+        <div className="orb" aria-hidden="true">
+          <img src="/proudig-orb.jpg" alt="" />
         </div>
-        <div className="hero-udig2-visual fade-up d3">
-          <HeroVisualCarousel />
+      )}
+      <div className="container">
+        <div className="hero-udig2-layout">
+          <div className="hero-udig2-content">
+            <h1 className="hero-udig2-title fade-up d2">
+              Von der Idee zur<br />digitalen <span className="accent-udig2">Wirkung</span>
+            </h1>
+            <p className="hero-udig2-desc fade-up d3">
+              Proudig begleitet Unternehmen bei ihrer digitalen Transformation – mit strategischer
+              Beratung, maßgeschneiderter Software und intelligenten KI-Systemen.
+            </p>
+            <div className="hero-udig2-btns fade-up d4">
+              <button className="btn-udig2-primary" onClick={() => scrollTo('kontakt')}>
+                Beratungsgespräch <ArrowRight width={18} height={18} />
+              </button>
+              <button className="btn-udig2-secondary" onClick={() => scrollTo('leistungen')}>
+                Leistungen entdecken
+              </button>
+            </div>
+          </div>
+          {!newLanding && (
+            <div className="hero-udig2-visual fade-up d3">
+              <HeroVisualCarousel />
+            </div>
+          )}
+          {showNewsBox && (
+            <div className="hero-udig2-visual hero-udig2-newsbox fade-up d3">
+              <HeroNewsBox items={heroNews} />
+            </div>
+          )}
         </div>
       </div>
-    </div>
-    <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
-      <span>Entdecken</span>
-      <ChevronDown width={20} height={20} />
-    </a>
-  </section>
-);
+      <a className="scroll-ind" onClick={() => scrollTo('leistungen')}>
+        <span>Entdecken</span>
+        <ChevronDown width={20} height={20} />
+      </a>
+    </section>
+  );
+};
 
 export const Hero = ({ theme }) => {
   const scrollTo = (id) => {

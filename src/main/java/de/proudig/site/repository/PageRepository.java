@@ -18,6 +18,7 @@ public interface PageRepository extends JpaRepository<de.proudig.site.domain.Pag
     Page findByCategoryAndStatus(PageCategory category, PageStatus status, Pageable pageable);
     Page findByCategoryAndStatusAndTagsContaining(PageCategory category, PageStatus status, String tag, Pageable pageable);
     Page findByCategoryAndStatusNot(PageCategory category, PageStatus status, Pageable pageable);
+    Page findByCategoryAndStatusAndShowInHero(PageCategory category, PageStatus status, boolean showInHero, Pageable pageable);
     List<String> findDistinctTagsByCategoryAndStatus(PageCategory category, PageStatus status);
     Page findByCategory(PageCategory category, Pageable pageable);
     boolean existsByAuthor(User author);
