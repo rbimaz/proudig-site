@@ -22,6 +22,7 @@ public class PageDto {
     private Instant createdAt;
     private Instant updatedAt;
     private boolean showInHero;
+    private String autoArchiveAfter;
 
 
     public static class PageDtoBuilder {
@@ -220,6 +221,14 @@ public class PageDto {
 
     public void setShowInHero(final boolean showInHero) {
         this.showInHero = showInHero;
+    }
+
+    public String getAutoArchiveAfter() {
+        return this.autoArchiveAfter;
+    }
+
+    public void setAutoArchiveAfter(final String autoArchiveAfter) {
+        this.autoArchiveAfter = autoArchiveAfter;
     }
 
     public PageStatus getStatus() {

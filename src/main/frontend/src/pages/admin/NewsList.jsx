@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/api';
 
+const STATUS_LABELS = {
+  DRAFT: 'Entwurf',
+  PUBLISHED: 'Veröffentlicht',
+  ARCHIVED: 'Archiviert',
+  HIDDEN: 'Ausgeblendet'
+};
+const statusLabel = (s) => STATUS_LABELS[s] || s || '';
+const statusClass = (s) => (s || '').toLowerCase();
+
 export const NewsList = () => {
   const { authFetch } = useAuth();
   const navigate = useNavigate();
@@ -84,8 +93,8 @@ export const NewsList = () => {
                   <td className="title">{post.title}</td>
                   <td className="slug">{post.slug}</td>
                   <td>
-                    <span className={`status-badge ${post.status}`}>
-                      {post.status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
+                    <span className={`status-badge ${statusClass(post.status)}`}>
+                      {statusLabel(post.status)}
                     </span>
                   </td>
                   <td>{formatDate(post.createdAt)}</td>
@@ -93,7 +102,7 @@ export const NewsList = () => {
                     <button className="btn-sm" onClick={() => navigate(`/admin/cms/news/${post.id}`)}>
                       <i className="bi bi-pencil"></i> Bearbeiten
                     </button>
-                    {post.status !== 'published' && (
+                    {post.status !== 'PUBLISHED' && (
                       <button className="btn-sm" onClick={() => handlePublish(post.id)}>
                         <i className="bi bi-check-circle"></i> Veröffentlichen
                       </button>

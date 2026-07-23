@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const AdminLayout = () => {
-  const { user, logout, authFetch } = useAuth();
+  const { user, logout, authFetch, hasRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -41,6 +41,7 @@ export const AdminLayout = () => {
     { label: 'Seminare', path: '/admin/cms/seminare', icon: 'bi-mortarboard-fill' },
     { label: 'Mediathek', path: '/admin/cms/media', icon: 'bi-images' },
     { label: 'Nachrichten', path: '/admin/cms/nachrichten', icon: 'bi-envelope-fill', badge: unreadCount },
+    ...(hasRole('ADMIN') ? [{ label: 'Einstellungen', path: '/admin/cms/einstellungen', icon: 'bi-gear-fill' }] : []),
   ];
 
   const isNavItemActive = (path) => {

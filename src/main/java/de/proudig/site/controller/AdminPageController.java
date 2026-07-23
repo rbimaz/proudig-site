@@ -46,6 +46,8 @@ public class AdminPageController {
             return ResponseEntity.notFound().build();
         }
         PageDto dto = PageDto.builder().id(page.getId()).slug(page.getSlug()).title(page.getTitle()).category(page.getCategory()).content(page.getContent()).excerpt(page.getExcerpt()).coverImageId(page.getCoverImage() != null ? page.getCoverImage().getId() : null).tags(page.getTagsList()).metaData(page.getMetaData()).status(page.getStatus()).authorId(page.getAuthor().getId()).authorName(page.getAuthor().getFirstName() + " " + page.getAuthor().getLastName()).publishedAt(page.getPublishedAt()).createdAt(page.getCreatedAt()).updatedAt(page.getUpdatedAt()).build();
+        dto.setShowInHero(page.isShowInHero());
+        dto.setAutoArchiveAfter(page.getAutoArchiveAfter());
         return ResponseEntity.ok(dto);
     }
 
@@ -82,6 +84,13 @@ public class AdminPageController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         pageService.deletePage(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Stößt den News-Lebenszyklus (Auto-Archivieren/-Ausblenden) sofort an — ohne aufs Cron-Intervall zu warten. */
+    @PostMapping("/run-lifecycle")
+    public ResponseEntity<java.util.Map<String, Integer>> runLifecycle() {
+        int transitions = pageService.runNewsLifecycle();
+        return ResponseEntity.ok(java.util.Map.of("transitions", transitions));
     }
 
     public AdminPageController(final PageService pageService, final PageRepository pageRepository) {

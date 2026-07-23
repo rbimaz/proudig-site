@@ -35,8 +35,13 @@ public class NewsController {
 
     @GetMapping("/{slug}")
     public ResponseEntity<PageDto> getNewsPost(@PathVariable String slug) {
-        PageDto post = pageService.getBySlug(slug);
+        PageDto post = pageService.getNewsBySlug(slug);
         return ResponseEntity.ok(post);
+    }
+
+    @ExceptionHandler(java.util.NoSuchElementException.class)
+    public ResponseEntity<Void> handleNotFound(java.util.NoSuchElementException ex) {
+        return ResponseEntity.notFound().build();
     }
 
     public NewsController(final PageService pageService) {

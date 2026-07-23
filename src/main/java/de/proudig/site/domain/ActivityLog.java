@@ -11,7 +11,7 @@ public class ActivityLog {
     @Column(length = 36)
     private String id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
     @Column(nullable = false, length = 50)
     private String action;

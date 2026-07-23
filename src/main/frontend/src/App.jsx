@@ -30,6 +30,7 @@ import { BlogList } from './pages/admin/BlogList';
 import { PageEditor } from './pages/admin/PageEditor';
 import { SeminarList } from './pages/admin/SeminarList';
 import { NewsList } from './pages/admin/NewsList';
+import { Settings } from './pages/admin/Settings';
 import { MediaLibrary } from './pages/admin/MediaLibrary';
 import { MessageList } from './pages/admin/MessageList';
 import { MessageDetail } from './pages/admin/MessageDetail';
@@ -104,6 +105,7 @@ function AppContent() {
           <Route path="media" element={<MediaLibrary />} />
           <Route path="nachrichten" element={<MessageList />} />
           <Route path="nachrichten/:id" element={<MessageDetail />} />
+          <Route path="einstellungen" element={<ProtectedRoute requiredRole="ADMIN"><Settings /></ProtectedRoute>} />
         </Route>
 
         {/* Admin - Portal */}
