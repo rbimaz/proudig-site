@@ -120,9 +120,7 @@ public class PageService {
 
     public void deletePage(String id, User user) {
         Page page = pageRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Page not found: " + id));
-        if (page.getStatus() != PageStatus.DRAFT) {
-            throw new IllegalStateException("Only draft pages can be deleted");
-        }
+        // Löschen unabhängig vom Status erlaubt; die Bestätigung erfolgt im UI-Dialog.
         activityLogService.log(user, "PAGE_DELETE", "PAGE", page.getId(), page.getTitle());
         pageRepository.delete(page);
     }
