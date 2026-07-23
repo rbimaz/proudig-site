@@ -6,6 +6,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MediaPicker } from './MediaPicker';
 
+// Duration-String (30d/12h/45m/30s) <-> Zahl + Einheit
+const parseDuration = (s) => {
+  const m = /^(\d+)([dhms])$/.exec((s || '').trim());
+  return m ? { num: m[1], unit: m[2] } : { num: '', unit: 'd' };
+};
+const composeDuration = (num, unit) => (num && Number(num) > 0 ? `${parseInt(num, 10)}${unit}` : '');
+
 export const PageEditor = ({ category }) => {
   const { authFetch } = useAuth();
   const { id } = useParams();
@@ -22,6 +29,7 @@ export const PageEditor = ({ category }) => {
     tags: '',
     status: 'draft',
     showInHero: false,
+    autoArchiveAfter: '',
     ...(category === 'SEMINAR' && {
       date: '',
       endDate: '',
@@ -48,6 +56,25 @@ export const PageEditor = ({ category }) => {
       fetchData();
     }
   }, [id]);
+
+  // Neue News: Auto-Archiv-Feld mit dem konfigurierten Default vorbelegen (falls Leserechte vorhanden)
+  useEffect(() => {
+    if (isNew && category === 'NEWS') {
+      (async () => {
+        try {
+          const res = await authFetch('/api/admin/settings');
+          if (res.ok) {
+            const s = await res.json();
+            if (s.defaultArchiveAfter) {
+              setData(prev => ({ ...prev, autoArchiveAfter: s.defaultArchiveAfter }));
+            }
+          }
+        } catch {
+          // z.B. 403 für CONSULTANT — Feld bleibt leer
+        }
+      })();
+    }
+  }, [isNew, category]);
 
   const fetchData = async () => {
     try {
@@ -235,6 +262,32 @@ export const PageEditor = ({ category }) => {
                   />
                   Im Hero anzeigen
                 </label>
+              </div>
+            )}
+
+            {category === 'NEWS' && (
+              <div className="form-group">
+                <label>Automatisch archivieren nach</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="number"
+                    min="1"
+                    value={parseDuration(data.autoArchiveAfter).num}
+                    onChange={(e) => handleChange('autoArchiveAfter', composeDuration(e.target.value, parseDuration(data.autoArchiveAfter).unit))}
+                    placeholder="z.B. 30"
+                    style={{ maxWidth: '120px' }}
+                  />
+                  <select
+                    value={parseDuration(data.autoArchiveAfter).unit}
+                    onChange={(e) => handleChange('autoArchiveAfter', composeDuration(parseDuration(data.autoArchiveAfter).num, e.target.value))}
+                  >
+                    <option value="d">Tage</option>
+                    <option value="h">Stunden</option>
+                    <option value="m">Minuten</option>
+                    <option value="s">Sekunden</option>
+                  </select>
+                </div>
+                <small className="form-hint">Leer = kein automatisches Archivieren. Danach bleibt die News per Direktlink erreichbar.</small>
               </div>
             )}
 

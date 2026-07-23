@@ -44,6 +44,10 @@ public class Page {
     private Instant updatedAt;
     @Column(name = "show_in_hero", nullable = false)
     private boolean showInHero;
+    @Column(name = "auto_archive_after", length = 20)
+    private String autoArchiveAfter;
+    @Column(name = "archived_at")
+    private Instant archivedAt;
 
     @PrePersist
     public void prePersist() {
@@ -284,6 +288,22 @@ public class Page {
 
     public void setShowInHero(final boolean showInHero) {
         this.showInHero = showInHero;
+    }
+
+    public String getAutoArchiveAfter() {
+        return this.autoArchiveAfter;
+    }
+
+    public void setAutoArchiveAfter(final String autoArchiveAfter) {
+        this.autoArchiveAfter = autoArchiveAfter;
+    }
+
+    public Instant getArchivedAt() {
+        return this.archivedAt;
+    }
+
+    public void setArchivedAt(final Instant archivedAt) {
+        this.archivedAt = archivedAt;
     }
 
     public void setId(final String id) {

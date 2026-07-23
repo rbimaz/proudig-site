@@ -38,7 +38,8 @@ public class ActivityLogService {
             String lastName = log.getUser().getLastName() != null ? log.getUser().getLastName() : "";
             userName = (firstName + " " + lastName).trim();
         }
-        return ActivityLogDto.builder().id(log.getId()).userId(log.getUser().getId()).userEmail(userEmail).userName(userName).action(log.getAction()).entityType(log.getEntityType()).entityId(log.getEntityId()).details(log.getDetails()).createdAt(log.getCreatedAt()).build();
+        String userId = log.getUser() != null ? log.getUser().getId() : null;
+        return ActivityLogDto.builder().id(log.getId()).userId(userId).userEmail(userEmail).userName(userName).action(log.getAction()).entityType(log.getEntityType()).entityId(log.getEntityId()).details(log.getDetails()).createdAt(log.getCreatedAt()).build();
     }
 
     public ActivityLogService(final ActivityLogRepository activityLogRepository) {

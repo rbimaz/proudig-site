@@ -17,5 +17,8 @@
     <include file="db/changelog/011-blog-seed.xml"/>
     <include file="db/changelog/012-seminar-seed.xml"/>
     <include file="db/changelog/013-page-show-in-hero.xml"/>
+    <include file="db/changelog/014-page-auto-archive.xml"/>
+    <include file="db/changelog/015-settings.xml"/>
+    <include file="db/changelog/016-activity-log-nullable-user.xml"/>
 
 </databaseChangeLog>

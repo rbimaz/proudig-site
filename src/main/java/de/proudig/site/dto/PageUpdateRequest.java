@@ -13,6 +13,7 @@ public class PageUpdateRequest {
     private List<String> tags;
     private String metaData;
     private boolean showInHero;
+    private String autoArchiveAfter;
 
 
     public static class PageUpdateRequestBuilder {
@@ -144,6 +145,14 @@ public class PageUpdateRequest {
 
     public void setShowInHero(final boolean showInHero) {
         this.showInHero = showInHero;
+    }
+
+    public String getAutoArchiveAfter() {
+        return this.autoArchiveAfter;
+    }
+
+    public void setAutoArchiveAfter(final String autoArchiveAfter) {
+        this.autoArchiveAfter = autoArchiveAfter;
     }
 
     public void setTitle(final String title) {
