@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/api';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const NewsList = () => {
   const { authFetch } = useAuth();
@@ -9,6 +10,7 @@ export const NewsList = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   useEffect(() => {
     fetchPosts();
@@ -27,8 +29,10 @@ export const NewsList = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Wirklich löschen?')) return;
+  const performDelete = async () => {
+    if (!confirmTarget) return;
+    const id = confirmTarget.id;
+    setConfirmTarget(null);
     setDeleting(id);
     try {
       const res = await authFetch(`/api/admin/pages/${id}`, { method: 'DELETE' });
@@ -100,7 +104,7 @@ export const NewsList = () => {
                     )}
                     <button
                       className="btn-sm danger"
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => setConfirmTarget(post)}
                       disabled={deleting === post.id}
                     >
                       <i className="bi bi-trash"></i> {deleting === post.id ? 'Wird gelöscht...' : 'Löschen'}
@@ -112,6 +116,16 @@ export const NewsList = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        danger
+        title="News löschen"
+        message={confirmTarget ? `„${confirmTarget.title}" wirklich löschen?` : ''}
+        confirmText="Löschen"
+        onConfirm={performDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 };
