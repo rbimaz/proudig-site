@@ -4,6 +4,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 export const HeroEditor = () => {
   const { authFetch } = useAuth();
   const [data, setData] = useState({
+    newLanding: true,
     badge: '',
     title: '',
     titleAccent: '',
@@ -99,6 +100,24 @@ export const HeroEditor = () => {
       </div>
 
       <form className="editor-form">
+        <div className="form-section">
+          <h3>Landing-Variante</h3>
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={data.newLanding !== false}
+                onChange={(e) => handleChange('newLanding', e.target.checked)}
+                style={{ width: 'auto' }}
+              />
+              Neue Landing (Kugel / News-Box) aktivieren
+            </label>
+            <p className="field-hint" style={{ margin: '0.4rem 0 0', color: '#718096', fontSize: '0.85rem' }}>
+              Aus = alte Landing mit Prozess-Bild. Änderung wirkt nach „Veröffentlichen".
+            </p>
+          </div>
+        </div>
+
         <div className="form-group">
           <label>Badge</label>
           <input

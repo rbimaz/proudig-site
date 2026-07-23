@@ -12,6 +12,7 @@ public class PageCreateRequest {
     private String coverImageId;
     private List<String> tags;
     private String metaData;
+    private boolean showInHero;
 
 
     public static class PageCreateRequestBuilder {
@@ -135,6 +136,14 @@ public class PageCreateRequest {
 
     public String getMetaData() {
         return this.metaData;
+    }
+
+    public boolean getShowInHero() {
+        return this.showInHero;
+    }
+
+    public void setShowInHero(final boolean showInHero) {
+        this.showInHero = showInHero;
     }
 
     public void setTitle(final String title) {

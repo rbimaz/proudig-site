@@ -10,7 +10,9 @@ import de.proudig.site.dto.PageUpdateRequest;
 import de.proudig.site.repository.MediaRepository;
 import de.proudig.site.repository.PageRepository;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
@@ -67,6 +69,7 @@ public class PageService {
         if (request.getTags() != null) {
             page.setTagsList(request.getTags());
         }
+        page.setShowInHero(request.getShowInHero());
         page = pageRepository.save(page);
         activityLogService.log(user, "PAGE_CREATE", "PAGE", page.getId(), page.getTitle());
         return mapToDto(page);
@@ -86,8 +89,16 @@ public class PageService {
         if (request.getTags() != null) {
             page.setTagsList(request.getTags());
         }
+        page.setShowInHero(request.getShowInHero());
         page = pageRepository.save(page);
         return mapToDto(page);
+    }
+
+    public List<PageDto> getHeroNews() {
+        org.springframework.data.domain.Page<Page> pages = pageRepository.findByCategoryAndStatusAndShowInHero(
+                PageCategory.NEWS, PageStatus.PUBLISHED, true,
+                PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "publishedAt")));
+        return pages.map(this::mapToDto).getContent();
     }
 
     public PageDto publishPage(String id, User user) {
@@ -132,7 +143,9 @@ public class PageService {
     }
 
     private PageDto mapToDto(Page page) {
-        return PageDto.builder().id(page.getId()).slug(page.getSlug()).title(page.getTitle()).category(page.getCategory()).content(page.getContent()).excerpt(page.getExcerpt()).coverImageId(page.getCoverImage() != null ? page.getCoverImage().getId() : null).tags(page.getTagsList()).metaData(page.getMetaData()).status(page.getStatus()).authorId(page.getAuthor().getId()).authorName(page.getAuthor().getFirstName() + " " + page.getAuthor().getLastName()).publishedAt(page.getPublishedAt()).createdAt(page.getCreatedAt()).updatedAt(page.getUpdatedAt()).build();
+        PageDto dto = PageDto.builder().id(page.getId()).slug(page.getSlug()).title(page.getTitle()).category(page.getCategory()).content(page.getContent()).excerpt(page.getExcerpt()).coverImageId(page.getCoverImage() != null ? page.getCoverImage().getId() : null).tags(page.getTagsList()).metaData(page.getMetaData()).status(page.getStatus()).authorId(page.getAuthor().getId()).authorName(page.getAuthor().getFirstName() + " " + page.getAuthor().getLastName()).publishedAt(page.getPublishedAt()).createdAt(page.getCreatedAt()).updatedAt(page.getUpdatedAt()).build();
+        dto.setShowInHero(page.isShowInHero());
+        return dto;
     }
 
     public PageService(final PageRepository pageRepository, final MediaRepository mediaRepository, final ActivityLogService activityLogService) {

@@ -28,6 +28,11 @@ public class NewsController {
         return ResponseEntity.ok(tags);
     }
 
+    @GetMapping("/hero")
+    public ResponseEntity<List<PageDto>> getHeroNews() {
+        return ResponseEntity.ok(pageService.getHeroNews());
+    }
+
     @GetMapping("/{slug}")
     public ResponseEntity<PageDto> getNewsPost(@PathVariable String slug) {
         PageDto post = pageService.getBySlug(slug);
