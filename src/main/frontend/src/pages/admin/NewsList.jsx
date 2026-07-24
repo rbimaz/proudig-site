@@ -64,6 +64,15 @@ export const NewsList = () => {
     }
   };
 
+  const handleArchive = async (id) => {
+    try {
+      const res = await authFetch(`/api/admin/pages/${id}/archive`, { method: 'PUT' });
+      if (res.ok) fetchPosts();
+    } catch (err) {
+      console.error('Fehler beim Archivieren:', err);
+    }
+  };
+
   if (loading) return <div className="loading">Laden...</div>;
 
   return (
@@ -109,6 +118,11 @@ export const NewsList = () => {
                     {post.status !== 'PUBLISHED' && (
                       <button className="btn-sm" onClick={() => handlePublish(post.id)}>
                         <i className="bi bi-check-circle"></i> Veröffentlichen
+                      </button>
+                    )}
+                    {post.status === 'PUBLISHED' && (
+                      <button className="btn-sm" onClick={() => handleArchive(post.id)}>
+                        <i className="bi bi-archive"></i> Archivieren
                       </button>
                     )}
                     <button
