@@ -36,3 +36,39 @@ Blog und CMS-Seiten ermöglichen. Ausgewählte Medien SHALL über `/api/media/{i
 - **WHEN** ein Redakteur im CMS-Seiten-Editor ein Mediathek-Bild einfügt
 - **THEN** wird ein `<img src="/api/media/{id}">` in den HTML-Inhalt eingefügt
 
+### Requirement: News/Blog über die UI veröffentlichen und archivieren
+Das Admin-CMS SHALL in der News- und Blog-Verwaltung je Eintrag Aktionen zum Veröffentlichen und
+Archivieren bereitstellen. „Veröffentlichen" SHALL für nicht veröffentlichte Beiträge (Entwurf oder
+archiviert) verfügbar sein und den Status auf `PUBLISHED` setzen; „Archivieren" SHALL für
+veröffentlichte Beiträge verfügbar sein und den Status auf `ARCHIVED` setzen. Nach der Aktion SHALL
+die Liste den neuen Status anzeigen.
+
+#### Scenario: Beitrag veröffentlichen
+- **WHEN** eine Redakteurin bei einem Entwurf oder archivierten Beitrag „Veröffentlichen" wählt
+- **THEN** wird der Beitrag über `PUT /api/admin/pages/{id}/publish` auf `PUBLISHED` gesetzt und in der Liste als veröffentlicht angezeigt
+
+#### Scenario: Beitrag archivieren
+- **WHEN** eine Redakteurin bei einem veröffentlichten Beitrag „Archivieren" wählt
+- **THEN** wird der Beitrag über `PUT /api/admin/pages/{id}/archive` auf `ARCHIVED` gesetzt und in der Liste als archiviert angezeigt
+
+#### Scenario: Statusgerechte Aktionen
+- **WHEN** die News- oder Blog-Liste angezeigt wird
+- **THEN** erscheint pro Eintrag die zum Status passende Aktion (Veröffentlichen bei nicht-veröffentlicht, Archivieren bei veröffentlicht) und das Status-Badge zeigt den korrekten Status
+
+### Requirement: News löschen mit Bestätigungsdialog
+Das Admin-CMS SHALL das Löschen einer News über einen gestylten In-App-Bestätigungsdialog
+(`ConfirmDialog`) absichern — nicht über den nativen Browser-`confirm`. Der Dialog SHALL
+Abbrechen und Bestätigen anbieten; nur bei Bestätigung SHALL die News gelöscht werden.
+
+#### Scenario: Löschen bestätigen
+- **WHEN** eine Redakteurin bei einer News „Löschen" wählt
+- **THEN** erscheint ein Bestätigungsdialog; bei Bestätigung wird die News gelöscht und verschwindet aus der Liste
+
+#### Scenario: Löschen abbrechen
+- **WHEN** die Redakteurin den Dialog abbricht (Abbrechen, ESC oder Klick auf den Hintergrund)
+- **THEN** wird nichts gelöscht und die Liste bleibt unverändert
+
+#### Scenario: Veröffentlichte News löschen
+- **WHEN** eine veröffentlichte (oder archivierte) News gelöscht wird
+- **THEN** gelingt das Löschen (kein „Only draft pages can be deleted"-Fehler) — der Status verhindert das Löschen nicht mehr
+
