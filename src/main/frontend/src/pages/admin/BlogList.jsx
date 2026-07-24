@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/api';
 
+const STATUS_LABELS = {
+  DRAFT: 'Entwurf',
+  PUBLISHED: 'Veröffentlicht',
+  ARCHIVED: 'Archiviert',
+  HIDDEN: 'Ausgeblendet'
+};
+const statusLabel = (s) => STATUS_LABELS[s] || s || '';
+const statusClass = (s) => (s || '').toLowerCase();
+
 export const BlogList = () => {
   const { authFetch } = useAuth();
   const navigate = useNavigate();
@@ -56,6 +65,17 @@ export const BlogList = () => {
     }
   };
 
+  const handleArchive = async (id) => {
+    try {
+      const res = await authFetch(`/api/admin/pages/${id}/archive`, { method: 'PUT' });
+      if (res.ok) {
+        fetchPosts();
+      }
+    } catch (err) {
+      console.error('Fehler beim Archivieren:', err);
+    }
+  };
+
   if (loading) return <div className="loading">Laden...</div>;
 
   return (
@@ -91,8 +111,8 @@ export const BlogList = () => {
                   <td className="slug">{post.slug}</td>
                   <td><span className="badge">{post.category}</span></td>
                   <td>
-                    <span className={`status-badge ${post.status}`}>
-                      {post.status === 'published' ? 'Veröffentlicht' : 'Entwurf'}
+                    <span className={`status-badge ${statusClass(post.status)}`}>
+                      {statusLabel(post.status)}
                     </span>
                   </td>
                   <td>{formatDate(post.createdAt)}</td>
@@ -100,9 +120,14 @@ export const BlogList = () => {
                     <button className="btn-sm" onClick={() => navigate(`/admin/cms/blog/${post.id}`)}>
                       <i className="bi bi-pencil"></i> Bearbeiten
                     </button>
-                    {post.status !== 'published' && (
+                    {post.status !== 'PUBLISHED' && (
                       <button className="btn-sm" onClick={() => handlePublish(post.id)}>
-                        <i className="bi bi-check-circle"></i> Veroeffentlichen
+                        <i className="bi bi-check-circle"></i> Veröffentlichen
+                      </button>
+                    )}
+                    {post.status === 'PUBLISHED' && (
+                      <button className="btn-sm" onClick={() => handleArchive(post.id)}>
+                        <i className="bi bi-archive"></i> Archivieren
                       </button>
                     )}
                     <button
