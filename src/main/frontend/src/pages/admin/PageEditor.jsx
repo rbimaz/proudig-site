@@ -28,7 +28,7 @@ export const PageEditor = ({ category }) => {
     coverImageId: '',
     tags: '',
     status: 'draft',
-    showInHero: false,
+    showInHero: category === 'NEWS',
     autoArchiveAfter: '',
     ...(category === 'SEMINAR' && {
       date: '',
@@ -111,6 +111,9 @@ export const PageEditor = ({ category }) => {
       : (Array.isArray(data.tags) ? data.tags : [])
   });
 
+  // Hinweis, dass die News im Hero angezeigt wird (nur bei aktivem Flag)
+  const heroNote = () => (category === 'NEWS' && data.showInHero) ? ' — wird im Hero angezeigt' : '';
+
   const handleSave = async () => {
     setSaving(true);
     setMessage('');
@@ -126,7 +129,7 @@ export const PageEditor = ({ category }) => {
 
       if (res.ok) {
         const result = await res.json();
-        setMessage('Entwurf gespeichert');
+        setMessage('Entwurf gespeichert' + heroNote());
         if (isNew) {
           navigate(`/admin/cms/${routeSegment}/${result.id}`);
         }
@@ -163,7 +166,7 @@ export const PageEditor = ({ category }) => {
           method: 'PUT'
         });
         if (pubRes.ok) {
-          setMessage('Veröffentlicht');
+          setMessage('Veröffentlicht' + heroNote());
           navigate(`/admin/cms/${routeSegment}/${saved.id}`);
         } else {
           setMessage('Fehler beim Veröffentlichen');
@@ -171,7 +174,7 @@ export const PageEditor = ({ category }) => {
       } else {
         const res = await authFetch(`/api/admin/pages/${id}/publish`, { method: 'PUT' });
         if (res.ok) {
-          setMessage('Veröffentlicht');
+          setMessage('Veröffentlicht' + heroNote());
           fetchData();
         } else {
           setMessage('Fehler beim Veröffentlichen');
@@ -262,6 +265,7 @@ export const PageEditor = ({ category }) => {
                   />
                   Im Hero anzeigen
                 </label>
+                <small className="form-hint">Erscheint in der News-Box im Hero der Startseite (bei neuen News standardmäßig aktiv).</small>
               </div>
             )}
 
