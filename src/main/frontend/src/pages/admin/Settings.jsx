@@ -35,6 +35,7 @@ export const Settings = () => {
   const [settings, setSettings] = useState({ defaultArchiveAfter: '', archiveRetention: '90d', lifecycleCron: '0 0 * * * *' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [running, setRunning] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -72,6 +73,26 @@ export const Settings = () => {
       setMessage('Fehler: ' + err.message);
     } finally {
       setSaving(false);
+      setTimeout(() => setMessage(''), 4000);
+    }
+  };
+
+  const runLifecycleNow = async () => {
+    setRunning(true);
+    setMessage('');
+    try {
+      const res = await authFetch('/api/admin/pages/run-lifecycle', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setMessage(`Lebenszyklus ausgeführt: ${data.transitions} Übergänge`);
+      } else {
+        const text = await res.text();
+        setMessage('Fehler: ' + (text || res.status));
+      }
+    } catch (err) {
+      setMessage('Fehler: ' + err.message);
+    } finally {
+      setRunning(false);
       setTimeout(() => setMessage(''), 4000);
     }
   };
@@ -118,7 +139,13 @@ export const Settings = () => {
           <button type="button" onClick={handleSave} disabled={saving} className="btn-primary">
             {saving ? 'Speichert...' : 'Speichern'}
           </button>
+          <button type="button" onClick={runLifecycleNow} disabled={running} className="btn-secondary">
+            <i className="bi bi-arrow-repeat"></i> {running ? 'Läuft...' : 'Jetzt ausführen'}
+          </button>
         </div>
+        <small className="form-hint">
+          „Jetzt ausführen" stößt den Lebenszyklus (Archivieren/Ausblenden) sofort an — sonst läuft er gemäß Cron-Zeitplan.
+        </small>
       </form>
     </div>
   );
