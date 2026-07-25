@@ -26,6 +26,6 @@ Blog und statischen Seiten ermöglichen. Ausgewählte Medien SHALL als Markdown-
 - **WHEN** ein Redakteur im Seiten-Editor „Bild aus Mediathek einfügen" nutzt und ein Bild wählt
 - **THEN** wird eine Bild-Referenz (`![…](/api/media/{id})`) in den Inhalt eingefügt
 
-#### Scenario: Bild in statische Seite einfügen
-- **WHEN** ein Redakteur im Editor einer statischen Seite ein Mediathek-Bild einfügt
+#### Scenario: Bild in CMS-Seite einfügen
+- **WHEN** ein Redakteur im CMS-Seiten-Editor (statische Seite) ein Mediathek-Bild einfügt
 - **THEN** wird eine Markdown-Bild-Referenz (`![…](/api/media/{id})`) in den Inhalt eingefügt
