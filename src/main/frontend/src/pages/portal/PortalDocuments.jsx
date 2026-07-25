@@ -14,7 +14,8 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
  * 4. Einheitliches Action-Button-System
  */
 export const PortalDocuments = () => {
-  const { authFetch } = useAuth();
+  const { authFetch, user } = useAuth();
+  const isStaff = !!user?.roles?.some(r => r === 'ADMIN' || r === 'CONSULTANT');
   const { currentFolderId, setCurrentFolderId, folderPath, setFolderPath, triggerRefresh } = useFolderTree();
   const [folders, setFolders] = useState([]);
   const [documents, setDocuments] = useState([]);
@@ -434,7 +435,12 @@ export const PortalDocuments = () => {
                       <span className="pd-name-text">{row.data.fileName}</span>
                     </span>
                     <span className="pd-col-size pd-cell-meta">{formatSize(row.data.fileSize)}</span>
-                    <span className="pd-col-date pd-cell-meta">{formatDate(row.data.createdAt)}</span>
+                    <span className="pd-col-date pd-cell-meta">
+                      {formatDate(row.data.createdAt)}
+                      {isStaff && row.data.uploadedByName && (
+                        <span className="pd-uploader"> · {row.data.uploadedByName}</span>
+                      )}
+                    </span>
                     <span className="pd-col-action">
                       <ActionButtonGroup>
                         <ActionButton

@@ -23,7 +23,7 @@ public class DocumentShareService {
 
     public DocumentShareDto shareDocument(String documentId, String sharedWithEmail, DocumentPermission permission, Instant expiresAt, User sharedBy) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
-        if (!document.getUploadedBy().getId().equals(sharedBy.getId())) {
+        if (!document.getUploadedBy().getId().equals(sharedBy.getId()) && !isAdmin(sharedBy)) {
             throw new IllegalAccessError("Only document owner can share");
         }
         User sharedWithUser = userRepository.findByEmail(sharedWithEmail).orElseThrow(() -> new NoSuchElementException("User not found: " + sharedWithEmail));
@@ -39,7 +39,7 @@ public class DocumentShareService {
 
     public List<DocumentShareDto> getDocumentShares(String documentId, User user) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
-        if (!document.getUploadedBy().getId().equals(user.getId())) {
+        if (!document.getUploadedBy().getId().equals(user.getId()) && !isAdmin(user)) {
             throw new IllegalAccessError("Only document owner can view shares");
         }
         return documentShareRepository.findByDocument(document).stream().map(this::mapToDto).collect(Collectors.toList());
@@ -47,7 +47,7 @@ public class DocumentShareService {
 
     public void removeShare(String shareId, User user) {
         DocumentShare share = documentShareRepository.findById(shareId).orElseThrow(() -> new NoSuchElementException("Share not found"));
-        if (!share.getDocument().getUploadedBy().getId().equals(user.getId()) && !share.getSharedWith().getId().equals(user.getId())) {
+        if (!share.getDocument().getUploadedBy().getId().equals(user.getId()) && !share.getSharedWith().getId().equals(user.getId()) && !isAdmin(user)) {
             throw new IllegalAccessError("Access denied");
         }
         activityLogService.log(user, "UNSHARE", "DOCUMENT", share.getDocument().getId(), "Unshared with " + share.getSharedWith().getEmail());
@@ -56,10 +56,18 @@ public class DocumentShareService {
 
     public boolean canAccessDocument(String documentId, User user) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
-        if (document.getUploadedBy().getId().equals(user.getId())) {
+        if (document.getUploadedBy().getId().equals(user.getId()) || isStaff(user)) {
             return true;
         }
         return documentShareRepository.findByDocumentAndSharedWith(document, user).filter(share -> share.getExpiresAt() == null || share.getExpiresAt().isAfter(Instant.now())).isPresent();
+    }
+
+    private boolean isStaff(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()) || "CONSULTANT".equals(role.getName()));
+    }
+
+    private boolean isAdmin(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
     private DocumentShareDto mapToDto(DocumentShare share) {
