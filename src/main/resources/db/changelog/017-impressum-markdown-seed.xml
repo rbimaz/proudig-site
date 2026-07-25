@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!--
+      Impressum als Markdown (kontextlos, laeuft in jeder Umgebung).
+      Upsert: bestehende (persistente) Zeile auf Markdown aktualisieren; auf frischer DB anlegen.
+    -->
+
+    <changeSet id="017-impressum-markdown-update" author="ProuDig">
+        <update tableName="pages">
+            <column name="category" value="STATIC"/>
+            <column name="content" value="**Proudig GmbH**  &#10;Karl-Winkler-Str. 5  &#10;D-04158 Leipzig&#10;&#10;**Kontakt**&#10;&#10;E-Mail: [info@proudig.de](mailto:info@proudig.de)&#10;&#10;### Vertretungsberechtigter Geschäftsführer&#10;Astrid Siebenhuener&#10;&#10;### Registereintrag&#10;Registergericht: Amtsgericht Leipzig  &#10;Registernummer: HRB 41933&#10;&#10;### Umsatzsteuer-Identifikationsnummer&#10;Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DEU1308.HRB41933&#10;&#10;### EU-Streitschlichtung&#10;Die EU-Kommission hat eine Internetplattform zur Online-Beilegung von Streitigkeiten (OS-Plattform) zwischen Unternehmern und Verbrauchern eingerichtet. Die OS-Plattform ist erreichbar unter [https://ec.europa.eu/consumers/odr/](https://ec.europa.eu/consumers/odr/).&#10;&#10;### Verbraucherstreitbeilegung/Universalschlichtungsstelle&#10;Wir sind nicht bereit und nicht verpflichtet, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."/>
+            <column name="updated_at" valueDate="2026-07-25T00:00:00"/>
+            <where>slug = 'impressum'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="017-impressum-markdown-insert" author="ProuDig">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT count(*) FROM pages WHERE slug = 'impressum'</sqlCheck>
+        </preConditions>
+        <insert tableName="pages">
+            <column name="id" value="d1000000-0000-4000-8000-000000000001"/>
+            <column name="slug" value="impressum"/>
+            <column name="title" value="Impressum"/>
+            <column name="category" value="STATIC"/>
+            <column name="content" value="**Proudig GmbH**  &#10;Karl-Winkler-Str. 5  &#10;D-04158 Leipzig&#10;&#10;**Kontakt**&#10;&#10;E-Mail: [info@proudig.de](mailto:info@proudig.de)&#10;&#10;### Vertretungsberechtigter Geschäftsführer&#10;Astrid Siebenhuener&#10;&#10;### Registereintrag&#10;Registergericht: Amtsgericht Leipzig  &#10;Registernummer: HRB 41933&#10;&#10;### Umsatzsteuer-Identifikationsnummer&#10;Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: DEU1308.HRB41933&#10;&#10;### EU-Streitschlichtung&#10;Die EU-Kommission hat eine Internetplattform zur Online-Beilegung von Streitigkeiten (OS-Plattform) zwischen Unternehmern und Verbrauchern eingerichtet. Die OS-Plattform ist erreichbar unter [https://ec.europa.eu/consumers/odr/](https://ec.europa.eu/consumers/odr/).&#10;&#10;### Verbraucherstreitbeilegung/Universalschlichtungsstelle&#10;Wir sind nicht bereit und nicht verpflichtet, an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."/>
+            <column name="status" value="PUBLISHED"/>
+            <column name="author_id" value="f47ac10b-58cc-4372-a567-0e02b2c3d479"/>
+            <column name="published_at" valueDate="2026-07-25T00:00:00"/>
+            <column name="created_at" valueDate="2026-07-25T00:00:00"/>
+            <column name="updated_at" valueDate="2026-07-25T00:00:00"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

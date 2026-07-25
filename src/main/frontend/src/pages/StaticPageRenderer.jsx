@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Footer } from '../components/Footer';
 
 export const StaticPageRenderer = ({ slug: fixedSlug }) => {
@@ -73,8 +75,17 @@ export const StaticPageRenderer = ({ slug: fixedSlug }) => {
   return (
     <>
       <div className="static-page-content">
-        <div className={`static-page-inner ${visible ? 'visible' : ''}`}
-             dangerouslySetInnerHTML={{ __html: page.content }} />
+        <section className="section">
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">{page.title}</h2>
+              {page.excerpt && <p className="section-subtitle">{page.excerpt}</p>}
+            </div>
+            <div className={`content-area static-page-inner ${visible ? 'visible' : ''}`}>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{page.content}</ReactMarkdown>
+            </div>
+          </div>
+        </section>
       </div>
       <Footer />
     </>

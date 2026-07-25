@@ -10,7 +10,6 @@ import { ComingSoon } from './components/ComingSoon';
 
 // Public pages
 import { HomePage } from './pages/HomePage';
-import { ImpressumPage } from './pages/ImpressumPage';
 import { StaticPageRenderer } from './pages/StaticPageRenderer';
 import { BlogPage } from './pages/BlogPage';
 import { BlogPostPage } from './pages/BlogPostPage';
