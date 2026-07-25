@@ -105,7 +105,7 @@ export const Settings = () => {
         <h1><i className="bi bi-gear-fill"></i> Einstellungen</h1>
       </div>
 
-      <form className="editor-form" style={{ maxWidth: '640px' }}>
+      <form className="editor-form">
         <div className="form-section">
           <h3>News-Lebenszyklus</h3>
 
