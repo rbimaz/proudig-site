@@ -20,5 +20,6 @@
     <include file="db/changelog/014-page-auto-archive.xml"/>
     <include file="db/changelog/015-settings.xml"/>
     <include file="db/changelog/016-activity-log-nullable-user.xml"/>
+    <include file="db/changelog/017-impressum-markdown-seed.xml"/>
 
 </databaseChangeLog>

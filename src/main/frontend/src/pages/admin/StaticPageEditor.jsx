@@ -1,88 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
 import { MediaPicker } from './MediaPicker';
-
-const CSS_REFERENCE = [
-  {
-    group: 'Sektionen',
-    classes: [
-      { cls: 'section', desc: 'Hauptcontainer fuer eine Sektion' },
-      { cls: 'section.alt-bg', desc: 'Sektion mit alternativer Hintergrundfarbe' },
-      { cls: 'section-header', desc: 'Container fuer Sektions-Kopfzeile (Tag + Titel + Untertitel)' },
-      { cls: 'section-tag', desc: 'Orangene Kategorie-Bezeichnung ueber dem Titel' },
-      { cls: 'section-title', desc: 'Sektions-Hauptueberschrift (h2)' },
-      { cls: 'section-subtitle', desc: 'Beschreibungstext unter dem Titel' },
-    ]
-  },
-  {
-    group: 'Layout',
-    classes: [
-      { cls: 'container', desc: 'Zentrierter Container mit max-width' },
-      { cls: 'grid', desc: 'CSS Grid Layout' },
-      { cls: 'grid-2', desc: 'Zweispalten-Grid' },
-      { cls: 'grid-3', desc: 'Dreispalten-Grid' },
-      { cls: 'card', desc: 'Karte mit Schatten und Rundungen' },
-    ]
-  },
-  {
-    group: 'Typographie',
-    classes: [
-      { cls: 'text-accent', desc: 'Orange Akzentfarbe' },
-      { cls: 'text-muted', desc: 'Abgeschwaechte Textfarbe' },
-      { cls: 'text-center', desc: 'Zentrierter Text' },
-      { cls: 'text-left', desc: 'Linksbuendiger Text' },
-    ]
-  },
-  {
-    group: 'Buttons',
-    classes: [
-      { cls: 'btn-primary', desc: 'Primaerer Button (orange)' },
-      { cls: 'btn-secondary', desc: 'Sekundaerer Button (outline)' },
-    ]
-  },
-  {
-    group: 'Spezial',
-    classes: [
-      { cls: 'hero', desc: 'Hero-Bereich der Startseite' },
-      { cls: 'process-label', desc: 'Orange Schrittbeschriftung' },
-      { cls: 'stat-number', desc: 'Grosse Statistik-Zahl' },
-      { cls: 'stat-label', desc: 'Beschriftung unter Statistik' },
-    ]
-  }
-];
-
-const HTML_TEMPLATE = `<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">SEITENNAME</span>
-      <h2 class="section-title">Seitentitel</h2>
-      <p class="section-subtitle">Kurze Beschreibung dieser Seite.</p>
-    </div>
-
-    <div class="content-area">
-      <p>Hier kommt der Seiteninhalt...</p>
-    </div>
-  </div>
-</section>`;
 
 export const StaticPageEditor = () => {
   const { authFetch } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const isNew = !id;
-  const previewRef = useRef(null);
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [content, setContent] = useState(HTML_TEMPLATE);
+  const [content, setContent] = useState('');
   const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const [showReference, setShowReference] = useState(false);
-  const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview' | 'split'
+  const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
     if (!isNew) {
@@ -120,12 +57,7 @@ export const StaticPageEditor = () => {
     try {
       const method = isNew ? 'POST' : 'PUT';
       const url = isNew ? '/api/admin/pages' : `/api/admin/pages/${id}`;
-      const body = {
-        title,
-        slug,
-        category: 'STATIC',
-        content,
-      };
+      const body = { title, slug, category: 'STATIC', content };
 
       const res = await authFetch(url, {
         method,
@@ -173,7 +105,6 @@ export const StaticPageEditor = () => {
           setMessage('Fehler beim Veroeffentlichen');
         }
       } else {
-        // Save first, then publish
         await authFetch(`/api/admin/pages/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -195,10 +126,6 @@ export const StaticPageEditor = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const insertSnippet = (html) => {
-    setContent(prev => prev + '\n' + html);
   };
 
   if (loading) return <div className="loading">Laden...</div>;
@@ -238,98 +165,44 @@ export const StaticPageEditor = () => {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="static-editor-toolbar">
-        <div className="tab-group">
+      {/* Content (Markdown) */}
+      <div className="form-group">
+        <label>Inhalt (Markdown)</label>
+        <div className="markdown-tabs">
           <button
-            className={`tab ${activeTab === 'editor' ? 'active' : ''}`}
-            onClick={() => setActiveTab('editor')}
+            type="button"
+            className={`tab ${!previewMode ? 'active' : ''}`}
+            onClick={() => setPreviewMode(false)}
           >
-            HTML-Editor
+            Bearbeiten
           </button>
           <button
-            className={`tab ${activeTab === 'split' ? 'active' : ''}`}
-            onClick={() => setActiveTab('split')}
-          >
-            Split-Ansicht
-          </button>
-          <button
-            className={`tab ${activeTab === 'preview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('preview')}
+            type="button"
+            className={`tab ${previewMode ? 'active' : ''}`}
+            onClick={() => setPreviewMode(true)}
           >
             Vorschau
           </button>
+          <MediaPicker
+            onInsert={(mediaId, item) =>
+              setContent(prev => `${prev || ''}\n![${item.name || ''}](/api/media/${mediaId})\n`)
+            }
+            buttonLabel="+ Bild aus Mediathek"
+          />
         </div>
-        <button
-          className={`btn-sm ${showReference ? 'active' : ''}`}
-          onClick={() => setShowReference(!showReference)}
-        >
-          CSS-Klassen Referenz
-        </button>
-      </div>
-
-      <div className="static-editor-body">
-        {/* CSS Reference Sidebar */}
-        {showReference && (
-          <aside className="css-reference-panel">
-            <h3>CSS-Klassen Referenz</h3>
-            {CSS_REFERENCE.map(group => (
-              <div key={group.group} className="ref-group">
-                <h4>{group.group}</h4>
-                {group.classes.map(item => (
-                  <div key={item.cls} className="ref-item" onClick={() => navigator.clipboard?.writeText(item.cls)}>
-                    <code>.{item.cls}</code>
-                    <span>{item.desc}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-
-            <div className="ref-group">
-              <h4>Vorlagen</h4>
-              <button className="btn-sm" onClick={() => insertSnippet(`<section class="section">\n  <div class="container">\n    <div class="section-header">\n      <span class="section-tag">TAG</span>\n      <h2 class="section-title">Titel</h2>\n      <p class="section-subtitle">Beschreibung</p>\n    </div>\n    <p>Inhalt...</p>\n  </div>\n</section>`)}>
-                + Sektion
-              </button>
-              <button className="btn-sm" onClick={() => insertSnippet(`<div class="grid grid-2">\n  <div class="card">\n    <h3>Karte 1</h3>\n    <p>Inhalt</p>\n  </div>\n  <div class="card">\n    <h3>Karte 2</h3>\n    <p>Inhalt</p>\n  </div>\n</div>`)}>
-                + 2-Spalten Grid
-              </button>
-              <button className="btn-sm" onClick={() => insertSnippet(`<div class="grid grid-3">\n  <div class="card">\n    <h3>Karte 1</h3>\n    <p>Inhalt</p>\n  </div>\n  <div class="card">\n    <h3>Karte 2</h3>\n    <p>Inhalt</p>\n  </div>\n  <div class="card">\n    <h3>Karte 3</h3>\n    <p>Inhalt</p>\n  </div>\n</div>`)}>
-                + 3-Spalten Grid
-              </button>
-              <MediaPicker
-                onInsert={(mediaId, item) =>
-                  insertSnippet(`<img src="/api/media/${mediaId}" alt="${item.name || ''}" />`)
-                }
-                buttonLabel="+ Bild aus Mediathek"
-              />
-            </div>
-          </aside>
+        {!previewMode ? (
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Markdown-Inhalt"
+            rows={18}
+            className="markdown-editor"
+          />
+        ) : (
+          <div className="preview-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          </div>
         )}
-
-        {/* Editor / Preview Area */}
-        <div className={`static-editor-main ${activeTab === 'split' ? 'split-mode' : ''}`}>
-          {(activeTab === 'editor' || activeTab === 'split') && (
-            <div className="html-editor-wrap">
-              <textarea
-                className="html-editor"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="HTML-Inhalt eingeben..."
-                spellCheck={false}
-              />
-            </div>
-          )}
-          {(activeTab === 'preview' || activeTab === 'split') && (
-            <div className="html-preview-wrap">
-              <div className="html-preview-label">Vorschau</div>
-              <div
-                ref={previewRef}
-                className="html-preview-content"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            </div>
-          )}
-        </div>
       </div>
 
       {message && (
