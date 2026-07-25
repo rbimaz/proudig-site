@@ -44,8 +44,10 @@ class FolderServiceTest {
 
     private User owner;
     private User admin;
+    private User consultant;
     private User otherUser;
     private Role adminRole;
+    private Role consultantRole;
     private Folder testFolder;
 
     @BeforeEach
@@ -53,6 +55,10 @@ class FolderServiceTest {
         adminRole = new Role();
         adminRole.setId(1L);
         adminRole.setName("ADMIN");
+
+        consultantRole = new Role();
+        consultantRole.setId(2L);
+        consultantRole.setName("CONSULTANT");
 
         owner = new User();
         owner.setId("owner-id");
@@ -63,6 +69,11 @@ class FolderServiceTest {
         admin.setId("admin-id");
         admin.setEmail("admin@test.de");
         admin.setRoles(new HashSet<>(Set.of(adminRole)));
+
+        consultant = new User();
+        consultant.setId("consultant-id");
+        consultant.setEmail("consultant@test.de");
+        consultant.setRoles(new HashSet<>(Set.of(consultantRole)));
 
         otherUser = new User();
         otherUser.setId("other-id");
@@ -267,6 +278,76 @@ class FolderServiceTest {
             // When/Then
             assertThatThrownBy(() -> folderService.deleteFolder("unknown", owner))
                     .isInstanceOf(NoSuchElementException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Ordner auflisten (Team-Sicht)")
+    class ListFolderTests {
+
+        @Test
+        @DisplayName("Given Admin, When Root-Ordner, Then alle Ordner (findByParentFolderIsNull)")
+        void adminSeesAllRootFolders() {
+            Folder foreign = Folder.builder().id("f2").name("Fremd").owner(otherUser).build();
+            when(folderRepository.findByParentFolderIsNull()).thenReturn(List.of(testFolder, foreign));
+
+            List<FolderDto> result = folderService.getRootFolders(admin);
+
+            assertThat(result).hasSize(2);
+            verify(folderRepository, never()).findByOwnerAndParentFolderIsNull(any());
+        }
+
+        @Test
+        @DisplayName("Given Consultant, When Root-Ordner, Then alle Ordner")
+        void consultantSeesAllRootFolders() {
+            when(folderRepository.findByParentFolderIsNull()).thenReturn(List.of(testFolder));
+
+            List<FolderDto> result = folderService.getRootFolders(consultant);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Given Client, When Root-Ordner, Then nur eigene")
+        void clientSeesOnlyOwnRootFolders() {
+            when(folderRepository.findByOwnerAndParentFolderIsNull(otherUser)).thenReturn(List.of());
+
+            List<FolderDto> result = folderService.getRootFolders(otherUser);
+
+            assertThat(result).isEmpty();
+            verify(folderRepository, never()).findByParentFolderIsNull();
+        }
+
+        @Test
+        @DisplayName("Given Personal, When fremde Unterordner, Then erlaubt (alle Kinder)")
+        void staffCanListForeignSubfolders() {
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of());
+
+            List<FolderDto> result = folderService.getSubFolders("folder-id", admin);
+
+            assertThat(result).isEmpty();
+            verify(folderRepository, never()).findByOwnerAndParentFolder(any(), any());
+        }
+
+        @Test
+        @DisplayName("Given Client, When fremde Unterordner, Then Zugriff verweigert")
+        void clientCannotListForeignSubfolders() {
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+
+            assertThatThrownBy(() -> folderService.getSubFolders("folder-id", otherUser))
+                    .isInstanceOf(IllegalAccessError.class);
+        }
+
+        @Test
+        @DisplayName("Given Personal, When fremder Einzelordner, Then via findById")
+        void staffCanGetForeignFolderById() {
+            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+
+            FolderDto result = folderService.getFolderById("folder-id", consultant);
+
+            assertThat(result.getId()).isEqualTo("folder-id");
+            verify(folderRepository, never()).findByIdAndOwner(any(), any());
         }
     }
 

@@ -20,19 +20,23 @@ public class FolderService {
     private final DocumentRepository documentRepository;
 
     public List<FolderDto> getRootFolders(User owner) {
-        return folderRepository.findByOwnerAndParentFolderIsNull(owner).stream().map(this::mapToDto).collect(Collectors.toList());
+        List<Folder> folders = isStaff(owner) ? folderRepository.findByParentFolderIsNull() : folderRepository.findByOwnerAndParentFolderIsNull(owner);
+        return folders.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<FolderDto> getSubFolders(String parentFolderId, User owner) {
         Folder parentFolder = folderRepository.findById(parentFolderId).orElseThrow(() -> new NoSuchElementException("Folder not found: " + parentFolderId));
-        if (!parentFolder.getOwner().getId().equals(owner.getId())) {
+        if (!parentFolder.getOwner().getId().equals(owner.getId()) && !isStaff(owner)) {
             throw new IllegalAccessError("Access denied");
         }
-        return folderRepository.findByOwnerAndParentFolder(owner, parentFolder).stream().map(this::mapToDto).collect(Collectors.toList());
+        List<Folder> children = isStaff(owner) ? folderRepository.findByParentFolder(parentFolder) : folderRepository.findByOwnerAndParentFolder(owner, parentFolder);
+        return children.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public FolderDto getFolderById(String folderId, User owner) {
-        Folder folder = folderRepository.findByIdAndOwner(folderId, owner).orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId));
+        Folder folder = isStaff(owner)
+            ? folderRepository.findById(folderId).orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId))
+            : folderRepository.findByIdAndOwner(folderId, owner).orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId));
         return mapToDto(folder);
     }
 
@@ -40,7 +44,7 @@ public class FolderService {
         Folder folder = Folder.builder().name(name).owner(owner).build();
         if (parentFolderId != null) {
             Folder parentFolder = folderRepository.findById(parentFolderId).orElseThrow(() -> new NoSuchElementException("Parent folder not found"));
-            if (!parentFolder.getOwner().getId().equals(owner.getId())) {
+            if (!canAccess(parentFolder, owner)) {
                 throw new IllegalAccessError("Access denied");
             }
             folder.setParentFolder(parentFolder);
@@ -117,6 +121,11 @@ public class FolderService {
         }
         // Admins haben auch Zugriff
         return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
+    }
+
+    // Personal (ADMIN oder CONSULTANT) darf portalweit lesen/navigieren
+    private boolean isStaff(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()) || "CONSULTANT".equals(role.getName()));
     }
 
     private FolderDto mapToDto(Folder folder) {

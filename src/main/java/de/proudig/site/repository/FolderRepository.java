@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface FolderRepository extends JpaRepository<Folder, String> {
     List<Folder> findByOwnerAndParentFolderIsNull(User owner);
+    List<Folder> findByParentFolderIsNull();
     List<Folder> findByOwnerAndParentFolder(User owner, Folder parentFolder);
     List<Folder> findByParentFolder(Folder parentFolder);
     Optional<Folder> findByIdAndOwner(String id, User owner);

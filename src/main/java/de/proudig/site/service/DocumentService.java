@@ -26,7 +26,7 @@ public class DocumentService {
         Document document = Document.builder().fileName(file.getOriginalFilename()).contentType(file.getContentType()).storagePath(storagePath).fileSize(file.getSize()).uploadedBy(user).description(description).build();
         if (folderId != null) {
             Folder folder = folderRepository.findById(folderId).orElseThrow(() -> new NoSuchElementException("Folder not found"));
-            if (!folder.getOwner().getId().equals(user.getId())) {
+            if (!folder.getOwner().getId().equals(user.getId()) && !isAdmin(user)) {
                 throw new IllegalAccessError("Access denied");
             }
             document.setFolder(folder);
@@ -37,19 +37,22 @@ public class DocumentService {
     }
 
     public List<DocumentDto> getDocumentsByUser(User user) {
-        return documentRepository.findByUploadedBy(user).stream().map(this::mapToDto).collect(Collectors.toList());
+        List<Document> documents = isStaff(user) ? documentRepository.findAll() : documentRepository.findByUploadedBy(user);
+        return documents.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<DocumentDto> getDocumentsInFolder(String folderId, User user) {
         Folder folder = folderRepository.findById(folderId).orElseThrow(() -> new NoSuchElementException("Folder not found"));
-        if (!folder.getOwner().getId().equals(user.getId())) {
+        if (!folder.getOwner().getId().equals(user.getId()) && !isStaff(user)) {
             throw new IllegalAccessError("Access denied");
         }
         return documentRepository.findByFolder(folder).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public DocumentDto getDocument(String documentId, User user) {
-        Document document = documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        Document document = isStaff(user)
+            ? documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"))
+            : documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
         return mapToDto(document);
     }
 
@@ -59,7 +62,10 @@ public class DocumentService {
     }
 
     public DocumentDto updateDocument(String documentId, String description, User user) {
-        Document document = documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        if (!document.getUploadedBy().getId().equals(user.getId()) && !isAdmin(user)) {
+            throw new NoSuchElementException("Document not found");
+        }
         document.setDescription(description);
         document.setUpdatedAt(Instant.now());
         document = documentRepository.save(document);
@@ -67,7 +73,10 @@ public class DocumentService {
     }
 
     public void deleteDocument(String documentId, User user) {
-        Document document = documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        if (!document.getUploadedBy().getId().equals(user.getId()) && !isAdmin(user)) {
+            throw new NoSuchElementException("Document not found");
+        }
         fileStorageService.delete(document.getStoragePath(), "documents");
         activityLogService.log(user, "DELETE", "DOCUMENT", document.getId(), document.getFileName());
         documentRepository.delete(document);
@@ -76,6 +85,14 @@ public class DocumentService {
     public String getDocumentFilePath(String documentId, User user) {
         Document document = documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
         return document.getStoragePath();
+    }
+
+    private boolean isStaff(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()) || "CONSULTANT".equals(role.getName()));
+    }
+
+    private boolean isAdmin(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
     private DocumentDto mapToDto(Document document) {

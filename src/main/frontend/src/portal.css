@@ -1826,6 +1826,10 @@
   color: var(--ink-2);
 }
 
+.pd-uploader {
+  color: var(--ink-3, #94a3b8);
+}
+
 .pd-col-size,
 .pd-col-date {
   /* Default visible */
