@@ -3,19 +3,15 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FolderTreeProvider } from '../../contexts/FolderTreeContext';
 import { FolderTree } from '../../components/FolderTree';
+import { UserMenu } from '../../components/UserMenu';
 
 const PortalLayoutInner = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isDocumentsPage = location.pathname === '/admin/portal/documents';
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/admin/login');
-  };
 
   const navItems = [
     { label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' },
@@ -69,16 +65,7 @@ const PortalLayoutInner = () => {
             </button>
           </div>
           <div className="topbar-right">
-            <div className="user-info">
-              <i className="bi bi-person-circle user-avatar"></i>
-              <div className="user-details">
-                <span className="user-name">{user?.firstName} {user?.lastName}</span>
-                <span className="user-email">{user?.email}</span>
-              </div>
-            </div>
-            <button className="btn-logout" onClick={handleLogout}>
-              <i className="bi bi-box-arrow-right"></i> Abmelden
-            </button>
+            <UserMenu />
           </div>
         </header>
 
