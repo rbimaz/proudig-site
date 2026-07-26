@@ -104,8 +104,8 @@ describe('AdminHome', () => {
     });
   });
 
-  describe('Szenario 4: Consultant-Benutzer sieht beide Karten', () => {
-    it('Given ein Benutzer mit Rolle CONSULTANT ist eingeloggt, When die Seite geladen wird, Then werden beide Karten angezeigt', () => {
+  describe('Szenario 4: Consultant-Benutzer sieht CMS, aber nicht das Portal', () => {
+    it('Given ein Benutzer mit Rolle CONSULTANT ist eingeloggt, When die Seite geladen wird, Then wird die CMS-Karte gezeigt, aber nicht das Dokumenten-Portal', () => {
       const consultantUser = {
         firstName: 'Maria',
         lastName: 'Consultant',
@@ -116,12 +116,12 @@ describe('AdminHome', () => {
       renderAdminHome(consultantUser, () => true);
 
       expect(screen.getByText('Content-Management')).toBeInTheDocument();
-      expect(screen.getByText('Dokumenten-Portal')).toBeInTheDocument();
+      expect(screen.queryByText('Dokumenten-Portal')).not.toBeInTheDocument();
     });
   });
 
-  describe('Szenario 5: Client-Benutzer sieht nur Portal-Karte', () => {
-    it('Given ein Benutzer mit Rolle CLIENT ist eingeloggt, When die Seite geladen wird, Then wird nur die Portal-Karte angezeigt', () => {
+  describe('Szenario 5: Client-Benutzer sieht keine Karten', () => {
+    it('Given ein Benutzer mit Rolle CLIENT ist eingeloggt, When die Seite geladen wird, Then wird weder CMS noch das Dokumenten-Portal angezeigt', () => {
       const clientUser = {
         firstName: 'Hans',
         lastName: 'Client',
@@ -132,7 +132,7 @@ describe('AdminHome', () => {
       renderAdminHome(clientUser, () => false);
 
       expect(screen.queryByText('Content-Management')).not.toBeInTheDocument();
-      expect(screen.getByText('Dokumenten-Portal')).toBeInTheDocument();
+      expect(screen.queryByText('Dokumenten-Portal')).not.toBeInTheDocument();
     });
   });
 
@@ -155,15 +155,15 @@ describe('AdminHome', () => {
   });
 
   describe('Szenario 7: Klick auf Portal-Karte', () => {
-    it('Given ein Benutzer ist eingeloggt, When er auf die Portal-Karte klickt, Then wird zu /admin/portal navigiert', () => {
-      const clientUser = {
-        firstName: 'Hans',
-        lastName: 'Client',
-        email: 'client@test.de',
-        roles: ['CLIENT']
+    it('Given ein ADMIN ist eingeloggt, When er auf die Portal-Karte klickt, Then wird zu /admin/portal navigiert', () => {
+      const adminUser = {
+        firstName: 'Max',
+        lastName: 'Admin',
+        email: 'admin@test.de',
+        roles: ['ADMIN']
       };
 
-      renderAdminHome(clientUser, () => false);
+      renderAdminHome(adminUser, () => true);
 
       const portalCard = screen.getByText('Dokumenten-Portal').closest('.admin-home-card');
       fireEvent.click(portalCard);
