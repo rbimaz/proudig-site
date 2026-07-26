@@ -53,7 +53,7 @@ export const UserMenu = () => {
             </div>
           </div>
           <div className="user-menu-items">
-            <button role="menuitem" className="user-menu-item" onClick={() => go('/admin/portal/change-password')}>
+            <button role="menuitem" className="user-menu-item" onClick={() => go('/admin/portal/profil')}>
               <i className="bi bi-person"></i> Profil
             </button>
             {hasRole('ADMIN') && (

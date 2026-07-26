@@ -8,6 +8,7 @@ import de.proudig.site.dto.AuthResponse;
 import de.proudig.site.repository.UserRepository;
 import de.proudig.site.security.JwtTokenProvider;
 import de.proudig.site.service.RefreshTokenService;
+import de.proudig.site.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,27 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        return ResponseEntity.ok(userService.getByEmail(authentication.getName()));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUser(@RequestBody ProfileUpdateRequest request, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        try {
+            return ResponseEntity.ok(userService.updateOwnProfile(authentication.getName(), request.getFirstName(), request.getLastName(), request.getCompany()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest authRequest) {
@@ -104,6 +126,40 @@ public class AuthController {
         user.setForcePasswordChange(false);
         userRepository.save(user);
         return ResponseEntity.ok(new SuccessResponse("Password changed successfully"));
+    }
+
+
+    public static class ProfileUpdateRequest {
+        private String firstName;
+        private String lastName;
+        private String company;
+
+        public ProfileUpdateRequest() {
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
+
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+
+        public String getCompany() {
+            return company;
+        }
+
+        public void setCompany(String company) {
+            this.company = company;
+        }
     }
 
 
@@ -185,11 +241,12 @@ public class AuthController {
         }
     }
 
-    public AuthController(final AuthenticationManager authenticationManager, final JwtTokenProvider jwtTokenProvider, final RefreshTokenService refreshTokenService, final UserRepository userRepository, final PasswordEncoder passwordEncoder) {
+    public AuthController(final AuthenticationManager authenticationManager, final JwtTokenProvider jwtTokenProvider, final RefreshTokenService refreshTokenService, final UserRepository userRepository, final PasswordEncoder passwordEncoder, final UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenService = refreshTokenService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 }
