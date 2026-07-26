@@ -24,7 +24,7 @@ export const PortalUserForm = () => {
     roles: [],             // Bearbeiten: Mehrfachauswahl
     password: '',
     passwordConfirm: '',
-    forcePasswordChange: false,
+    forcePasswordChange: true,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
