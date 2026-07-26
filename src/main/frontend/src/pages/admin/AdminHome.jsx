@@ -83,14 +83,16 @@ export const AdminHome = () => {
             </div>
           )}
 
-          <div className="admin-home-card" onClick={handlePortalClick} role="button" tabIndex={0}>
-            <div className="admin-home-card-icon">
-              <i className="bi bi-folder-fill"></i>
+          {hasRole('ADMIN') && (
+            <div className="admin-home-card" onClick={handlePortalClick} role="button" tabIndex={0}>
+              <div className="admin-home-card-icon">
+                <i className="bi bi-folder-fill"></i>
+              </div>
+              <h2>Dokumenten-Portal</h2>
+              <p>Dokumente hochladen, teilen, verwalten</p>
+              <span className="admin-home-card-hint">Nur Administratoren</span>
             </div>
-            <h2>Dokumenten-Portal</h2>
-            <p>Dokumente hochladen, teilen, verwalten</p>
-            <span className="admin-home-card-hint">Für alle Benutzer</span>
-          </div>
+          )}
 
           {isAdmin() && (
             <div className="admin-home-card" onClick={() => navigate('/admin/cms/nachrichten')} role="button" tabIndex={0}>

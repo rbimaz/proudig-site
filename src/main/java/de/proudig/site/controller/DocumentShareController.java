@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/shares")
-@PreAuthorize("isAuthenticated()")
+@PreAuthorize("hasRole('ADMIN')")
 public class DocumentShareController {
     private final DocumentShareService documentShareService;
     private final DocumentService documentService;
