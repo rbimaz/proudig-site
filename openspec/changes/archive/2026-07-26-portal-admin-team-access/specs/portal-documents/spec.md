@@ -14,7 +14,7 @@ andernfalls wird mit `IllegalAccessError` abgewiesen. Endpoint: `POST /api/docum
 - **WHEN** ein authentifizierter Benutzer eine Datei ohne `folderId` hochlädt
 - **THEN** wird die Datei gespeichert und ein Dokument mit `folder = NULL` und dem Benutzer als Eigentümer angelegt
 
-#### Scenario: Upload in fremden Ordner wird für Nicht-Admins abgelehnt
+#### Scenario: Upload in fremden Ordner wird abgelehnt
 - **WHEN** ein Benutzer ohne `ADMIN`-Rolle (Client oder Consultant) eine Datei mit einer `folderId` hochlädt, deren Ordner einem anderen Benutzer gehört
 - **THEN** wird der Upload mit einem Zugriffsfehler (`IllegalAccessError`) abgewiesen
 
@@ -31,7 +31,7 @@ hochgeladenen Dokumente. Endpoints: `GET /api/documents` (alle bzw. eigene) und
 Ordner öffnen, ein Client nur eigene). Freigegebene Dokumente für Clients siehe
 `portal-sharing`.
 
-#### Scenario: Client sieht nur eigene Dokumente
+#### Scenario: Nur eigene Dokumente sichtbar
 - **WHEN** ein Client die Dokumentenliste abruft
 - **THEN** enthält die Antwort ausschließlich Dokumente, deren Eigentümer er ist
 
@@ -54,7 +54,7 @@ Das Portal SHALL dem Eigentümer sowie **Personal** (Rolle `ADMIN` oder
 Eigentümer ist, verhält sich das Dokument als nicht vorhanden
 (`NoSuchElementException`).
 
-#### Scenario: Fremdes Dokument für Client nicht abrufbar
+#### Scenario: Fremdes Dokument nicht abrufbar
 - **WHEN** ein Client die Metadaten eines Dokuments abruft, das ihm nicht gehört
 - **THEN** wird "Document not found" gemeldet, selbst wenn das Dokument existiert
 
@@ -97,7 +97,7 @@ und Freigabe (siehe `portal-sharing`) zusätzlich die Personal-Rollen.
 - **WHEN** ein Benutzer mit Rolle `ADMIN` oder `CONSULTANT` den Download eines fremden Dokuments aufruft
 - **THEN** wird die Datei als Resource zurückgegeben
 
-#### Scenario: Kein Zugriff ohne Eigentum, Freigabe oder Personal-Rolle
+#### Scenario: Kein Zugriff ohne Eigentum oder Freigabe
 - **WHEN** ein Client ohne Eigentum und ohne gültige Freigabe den Download aufruft
 - **THEN** antwortet das Portal mit HTTP 403 (Forbidden)
 
@@ -116,6 +116,6 @@ gelöscht.
 - **WHEN** ein `ADMIN` ein fremdes Dokument löscht
 - **THEN** werden Datei und Metadaten entfernt und ein Aktivitätsprotokoll-Eintrag geschrieben
 
-#### Scenario: Fremdes Dokument für Nicht-Admin nicht löschbar
+#### Scenario: Fremdes Dokument nicht löschbar
 - **WHEN** ein Benutzer ohne `ADMIN`-Rolle (Client oder Consultant) versucht, ein fremdes Dokument zu löschen
 - **THEN** wird "Document not found" gemeldet und nichts gelöscht

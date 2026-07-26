@@ -14,7 +14,7 @@ als beim Umbenennen).
 - **WHEN** ein Benutzer einen Ordner ohne `parentFolderId` anlegt
 - **THEN** wird ein Ordner mit `parentFolder = NULL` und dem Benutzer als Eigentümer erstellt
 
-#### Scenario: Unterordner unter fremdem Ordner wird für Nicht-Admins abgelehnt
+#### Scenario: Unterordner unter fremdem Ordner wird abgelehnt
 - **WHEN** ein Benutzer ohne `ADMIN`-Rolle (Client oder Consultant) einen Ordner mit einem `parentFolderId` anlegt, dessen übergeordneter Ordner einem anderen Benutzer gehört
 - **THEN** wird die Anlage mit `IllegalAccessError` abgewiesen
 
@@ -32,7 +32,7 @@ MUSS der übergeordnete Ordner dem Benutzer gehören ODER der Benutzer Personal
 sein. Jeder Ordner liefert `documentCount`, `childFolderCount` und `hasChildren`
 für die Navigation.
 
-#### Scenario: Client sieht nur eigene Ordner
+#### Scenario: Nur eigene Ordner sichtbar
 - **WHEN** ein Client seine Root-Ordner abruft
 - **THEN** enthält die Antwort ausschließlich Ordner, deren Eigentümer er ist
 
@@ -40,7 +40,7 @@ für die Navigation.
 - **WHEN** ein Benutzer mit Rolle `ADMIN` oder `CONSULTANT` die Root-Ordner abruft
 - **THEN** enthält die Antwort alle Root-Ordner des Portals, auch die anderer Benutzer
 
-#### Scenario: Unterordner eines fremden Ordners für Client nicht abrufbar
+#### Scenario: Unterordner eines fremden Ordners nicht abrufbar
 - **WHEN** ein Client die Unterordner eines Ordners abruft, der einem anderen Benutzer gehört
 - **THEN** wird der Zugriff mit `IllegalAccessError` abgewiesen
 

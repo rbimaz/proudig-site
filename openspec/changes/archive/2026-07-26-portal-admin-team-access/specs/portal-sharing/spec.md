@@ -21,8 +21,8 @@ unabhängig von `VIEW` vs. `EDIT`.
 - **WHEN** ein `ADMIN` ein Dokument freigibt, dessen Eigentümer er nicht ist
 - **THEN** wird eine Freigabe angelegt und ein `SHARE`-Aktivitätseintrag geschrieben
 
-#### Scenario: Client ohne Eigentum darf nicht freigeben
-- **WHEN** ein Client, der nicht Eigentümer ist, ein Dokument freizugeben versucht
+#### Scenario: Nur Eigentümer darf freigeben
+- **WHEN** ein Client, der nicht Eigentümer ist (und nicht `ADMIN`), ein Dokument freizugeben versucht
 - **THEN** wird mit `IllegalAccessError` abgewiesen
 
 ### Requirement: Freigaben eines Dokuments einsehen
@@ -30,13 +30,13 @@ Das Portal SHALL dem Eigentümer sowie jedem `ADMIN` erlauben, über
 `GET /api/shares/document/{documentId}` die bestehenden Freigaben eines
 Dokuments einzusehen.
 
+#### Scenario: Fremde Freigaben nicht einsehbar
+- **WHEN** ein Client, der nicht Eigentümer ist (und nicht `ADMIN`), die Freigaben eines Dokuments abruft
+- **THEN** wird mit `IllegalAccessError` abgewiesen
+
 #### Scenario: Admin sieht Freigaben eines fremden Dokuments
 - **WHEN** ein `ADMIN` die Freigaben eines fremden Dokuments abruft
 - **THEN** werden die bestehenden Freigaben zurückgegeben
-
-#### Scenario: Client ohne Eigentum sieht Freigaben nicht
-- **WHEN** ein Client, der nicht Eigentümer ist, die Freigaben eines Dokuments abruft
-- **THEN** wird mit `IllegalAccessError` abgewiesen
 
 ### Requirement: Freigabe widerrufen
 Das Portal SHALL das Widerrufen einer Freigabe über
@@ -52,7 +52,7 @@ wird als Aktivität (`UNSHARE`/`DOCUMENT`) protokolliert.
 - **WHEN** ein `ADMIN` eine Freigabe widerruft, an der er weder Eigentümer noch Empfänger ist
 - **THEN** wird die Freigabe gelöscht und ein `UNSHARE`-Aktivitätseintrag geschrieben
 
-#### Scenario: Unbeteiligter ohne Adminrolle darf nicht widerrufen
+#### Scenario: Unbeteiligter darf nicht widerrufen
 - **WHEN** ein Benutzer, der weder Eigentümer noch Empfänger noch `ADMIN` ist, die Freigabe widerruft
 - **THEN** wird mit `IllegalAccessError` abgewiesen
 
@@ -75,6 +75,6 @@ der Download für sie funktioniert (latenter Fehler).
 - **WHEN** ein Benutzer mit Rolle `ADMIN` oder `CONSULTANT` ohne eigene Freigabe auf ein fremdes Dokument zugreift
 - **THEN** wird der Zugriff als erlaubt gewertet
 
-#### Scenario: Kein Zugriff ohne Eigentum, gültige Freigabe oder Personal-Rolle
+#### Scenario: Kein Zugriff ohne Eigentum oder gültige Freigabe
 - **WHEN** ein Client ohne Eigentum und ohne gültige Freigabe zugreift
 - **THEN** wird der Zugriff verweigert
