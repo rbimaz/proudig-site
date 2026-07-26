@@ -46,21 +46,21 @@ describe('PortalUserForm', () => {
         expect(post[0]).toBe('/api/users');
         const body = JSON.parse(post[1].body);
         expect(body.roles).toEqual(['CLIENT']);
-        expect(body.forcePasswordChange).toBe(false);
+        expect(body.forcePasswordChange).toBe(true);
       });
       expect(mockNavigate).toHaveBeenCalledWith('/admin/portal/users');
     });
 
-    it('Given die Erst-Login-Checkbox aktiviert, When Erstellen, Then forcePasswordChange:true', async () => {
+    it('Given die Erst-Login-Checkbox deaktiviert, When Erstellen, Then forcePasswordChange:false', async () => {
       render(<PortalUserForm />);
       fillNew();
-      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('checkbox')); // Default ist aktiviert → abwählen
       postOk();
       fireEvent.click(screen.getByText('Erstellen'));
 
       await waitFor(() => {
         const post = mockAuthFetch.mock.calls.find(c => c[1]?.method === 'POST');
-        expect(JSON.parse(post[1].body).forcePasswordChange).toBe(true);
+        expect(JSON.parse(post[1].body).forcePasswordChange).toBe(false);
       });
     });
 
