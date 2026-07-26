@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
-@PreAuthorize("isAuthenticated()")
+@PreAuthorize("hasRole('ADMIN')")
 public class DocumentController {
     private final DocumentService documentService;
     private final DocumentShareService documentShareService;

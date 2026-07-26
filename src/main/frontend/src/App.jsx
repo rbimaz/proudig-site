@@ -110,7 +110,7 @@ function AppContent() {
 
         {/* Admin - Portal */}
         <Route path="/admin/portal/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-        <Route path="/admin/portal" element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
+        <Route path="/admin/portal" element={<ProtectedRoute requiredRole="ADMIN"><PortalLayout /></ProtectedRoute>}>
           <Route index element={<PortalDashboard />} />
           <Route path="profil" element={<Profile />} />
           <Route path="documents" element={<PortalDocuments />} />
