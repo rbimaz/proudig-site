@@ -36,6 +36,7 @@ import { MessageDetail } from './pages/admin/MessageDetail';
 
 // Portal pages
 import { ChangePassword } from './pages/portal/ChangePassword';
+import { Profile } from './pages/portal/Profile';
 import { PortalLayout } from './pages/portal/PortalLayout';
 import { PortalDashboard } from './pages/portal/PortalDashboard';
 import { PortalDocuments } from './pages/portal/PortalDocuments';
@@ -111,6 +112,7 @@ function AppContent() {
         <Route path="/admin/portal/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
         <Route path="/admin/portal" element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
           <Route index element={<PortalDashboard />} />
+          <Route path="profil" element={<Profile />} />
           <Route path="documents" element={<PortalDocuments />} />
           <Route path="shared" element={<PortalShared />} />
           <Route path="users" element={<ProtectedRoute requiredRole="ADMIN"><PortalUsers /></ProtectedRoute>} />

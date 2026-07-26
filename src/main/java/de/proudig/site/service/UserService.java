@@ -104,6 +104,23 @@ public class UserService {
         return mapToDto(user);
     }
 
+    public UserDto getByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NoSuchElementException("User not found: " + email));
+        return mapToDto(user);
+    }
+
+    public UserDto updateOwnProfile(String email, String firstName, String lastName, String company) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NoSuchElementException("User not found: " + email));
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Vor- und Nachname dürfen nicht leer sein");
+        }
+        user.setFirstName(firstName.trim());
+        user.setLastName(lastName.trim());
+        user.setCompany(company != null && !company.isBlank() ? company.trim() : null);
+        user = userRepository.save(user);
+        return mapToDto(user);
+    }
+
     @Transactional
     public void deleteUser(String id, String currentUserEmail) {
         User user = userRepository.findById(id).orElseThrow(() -> new NoSuchElementException("User not found: " + id));

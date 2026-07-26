@@ -82,11 +82,15 @@ export const AuthProvider = ({ children }) => {
     return res;
   }, [token, refreshAccessToken]);
 
+  const updateUser = useCallback((partial) => {
+    setUser(prev => prev ? { ...prev, ...partial } : prev);
+  }, []);
+
   const hasRole = (role) => user?.roles?.includes(role);
   const isAdmin = () => hasRole('ADMIN') || hasRole('CONSULTANT');
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, authFetch, hasRole, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, authFetch, hasRole, isAdmin, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

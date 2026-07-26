@@ -176,4 +176,52 @@ class UserServiceTest {
         verify(contentBlockRepository).clearUpdatedBy(user);
         verify(userRepository).delete(user);
     }
+
+    @Test
+    @DisplayName("getByEmail liefert das eigene Profil")
+    void getByEmailReturnsProfile() {
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
+
+        var dto = userService.getByEmail("admin@example.com");
+
+        assertThat(dto.getEmail()).isEqualTo("admin@example.com");
+        assertThat(dto.getFirstName()).isEqualTo("Ada");
+    }
+
+    @Test
+    @DisplayName("updateOwnProfile ändert Name/Firma (getrimmt); E-Mail und Rollen bleiben")
+    void updateOwnProfileUpdatesFields() {
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var dto = userService.updateOwnProfile("admin@example.com", "  Neu ", "Name", " Acme ");
+
+        assertThat(dto.getFirstName()).isEqualTo("Neu");
+        assertThat(dto.getLastName()).isEqualTo("Name");
+        assertThat(dto.getCompany()).isEqualTo("Acme");
+        assertThat(dto.getEmail()).isEqualTo("admin@example.com");
+        assertThat(dto.getRoles()).containsExactly("ADMIN");
+    }
+
+    @Test
+    @DisplayName("updateOwnProfile leert die Firma bei leerem Wert")
+    void updateOwnProfileClearsBlankCompany() {
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        var dto = userService.updateOwnProfile("admin@example.com", "Ada", "Admin", "   ");
+
+        assertThat(dto.getCompany()).isNull();
+    }
+
+    @Test
+    @DisplayName("updateOwnProfile lehnt leeren Vor-/Nachnamen ab")
+    void updateOwnProfileRejectsEmptyName() {
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
+
+        assertThatThrownBy(() -> userService.updateOwnProfile("admin@example.com", "  ", "Name", null))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(userRepository, never()).save(any(User.class));
+    }
 }
