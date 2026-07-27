@@ -6,7 +6,7 @@ import de.proudig.site.dto.UserUpdateRequest;
 import de.proudig.site.repository.ActivityLogRepository;
 import de.proudig.site.repository.ContentBlockRepository;
 import de.proudig.site.repository.DocumentRepository;
-import de.proudig.site.repository.DocumentShareRepository;
+import de.proudig.site.repository.ExternalShareLinkRepository;
 import de.proudig.site.repository.FolderRepository;
 import de.proudig.site.repository.MediaRepository;
 import de.proudig.site.repository.PageRepository;
@@ -49,7 +49,7 @@ class UserServiceTest {
 
     @Mock private RefreshTokenRepository refreshTokenRepository;
     @Mock private ActivityLogRepository activityLogRepository;
-    @Mock private DocumentShareRepository documentShareRepository;
+    @Mock private ExternalShareLinkRepository externalShareLinkRepository;
     @Mock private ContentBlockRepository contentBlockRepository;
     @Mock private FolderRepository folderRepository;
     @Mock private DocumentRepository documentRepository;
@@ -171,8 +171,7 @@ class UserServiceTest {
 
         verify(refreshTokenRepository).deleteByUser(user);
         verify(activityLogRepository).deleteByUser(user);
-        verify(documentShareRepository).deleteBySharedBy(user);
-        verify(documentShareRepository).deleteBySharedWith(user);
+        verify(externalShareLinkRepository).deleteByCreatedBy(user);
         verify(contentBlockRepository).clearUpdatedBy(user);
         verify(userRepository).delete(user);
     }

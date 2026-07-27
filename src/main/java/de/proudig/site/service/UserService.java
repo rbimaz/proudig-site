@@ -8,7 +8,7 @@ import de.proudig.site.dto.UserUpdateRequest;
 import de.proudig.site.repository.ActivityLogRepository;
 import de.proudig.site.repository.ContentBlockRepository;
 import de.proudig.site.repository.DocumentRepository;
-import de.proudig.site.repository.DocumentShareRepository;
+import de.proudig.site.repository.ExternalShareLinkRepository;
 import de.proudig.site.repository.FolderRepository;
 import de.proudig.site.repository.MediaRepository;
 import de.proudig.site.repository.PageRepository;
@@ -32,7 +32,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ActivityLogRepository activityLogRepository;
-    private final DocumentShareRepository documentShareRepository;
+    private final ExternalShareLinkRepository externalShareLinkRepository;
     private final ContentBlockRepository contentBlockRepository;
     private final FolderRepository folderRepository;
     private final DocumentRepository documentRepository;
@@ -140,8 +140,7 @@ public class UserService {
         // Abhängige, unkritische Daten bereinigen
         refreshTokenRepository.deleteByUser(user);
         activityLogRepository.deleteByUser(user);
-        documentShareRepository.deleteBySharedBy(user);
-        documentShareRepository.deleteBySharedWith(user);
+        externalShareLinkRepository.deleteByCreatedBy(user);
         contentBlockRepository.clearUpdatedBy(user);
         userRepository.delete(user);
     }
@@ -151,13 +150,13 @@ public class UserService {
         return UserDto.builder().id(user.getId()).email(user.getEmail()).firstName(user.getFirstName()).lastName(user.getLastName()).company(user.getCompany()).roles(roleNames).createdAt(user.getCreatedAt()).lastLoginAt(user.getLastLoginAt()).build();
     }
 
-    public UserService(final UserRepository userRepository, final RoleRepository roleRepository, final PasswordEncoder passwordEncoder, final RefreshTokenRepository refreshTokenRepository, final ActivityLogRepository activityLogRepository, final DocumentShareRepository documentShareRepository, final ContentBlockRepository contentBlockRepository, final FolderRepository folderRepository, final DocumentRepository documentRepository, final MediaRepository mediaRepository, final PageRepository pageRepository) {
+    public UserService(final UserRepository userRepository, final RoleRepository roleRepository, final PasswordEncoder passwordEncoder, final RefreshTokenRepository refreshTokenRepository, final ActivityLogRepository activityLogRepository, final ExternalShareLinkRepository externalShareLinkRepository, final ContentBlockRepository contentBlockRepository, final FolderRepository folderRepository, final DocumentRepository documentRepository, final MediaRepository mediaRepository, final PageRepository pageRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.refreshTokenRepository = refreshTokenRepository;
         this.activityLogRepository = activityLogRepository;
-        this.documentShareRepository = documentShareRepository;
+        this.externalShareLinkRepository = externalShareLinkRepository;
         this.contentBlockRepository = contentBlockRepository;
         this.folderRepository = folderRepository;
         this.documentRepository = documentRepository;

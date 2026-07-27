@@ -16,7 +16,6 @@ const PortalLayoutInner = () => {
   const navItems = [
     { label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' },
     { label: 'Meine Dokumente', path: '/admin/portal/documents', icon: 'bi-folder-fill' },
-    { label: 'Geteilt mit mir', path: '/admin/portal/shared', icon: 'bi-share-fill' },
     ...(isAdmin() ? [{ label: 'Benutzer', path: '/admin/portal/users', icon: 'bi-people-fill' }] : [])
   ];
 
