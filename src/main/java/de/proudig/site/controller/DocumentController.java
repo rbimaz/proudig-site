@@ -3,7 +3,6 @@ package de.proudig.site.controller;
 import de.proudig.site.domain.User;
 import de.proudig.site.dto.DocumentDto;
 import de.proudig.site.service.DocumentService;
-import de.proudig.site.service.DocumentShareService;
 import de.proudig.site.service.FileStorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +22,6 @@ import java.util.Map;
 @PreAuthorize("hasRole('ADMIN')")
 public class DocumentController {
     private final DocumentService documentService;
-    private final DocumentShareService documentShareService;
     private final FileStorageService fileStorageService;
 
     @PostMapping
@@ -72,10 +70,7 @@ public class DocumentController {
     @GetMapping("/{documentId}/download")
     public ResponseEntity<Resource> downloadDocument(@PathVariable String documentId, @RequestParam(defaultValue = "false") boolean inline) {
         try {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (!documentShareService.canAccessDocument(documentId, user)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            // Portal ist ADMIN-only (Klassen-@PreAuthorize) — Admins dürfen alle Dokumente laden.
             DocumentDto document = documentService.getDocumentById(documentId);
             Resource resource = fileStorageService.load(document.getStoragePath(), "documents");
             String contentDisposition = inline ? "inline; filename=\"" + document.getFileName() + "\"" : "attachment; filename=\"" + document.getFileName() + "\"";
@@ -85,9 +80,8 @@ public class DocumentController {
         }
     }
 
-    public DocumentController(final DocumentService documentService, final DocumentShareService documentShareService, final FileStorageService fileStorageService) {
+    public DocumentController(final DocumentService documentService, final FileStorageService fileStorageService) {
         this.documentService = documentService;
-        this.documentShareService = documentShareService;
         this.fileStorageService = fileStorageService;
     }
 }

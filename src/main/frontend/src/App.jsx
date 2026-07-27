@@ -40,7 +40,7 @@ import { Profile } from './pages/portal/Profile';
 import { PortalLayout } from './pages/portal/PortalLayout';
 import { PortalDashboard } from './pages/portal/PortalDashboard';
 import { PortalDocuments } from './pages/portal/PortalDocuments';
-import { PortalShared } from './pages/portal/PortalShared';
+import { PublicShareView } from './pages/PublicShareView';
 import { PortalUsers } from './pages/portal/PortalUsers';
 import { PortalUserForm } from './pages/portal/PortalUserForm';
 
@@ -50,8 +50,9 @@ function AppContent() {
   const location = useLocation();
 
   const isStaticPage = location.pathname === '/impressum' || location.pathname === '/datenschutz' || location.pathname.startsWith('/seite/');
+  const isPublicShare = location.pathname.startsWith('/s/');
   const isAdminArea = location.pathname.startsWith('/admin') && !location.pathname.startsWith('/admin/login') && location.pathname !== '/admin';
-  const hideNavbar = isAdminArea || location.pathname === '/admin' || location.pathname.startsWith('/admin/login');
+  const hideNavbar = isAdminArea || isPublicShare || location.pathname === '/admin' || location.pathname.startsWith('/admin/login');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -61,7 +62,7 @@ function AppContent() {
     setTheme(newTheme);
   };
 
-  if (!unlocked) {
+  if (!unlocked && !isPublicShare) {
     return <ComingSoon onUnlock={() => setUnlocked(true)} />;
   }
 
@@ -82,6 +83,9 @@ function AppContent() {
         <Route path="/seminare/:slug" element={<SeminarDetailPage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/:slug" element={<NewsPostPage />} />
+
+        {/* Öffentliche externe Freigabe-Links (login-frei) */}
+        <Route path="/s/:token" element={<PublicShareView />} />
 
         {/* Admin - Zentrale Einstiegsseite */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -114,7 +118,6 @@ function AppContent() {
           <Route index element={<PortalDashboard />} />
           <Route path="profil" element={<Profile />} />
           <Route path="documents" element={<PortalDocuments />} />
-          <Route path="shared" element={<PortalShared />} />
           <Route path="users" element={<ProtectedRoute requiredRole="ADMIN"><PortalUsers /></ProtectedRoute>} />
           <Route path="users/new" element={<ProtectedRoute requiredRole="ADMIN"><PortalUserForm /></ProtectedRoute>} />
           <Route path="users/:id" element={<ProtectedRoute requiredRole="ADMIN"><PortalUserForm /></ProtectedRoute>} />
@@ -124,7 +127,6 @@ function AppContent() {
         <Route path="/portal/login" element={<Navigate to="/admin/login" replace />} />
         <Route path="/portal/change-password" element={<Navigate to="/admin/portal/change-password" replace />} />
         <Route path="/portal/documents" element={<Navigate to="/admin/portal/documents" replace />} />
-        <Route path="/portal/shared" element={<Navigate to="/admin/portal/shared" replace />} />
         <Route path="/portal/users" element={<Navigate to="/admin/portal/users" replace />} />
         <Route path="/portal" element={<Navigate to="/admin/portal" replace />} />
       </Routes>

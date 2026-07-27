@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useFolderTree } from '../../contexts/FolderTreeContext';
 import { ActionButton, ActionButtonGroup } from '../../components/ActionButton';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ShareLinkDialog } from './ShareLinkDialog';
 
 /**
  * Portal "Meine Dokumente" - Option 4 (Toolbar-geführt, kompakt)
@@ -19,6 +20,7 @@ export const PortalDocuments = () => {
   const { currentFolderId, setCurrentFolderId, folderPath, setFolderPath, triggerRefresh } = useFolderTree();
   const [folders, setFolders] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [shareTarget, setShareTarget] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -418,6 +420,11 @@ export const PortalDocuments = () => {
                           onClick={(e) => { e.stopPropagation(); handleRenameFolder(row.data); }}
                         />
                         <ActionButton
+                          icon="bi-link-45deg"
+                          label="Extern teilen"
+                          onClick={(e) => { e.stopPropagation(); setShareTarget({ type: 'FOLDER', id: row.data.id, name: row.data.name }); }}
+                        />
+                        <ActionButton
                           icon="bi-trash"
                           label="Löschen"
                           danger
@@ -452,6 +459,11 @@ export const PortalDocuments = () => {
                           icon="bi-pencil"
                           label="Umbenennen"
                           onClick={() => {/* TODO: implement file rename */}}
+                        />
+                        <ActionButton
+                          icon="bi-link-45deg"
+                          label="Extern teilen"
+                          onClick={() => setShareTarget({ type: 'DOCUMENT', id: row.data.id, name: row.data.fileName })}
                         />
                         <ActionButton
                           icon="bi-trash"
@@ -497,6 +509,10 @@ export const PortalDocuments = () => {
         onConfirm={confirmDialog.onConfirm}
         onCancel={closeConfirmDialog}
       />
+
+      {shareTarget && (
+        <ShareLinkDialog target={shareTarget} onClose={() => setShareTarget(null)} />
+      )}
     </div>
   );
 };
