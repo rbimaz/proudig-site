@@ -6,91 +6,70 @@ und optionalem Ablaufdatum), Einsehen eigener und empfangener Freigaben,
 Widerrufen sowie freigabe-basierter Zugriff (steuert den Download in
 `portal-documents`).
 ## Requirements
-### Requirement: Dokument freigeben
-Das Portal SHALL dem Eigentümer eines Dokuments sowie jedem `ADMIN` erlauben, es
-über `POST /api/shares` (`{documentId, sharedWithEmail, permission?, expiresAt?}`)
-an einen anderen (per E-Mail identifizierten) Benutzer freizugeben. Die
-Berechtigung ist `VIEW` (Standard) oder `EDIT`; ein optionales `expiresAt` setzt
-ein Ablaufdatum. Die Freigabe wird als Aktivität (`SHARE`/`DOCUMENT`)
-protokolliert.
+### Requirement: Externen Freigabe-Link erstellen
+Ein ADMIN SHALL für **ein Dokument oder einen Ordner** einen externen Freigabe-Link mit unerratbarem
+Token erzeugen können. Ein Link SHALL genau ein Ziel haben (Dokument **oder** Ordner). Optional SHALL
+ein Passwort, ein Ablaufdatum und eine Empfänger-E-Mail hinterlegt werden können. Das Passwort SHALL
+ausschließlich als BCrypt-Hash gespeichert werden. Das Erstellen SHALL im Activity-Log protokolliert
+werden.
 
-Hinweis (Ist-Zustand): Das Rechte-Enum kennt nur `VIEW` und `EDIT`. Die
-Berechtigungsstufe wird gespeichert, aber bei der Zugriffsprüfung derzeit
-**nicht durchgesetzt** — jede gültige Freigabe gewährt Lese-/Download-Zugriff
-unabhängig von `VIEW` vs. `EDIT`.
+#### Scenario: Dokument-Link erstellen
+- **WHEN** ein ADMIN für ein Dokument „Extern teilen" auslöst
+- **THEN** wird ein `ExternalShareLink` mit Ziel-Typ Dokument und zufälligem Token angelegt und die Freigabe-URL (`/s/{token}`) zurückgegeben
 
-#### Scenario: Eigentümer gibt Dokument frei
-- **WHEN** der Eigentümer ein Dokument an eine existierende Benutzer-E-Mail freigibt
-- **THEN** wird eine Freigabe angelegt und ein `SHARE`-Aktivitätseintrag geschrieben
+#### Scenario: Ordner-Link erstellen
+- **WHEN** ein ADMIN für einen Ordner „Extern teilen" auslöst
+- **THEN** wird ein `ExternalShareLink` mit Ziel-Typ Ordner und zufälligem Token angelegt und die Freigabe-URL zurückgegeben
 
-#### Scenario: Admin gibt fremdes Dokument frei
-- **WHEN** ein `ADMIN` ein Dokument freigibt, dessen Eigentümer er nicht ist
-- **THEN** wird eine Freigabe angelegt und ein `SHARE`-Aktivitätseintrag geschrieben
+#### Scenario: Link mit Passwort und Ablauf
+- **WHEN** ein ADMIN beim Erstellen ein Passwort und ein Ablaufdatum angibt
+- **THEN** wird das Passwort als BCrypt-Hash und das Ablaufdatum am Link gespeichert
 
-#### Scenario: Nur Eigentümer darf freigeben
-- **WHEN** ein Client, der nicht Eigentümer ist (und nicht `ADMIN`), ein Dokument freizugeben versucht
-- **THEN** wird mit `IllegalAccessError` abgewiesen
+### Requirement: Externe Freigabe-Links verwalten
+Ein ADMIN SHALL die zu einem Dokument bestehenden Freigabe-Links einsehen und einen Link widerrufen
+können. Ein widerrufener Link SHALL keinen Zugriff mehr gewähren. Das Widerrufen SHALL protokolliert
+werden.
 
-### Requirement: Mit mir geteilte Dokumente einsehen
-Das Portal SHALL einem Benutzer über `GET /api/shares/shared-with-me` alle nicht
-abgelaufenen Freigaben auflisten, die auf ihn ausgestellt sind. Ersetzt
-`SHARE-004`.
+#### Scenario: Link widerrufen
+- **WHEN** ein ADMIN einen bestehenden Freigabe-Link widerruft
+- **THEN** wird der Link als widerrufen markiert und ein anschließender öffentlicher Abruf schlägt fehl
 
-#### Scenario: Abgelaufene Freigaben werden ausgeblendet
-- **WHEN** ein Benutzer seine geteilten Dokumente abruft und eine Freigabe ein `expiresAt` in der Vergangenheit hat
-- **THEN** wird diese Freigabe nicht in der Liste zurückgegeben
+### Requirement: Login-freier Zugriff über Freigabe-Link
+Ein Empfänger SHALL ein Dokument über den Token-Link ohne Account und ohne Portal-Zugang herunterladen
+können. Der öffentliche Endpunkt SHALL Metadaten (Dateiname, ob Passwort nötig, Gültigkeit) liefern und
+die Datei nur bei gültigem, nicht widerrufenem und nicht abgelaufenem Link ausliefern; ist ein Passwort
+gesetzt, SHALL der Download nur bei korrektem Passwort erfolgen. Jeder erfolgreiche Zugriff SHALL im
+Activity-Log protokolliert und `access_count`/`last_accessed_at` aktualisiert werden. Die öffentliche
+Freigabe-Seite SHALL trotz des Coming-Soon-Gates erreichbar sein.
 
-### Requirement: Freigaben eines Dokuments einsehen
-Das Portal SHALL dem Eigentümer sowie jedem `ADMIN` erlauben, über
-`GET /api/shares/document/{documentId}` die bestehenden Freigaben eines
-Dokuments einzusehen.
+#### Scenario: Download über gültigen Link ohne Passwort
+- **WHEN** ein Empfänger `/s/{token}` eines gültigen Links ohne Passwortschutz öffnet und herunterlädt
+- **THEN** wird die Datei ausgeliefert, ohne dass ein Login erforderlich ist
 
-#### Scenario: Fremde Freigaben nicht einsehbar
-- **WHEN** ein Client, der nicht Eigentümer ist (und nicht `ADMIN`), die Freigaben eines Dokuments abruft
-- **THEN** wird mit `IllegalAccessError` abgewiesen
+#### Scenario: Passwortgeschützter Link
+- **WHEN** ein Empfänger einen passwortgeschützten Link öffnet
+- **THEN** wird der Download erst nach Eingabe des korrekten Passworts ausgeliefert
 
-#### Scenario: Admin sieht Freigaben eines fremden Dokuments
-- **WHEN** ein `ADMIN` die Freigaben eines fremden Dokuments abruft
-- **THEN** werden die bestehenden Freigaben zurückgegeben
+#### Scenario: Abgelaufener oder widerrufener Link
+- **WHEN** ein Empfänger einen abgelaufenen oder widerrufenen Link aufruft
+- **THEN** wird kein Datei-Download ausgeliefert und ein entsprechender Fehler angezeigt
 
-### Requirement: Freigabe widerrufen
-Das Portal SHALL das Widerrufen einer Freigabe über
-`DELETE /api/shares/{shareId}` erlauben, wenn der Benutzer der Eigentümer des
-Dokuments, der begünstigte Empfänger der Freigabe ODER `ADMIN` ist. Der Widerruf
-wird als Aktivität (`UNSHARE`/`DOCUMENT`) protokolliert.
+### Requirement: Ordner-Link — Dateiliste und Teilbaum-Beschränkung
+Bei einem Ordner-Link SHALL die öffentliche Seite die Dateien des freigegebenen Ordners und aller
+Unterordner (rekursiv) auflisten und deren Download einzeln ermöglichen. Der Server SHALL beim
+Download prüfen, dass die angeforderte Datei innerhalb des freigegebenen Ordner-Teilbaums liegt; ist
+das nicht der Fall, SHALL der Download verweigert werden. Über einen Ordner-Link SHALL ausschließlich
+auf Dateien dieses Teilbaums zugegriffen werden können.
 
-#### Scenario: Empfänger entfernt eigene Freigabe
-- **WHEN** der begünstigte Empfänger seine Freigabe widerruft
-- **THEN** wird die Freigabe gelöscht und ein `UNSHARE`-Aktivitätseintrag geschrieben
+#### Scenario: Dateiliste eines Ordner-Links
+- **WHEN** ein Empfänger einen gültigen Ordner-Link öffnet
+- **THEN** werden die Dateien des Ordners und seiner Unterordner mit Namen und relativem Pfad aufgelistet
 
-#### Scenario: Admin widerruft fremde Freigabe
-- **WHEN** ein `ADMIN` eine Freigabe widerruft, an der er weder Eigentümer noch Empfänger ist
-- **THEN** wird die Freigabe gelöscht und ein `UNSHARE`-Aktivitätseintrag geschrieben
+#### Scenario: Download einer Datei aus dem Ordner
+- **WHEN** ein Empfänger in einem Ordner-Link eine gelistete Datei herunterlädt
+- **THEN** wird die Datei ausgeliefert, sofern der Link gültig (und ggf. das Passwort korrekt) ist
 
-#### Scenario: Unbeteiligter darf nicht widerrufen
-- **WHEN** ein Benutzer, der weder Eigentümer noch Empfänger noch `ADMIN` ist, die Freigabe widerruft
-- **THEN** wird mit `IllegalAccessError` abgewiesen
-
-### Requirement: Zugriff auf ein freigegebenes Dokument
-Das Portal SHALL Zugriff auf ein Dokument gewähren, wenn der Benutzer Eigentümer
-ist, eine gültige (nicht abgelaufene) Freigabe besitzt ODER Personal (Rolle
-`ADMIN` oder `CONSULTANT`) ist (`canAccessDocument`). Dies steuert insbesondere
-den Download in `portal-documents`.
-
-Hinweis (Ist-Zustand): Der Metadaten-Endpoint
-`GET /api/shares/shared-with-me/{documentId}` liefert die Dokument-Metadaten
-faktisch nur dem Eigentümer; Empfänger einer Freigabe erhalten HTTP 403, obwohl
-der Download für sie funktioniert (latenter Fehler).
-
-#### Scenario: Gültige Freigabe erlaubt Zugriff
-- **WHEN** ein Benutzer mit einer nicht abgelaufenen Freigabe auf das Dokument zugreift
-- **THEN** wird der Zugriff als erlaubt gewertet
-
-#### Scenario: Personal erhält Zugriff ohne Freigabe
-- **WHEN** ein Benutzer mit Rolle `ADMIN` oder `CONSULTANT` ohne eigene Freigabe auf ein fremdes Dokument zugreift
-- **THEN** wird der Zugriff als erlaubt gewertet
-
-#### Scenario: Kein Zugriff ohne Eigentum oder gültige Freigabe
-- **WHEN** ein Client ohne Eigentum und ohne gültige Freigabe zugreift
-- **THEN** wird der Zugriff verweigert
+#### Scenario: Zugriff auf Datei außerhalb des Ordners wird verweigert
+- **WHEN** über einen Ordner-Link ein Dokument angefragt wird, das nicht im freigegebenen Teilbaum liegt
+- **THEN** wird der Download mit HTTP 403 verweigert
 
