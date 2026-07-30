@@ -10,6 +10,7 @@ import { ComingSoon } from './components/ComingSoon';
 
 // Public pages
 import { HomePage } from './pages/HomePage';
+import { ContactPage } from './pages/ContactPage';
 import { StaticPageRenderer } from './pages/StaticPageRenderer';
 import { BlogPage } from './pages/BlogPage';
 import { BlogPostPage } from './pages/BlogPostPage';
@@ -74,6 +75,7 @@ function AppContent() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<HomePage theme={theme} />} />
+        <Route path="/kontakt" element={<ContactPage />} />
         <Route path="/impressum" element={<StaticPageRenderer slug="impressum" />} />
         <Route path="/datenschutz" element={<StaticPageRenderer slug="datenschutz" />} />
         <Route path="/seite/:slug" element={<StaticPageRenderer />} />
