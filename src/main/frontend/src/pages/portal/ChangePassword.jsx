@@ -64,10 +64,10 @@ export const ChangePassword = () => {
           <div className="portal-login-box" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
             <div style={{
               width: 64, height: 64, borderRadius: '50%',
-              background: '#ecfdf5', display: 'flex', alignItems: 'center',
+              background: '#FFF4EC', display: 'flex', alignItems: 'center',
               justifyContent: 'center', margin: '0 auto 1.5rem'
             }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E8731A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
@@ -82,7 +82,7 @@ export const ChangePassword = () => {
               borderRadius: 2, overflow: 'hidden'
             }}>
               <div style={{
-                height: '100%', background: '#10b981', borderRadius: 2,
+                height: '100%', background: '#E8731A', borderRadius: 2,
                 animation: 'shrink 3s linear forwards'
               }} />
             </div>
@@ -102,44 +102,21 @@ export const ChangePassword = () => {
             <p>Bitte vergeben Sie ein neues Passwort für Ihr Konto.</p>
           </div>
           <form onSubmit={handleSubmit} className="portal-login-form">
-            <div className="form-group">
-              <label htmlFor="currentPassword">Aktuelles Passwort</label>
-              <input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="••••••••"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="newPassword">Neues Passwort</label>
-              <input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="Mind. 3 Zeichen"
-                minLength={3}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="confirmPassword">Neues Passwort bestätigen</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="Passwort wiederholen"
-                minLength={3}
-              />
-            </div>
+            <PasswordField
+              id="currentPassword" label="Aktuelles Passwort"
+              value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+              disabled={loading} placeholder="••••••••"
+            />
+            <PasswordField
+              id="newPassword" label="Neues Passwort"
+              value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+              disabled={loading} placeholder="Mind. 3 Zeichen" minLength={3}
+            />
+            <PasswordField
+              id="confirmPassword" label="Neues Passwort bestätigen"
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading} placeholder="Passwort wiederholen" minLength={3}
+            />
             {error && <div className="form-error">{error}</div>}
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? 'Wird geändert...' : 'Passwort ändern'}
@@ -150,3 +127,34 @@ export const ChangePassword = () => {
     </div>
   );
 };
+
+// Passwortfeld mit eigenem Sichtbarkeits-Toggle (unabhängig je Feld).
+function PasswordField({ id, label, value, onChange, placeholder, disabled, minLength }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="form-group">
+      <label htmlFor={id}>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <input
+          id={id}
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={onChange}
+          required
+          disabled={disabled}
+          placeholder={placeholder}
+          minLength={minLength}
+          style={{ paddingRight: '2.5rem', width: '100%' }}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          aria-label={show ? 'Passwort verbergen' : 'Passwort anzeigen'}
+          style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0.25rem', lineHeight: 1 }}
+        >
+          <i className={`bi ${show ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+        </button>
+      </div>
+    </div>
+  );
+}

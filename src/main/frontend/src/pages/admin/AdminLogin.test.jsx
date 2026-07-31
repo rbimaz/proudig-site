@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AdminLogin } from './AdminLogin';
 
@@ -29,5 +29,17 @@ describe('AdminLogin – E-Mail-Vorbefüllung', () => {
   it('Given kein Navigations-State, When gerendert, Then ist das E-Mail-Feld leer', () => {
     render(<AdminLogin />);
     expect(screen.getByLabelText('Email')).toHaveValue('');
+  });
+
+  it('Given Passwortfeld, When Toggle geklickt, Then wechselt die Sichtbarkeit', () => {
+    render(<AdminLogin />);
+    const pw = screen.getByLabelText('Passwort');
+    expect(pw).toHaveAttribute('type', 'password');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Passwort anzeigen' }));
+    expect(pw).toHaveAttribute('type', 'text');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Passwort verbergen' }));
+    expect(pw).toHaveAttribute('type', 'password');
   });
 });
