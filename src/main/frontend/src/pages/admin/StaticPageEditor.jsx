@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import MarkdownContent from '../../components/MarkdownContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
 import { MediaPicker } from './MediaPicker';
@@ -168,6 +167,11 @@ export const StaticPageEditor = () => {
       {/* Content (Markdown) */}
       <div className="form-group">
         <label>Inhalt (Markdown)</label>
+        <small className="form-hint">
+          Tipp: Ein Link mit dem Titel <code>"button"</code> wird als
+          Call-to-Action-Button dargestellt, z. B.{' '}
+          <code>[Jetzt anfragen](/kontakt "button")</code>.
+        </small>
         <div className="markdown-tabs">
           <button
             type="button"
@@ -200,7 +204,7 @@ export const StaticPageEditor = () => {
           />
         ) : (
           <div className="preview-content">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <MarkdownContent>{content}</MarkdownContent>
           </div>
         )}
       </div>

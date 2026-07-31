@@ -789,6 +789,16 @@ section {
   color: #fff;
 }
 
+[data-theme="udig2"] .btn-cta {
+  background-color: #E8731A;
+  color: #fff;
+  border: none;
+}
+
+[data-theme="udig2"] .btn-cta:hover {
+  background-color: #D06515;
+}
+
 .btn-cta:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);

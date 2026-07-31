@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { slugify } from '../../utils/api';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import MarkdownContent from '../../components/MarkdownContent';
 import { MediaPicker } from './MediaPicker';
 
 // Duration-String (30d/12h/45m/30s) <-> Zahl + Einheit
@@ -421,6 +420,11 @@ export const PageEditor = ({ category }) => {
 
             <div className="form-group">
               <label>Inhalt (Markdown)</label>
+              <small className="form-hint">
+                Tipp: Ein Link mit dem Titel <code>"button"</code> wird als
+                Call-to-Action-Button dargestellt, z. B.{' '}
+                <code>[Jetzt anfragen](/kontakt "button")</code>.
+              </small>
               <div className="markdown-tabs">
                 <button
                   type="button"
@@ -470,9 +474,9 @@ export const PageEditor = ({ category }) => {
           <div className="editor-preview">
             <h2>Vorschau</h2>
             <div className="preview-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <MarkdownContent>
                 {data.content}
-              </ReactMarkdown>
+              </MarkdownContent>
             </div>
           </div>
         )}

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import MarkdownContent from '../components/MarkdownContent';
 import { formatDate } from '../utils/api';
 
 export const SeminarDetailPage = () => {
@@ -75,9 +74,9 @@ export const SeminarDetailPage = () => {
           </div>
 
           <div className="blog-post-content">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <MarkdownContent>
               {seminar.content}
-            </ReactMarkdown>
+            </MarkdownContent>
           </div>
         </div>
       </article>
