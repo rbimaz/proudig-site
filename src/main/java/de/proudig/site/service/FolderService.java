@@ -20,21 +20,21 @@ public class FolderService {
     private final DocumentRepository documentRepository;
 
     public List<FolderDto> getRootFolders(User owner) {
-        List<Folder> folders = isStaff(owner) ? folderRepository.findByParentFolderIsNull() : folderRepository.findByOwnerAndParentFolderIsNull(owner);
+        List<Folder> folders = isAdmin(owner) ? folderRepository.findByParentFolderIsNull() : folderRepository.findByOwnerAndParentFolderIsNull(owner);
         return folders.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public List<FolderDto> getSubFolders(String parentFolderId, User owner) {
         Folder parentFolder = folderRepository.findById(parentFolderId).orElseThrow(() -> new NoSuchElementException("Folder not found: " + parentFolderId));
-        if (!parentFolder.getOwner().getId().equals(owner.getId()) && !isStaff(owner)) {
+        if (!parentFolder.getOwner().getId().equals(owner.getId()) && !isAdmin(owner)) {
             throw new IllegalAccessError("Access denied");
         }
-        List<Folder> children = isStaff(owner) ? folderRepository.findByParentFolder(parentFolder) : folderRepository.findByOwnerAndParentFolder(owner, parentFolder);
+        List<Folder> children = isAdmin(owner) ? folderRepository.findByParentFolder(parentFolder) : folderRepository.findByOwnerAndParentFolder(owner, parentFolder);
         return children.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public FolderDto getFolderById(String folderId, User owner) {
-        Folder folder = isStaff(owner)
+        Folder folder = isAdmin(owner)
             ? folderRepository.findById(folderId).orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId))
             : folderRepository.findByIdAndOwner(folderId, owner).orElseThrow(() -> new NoSuchElementException("Folder not found: " + folderId));
         return mapToDto(folder);
@@ -123,9 +123,9 @@ public class FolderService {
         return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
-    // Personal (ADMIN oder CONSULTANT) darf portalweit lesen/navigieren
-    private boolean isStaff(User user) {
-        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()) || "CONSULTANT".equals(role.getName()));
+    // Nur ADMIN sieht portalweit alle Ordner; CONSULTANT ist owner-gescoped.
+    private boolean isAdmin(User user) {
+        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
     private FolderDto mapToDto(Folder folder) {

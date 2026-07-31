@@ -104,8 +104,8 @@ describe('AdminHome', () => {
     });
   });
 
-  describe('Szenario 4: Consultant-Benutzer sieht CMS, aber nicht das Portal', () => {
-    it('Given ein Benutzer mit Rolle CONSULTANT ist eingeloggt, When die Seite geladen wird, Then wird die CMS-Karte gezeigt, aber nicht das Dokumenten-Portal', () => {
+  describe('Szenario 4: Consultant-Benutzer sieht das Dokumenten-Portal', () => {
+    it('Given ein Benutzer mit Rolle CONSULTANT ist eingeloggt, When die Seite geladen wird, Then wird die Dokumenten-Portal-Karte gezeigt (für eigene & geteilte Dokumente)', () => {
       const consultantUser = {
         firstName: 'Maria',
         lastName: 'Consultant',
@@ -113,10 +113,10 @@ describe('AdminHome', () => {
         roles: ['CONSULTANT']
       };
 
-      renderAdminHome(consultantUser, () => true);
+      renderAdminHome(consultantUser, () => false);
 
-      expect(screen.getByText('Content-Management')).toBeInTheDocument();
-      expect(screen.queryByText('Dokumenten-Portal')).not.toBeInTheDocument();
+      expect(screen.getByText('Dokumenten-Portal')).toBeInTheDocument();
+      expect(screen.getByText('Eigene & geteilte Dokumente')).toBeInTheDocument();
     });
   });
 

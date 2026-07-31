@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Internes, lesendes Teilen eines Dokuments an einen Benutzer (v1).
+         Die alte gleichnamige Tabelle wurde in 018 entfernt; hier neu, schlank. -->
+    <changeSet id="019-create-document-shares" author="ProuDig">
+        <createTable tableName="document_shares">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="document_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_with" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_by" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="document_shares" baseColumnNames="document_id"
+                                 constraintName="fk_document_share_document" referencedTableName="documents"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="document_shares" baseColumnNames="shared_with"
+                                 constraintName="fk_document_share_shared_with" referencedTableName="users"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="document_shares" baseColumnNames="shared_by"
+                                 constraintName="fk_document_share_shared_by" referencedTableName="users"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="document_shares" columnNames="document_id, shared_with"
+                             constraintName="uq_document_share_doc_user"/>
+    </changeSet>
+
+</databaseChangeLog>

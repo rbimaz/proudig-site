@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const PortalDashboard = () => {
-  const { authFetch } = useAuth();
+  const { authFetch, isAdmin } = useAuth();
+  const admin = isAdmin();
   const [stats, setStats] = useState({
     recentUploads: [],
     recentShares: [],
@@ -12,6 +14,7 @@ export const PortalDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!admin) return;
     const fetchStats = async () => {
       try {
         const [uploadsRes, sharesRes, storageRes] = await Promise.all([
@@ -38,7 +41,10 @@ export const PortalDashboard = () => {
     };
 
     fetchStats();
-  }, [authFetch]);
+  }, [authFetch, admin]);
+
+  // Dashboard nutzt ADMIN-only Portal-Statistiken; Nicht-Admins -> Dokumente.
+  if (!admin) return <Navigate to="/admin/portal/documents" replace />;
 
   if (loading) return <div className="loading"><i className="bi bi-arrow-repeat spin"></i> Laden...</div>;
 

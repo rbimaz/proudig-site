@@ -1,136 +1,9 @@
-# portal-documents Specification
+## RENAMED Requirements
 
-## Purpose
-Verwaltung von Dokumenten im Portal: Upload in das Dateisystem mit Metadaten in
-der Datenbank, Auflistung, Metadaten-Abruf, Umbenennen (Beschreibung), Download
-und Löschen — jeweils mit eigentümer-basierter Zugriffskontrolle. Freigaben an
-andere Benutzer sind in `portal-sharing` spezifiziert.
-## Requirements
-### Requirement: Dokument hochladen
-Das Portal SHALL authentifizierten Benutzern erlauben, eine Datei hochzuladen.
-Die Datei wird im Dateisystem unter `data/files/documents/` abgelegt, die
-Metadaten (Dateiname, Größe, Content-Type, optionaler Ordner, optionale
-Beschreibung) werden in der Datenbank gespeichert. Der hochladende Benutzer wird
-als Eigentümer (`uploadedBy`) hinterlegt. Wird ein `folderId` angegeben, MUSS der
-Zielordner dem Benutzer gehören ODER der Benutzer die Rolle `ADMIN` haben;
-andernfalls wird mit `IllegalAccessError` abgewiesen. Endpoint: `POST /api/documents`
-(multipart).
+- FROM: `### Requirement: Dokumentenportal nur für ADMIN`
+- TO: `### Requirement: Portalzugriff — Dokumente/Ordner für ADMIN und CONSULTANT`
 
-#### Scenario: Erfolgreicher Upload in Root-Ebene
-- **WHEN** ein authentifizierter Benutzer eine Datei ohne `folderId` hochlädt
-- **THEN** wird die Datei gespeichert und ein Dokument mit `folder = NULL` und dem Benutzer als Eigentümer angelegt
-
-#### Scenario: Upload in fremden Ordner wird abgelehnt
-- **WHEN** ein Benutzer ohne `ADMIN`-Rolle (Client oder Consultant) eine Datei mit einer `folderId` hochlädt, deren Ordner einem anderen Benutzer gehört
-- **THEN** wird der Upload mit einem Zugriffsfehler (`IllegalAccessError`) abgewiesen
-
-#### Scenario: Admin lädt in fremden Ordner hoch
-- **WHEN** ein `ADMIN` eine Datei mit einer `folderId` hochlädt, deren Ordner einem anderen Benutzer gehört
-- **THEN** wird der Upload akzeptiert und das Dokument in diesem Ordner abgelegt
-
-### Requirement: Eigene Dokumente auflisten
-Das Portal SHALL Dokumente rollenabhängig auflisten. Ein `ADMIN` sieht als
-Team-Sicht **alle** Dokumente, unabhängig vom Uploader. Ein `CONSULTANT` sieht
-**ausschließlich die von ihm selbst hochgeladenen** Dokumente (nicht die anderer
-Consultants oder Admins). Endpoints: `GET /api/documents` und
-`GET /api/documents/folder/{folderId}` (ADMIN darf jeden Ordner öffnen, ein
-CONSULTANT nur eigene). Mit einem CONSULTANT geteilte Dokumente werden separat
-ausgewiesen (siehe „Mit mir geteilte Dokumente").
-
-#### Scenario: Consultant sieht nur eigene Dokumente
-
-- **WHEN** ein `CONSULTANT` die Dokumentenliste abruft
-- **THEN** enthält die Antwort ausschließlich Dokumente, deren Eigentümer er ist
-  (keine der anderer Benutzer)
-
-#### Scenario: Admin sieht alle Dokumente
-
-- **WHEN** ein `ADMIN` die Dokumentenliste abruft
-- **THEN** enthält die Antwort alle Dokumente des Portals
-
-#### Scenario: Consultant kann fremden Ordner nicht öffnen
-
-- **WHEN** ein `CONSULTANT` `GET /api/documents/folder/{folderId}` für einen
-  fremden Ordner abruft
-- **THEN** wird der Zugriff mit `IllegalAccessError` abgewiesen
-
-### Requirement: Dokument-Metadaten abrufen
-Das Portal SHALL die Metadaten eines Dokuments über
-`GET /api/documents/{documentId}` nur zurückgeben, wenn der Benutzer `ADMIN` ist,
-**Eigentümer** ist oder das Dokument **mit ihm geteilt** wurde. Für einen
-Benutzer ohne Zugriff verhält sich das Dokument als nicht vorhanden
-(`NoSuchElementException`).
-
-#### Scenario: Fremdes, nicht geteiltes Dokument nicht abrufbar
-
-- **WHEN** ein `CONSULTANT` die Metadaten eines Dokuments abruft, das ihm weder
-  gehört noch mit ihm geteilt wurde
-- **THEN** wird „Document not found" gemeldet, selbst wenn das Dokument existiert
-
-#### Scenario: Geteiltes Dokument abrufbar
-
-- **WHEN** ein `CONSULTANT` die Metadaten eines mit ihm geteilten Dokuments abruft
-- **THEN** werden die Metadaten zurückgegeben
-
-### Requirement: Dokument-Beschreibung ändern
-Das Portal SHALL das Ändern der Beschreibung eines Dokuments über
-`PUT /api/documents/{documentId}` erlauben, wenn der Benutzer Eigentümer ODER
-`ADMIN` ist. Dateiname und Datei-Inhalt bleiben unverändert.
-
-#### Scenario: Eigentümer ändert Beschreibung
-- **WHEN** der Eigentümer eine neue Beschreibung sendet
-- **THEN** wird die Beschreibung und `updatedAt` aktualisiert, der Dateiname bleibt gleich
-
-#### Scenario: Admin ändert fremde Beschreibung
-- **WHEN** ein `ADMIN` die Beschreibung eines fremden Dokuments ändert
-- **THEN** wird die Beschreibung aktualisiert
-
-#### Scenario: Consultant darf fremde Beschreibung nicht ändern
-- **WHEN** ein `CONSULTANT` (nicht Eigentümer) die Beschreibung eines fremden Dokuments ändern will
-- **THEN** wird "Document not found" gemeldet und nichts geändert
-
-### Requirement: Dokument herunterladen
-Das Portal SHALL den Download über `GET /api/documents/{documentId}/download` nur
-erlauben, wenn der Benutzer `ADMIN` ist, **Eigentümer** ist, das Dokument **mit
-ihm geteilt** wurde ODER eine gültige externe Freigabe besitzt (siehe
-`portal-sharing`). Andernfalls antwortet das Portal mit HTTP 403. Die
-Zugriffsprüfung SHALL auch beim Download tatsächlich erzwungen werden (kein
-ungeprüfter Abruf per ID).
-
-#### Scenario: Eigentümer lädt herunter
-
-- **WHEN** der Eigentümer den Download-Endpoint aufruft
-- **THEN** wird die Datei als Resource zurückgegeben
-
-#### Scenario: Consultant lädt geteiltes Dokument herunter
-
-- **WHEN** ein `CONSULTANT` ein mit ihm geteiltes Dokument herunterlädt
-- **THEN** wird die Datei als Resource zurückgegeben
-
-#### Scenario: Kein Zugriff ohne Eigentum/Freigabe
-
-- **WHEN** ein `CONSULTANT` ohne Eigentum und ohne Freigabe den Download eines
-  fremden Dokuments aufruft
-- **THEN** antwortet das Portal mit HTTP 403 (Forbidden)
-
-### Requirement: Eigenes Dokument löschen
-Das Portal SHALL das Löschen eines Dokuments über
-`DELETE /api/documents/{documentId}` erlauben, wenn der Benutzer Eigentümer ODER
-`ADMIN` ist. Dabei werden die Datei aus dem Dateisystem entfernt, ein
-Aktivitätseintrag (`DELETE`/`DOCUMENT`) protokolliert und der Metadatensatz
-gelöscht.
-
-#### Scenario: Eigentümer löscht Dokument
-- **WHEN** der Eigentümer ein Dokument löscht
-- **THEN** werden Datei und Metadaten entfernt und ein Aktivitätsprotokoll-Eintrag geschrieben
-
-#### Scenario: Admin löscht fremdes Dokument
-- **WHEN** ein `ADMIN` ein fremdes Dokument löscht
-- **THEN** werden Datei und Metadaten entfernt und ein Aktivitätsprotokoll-Eintrag geschrieben
-
-#### Scenario: Fremdes Dokument nicht löschbar
-- **WHEN** ein Benutzer ohne `ADMIN`-Rolle (Client oder Consultant) versucht, ein fremdes Dokument zu löschen
-- **THEN** wird "Document not found" gemeldet und nichts gelöscht
+## MODIFIED Requirements
 
 ### Requirement: Portalzugriff — Dokumente/Ordner für ADMIN und CONSULTANT
 
@@ -158,6 +31,79 @@ bleiben.
 
 - **WHEN** ein Benutzer mit Rolle `CLIENT` einen Portal-Endpunkt aufruft
 - **THEN** wird der Zugriff mit HTTP 403 abgewiesen
+
+### Requirement: Eigene Dokumente auflisten
+
+Das Portal SHALL Dokumente rollenabhängig auflisten. Ein `ADMIN` sieht als
+Team-Sicht **alle** Dokumente, unabhängig vom Uploader. Ein `CONSULTANT` sieht
+**ausschließlich die von ihm selbst hochgeladenen** Dokumente (nicht die anderer
+Consultants oder Admins). Endpoints: `GET /api/documents` und
+`GET /api/documents/folder/{folderId}` (ADMIN darf jeden Ordner öffnen, ein
+CONSULTANT nur eigene). Mit einem CONSULTANT geteilte Dokumente werden separat
+ausgewiesen (siehe „Mit mir geteilte Dokumente").
+
+#### Scenario: Consultant sieht nur eigene Dokumente
+
+- **WHEN** ein `CONSULTANT` die Dokumentenliste abruft
+- **THEN** enthält die Antwort ausschließlich Dokumente, deren Eigentümer er ist
+  (keine der anderer Benutzer)
+
+#### Scenario: Admin sieht alle Dokumente
+
+- **WHEN** ein `ADMIN` die Dokumentenliste abruft
+- **THEN** enthält die Antwort alle Dokumente des Portals
+
+#### Scenario: Consultant kann fremden Ordner nicht öffnen
+
+- **WHEN** ein `CONSULTANT` `GET /api/documents/folder/{folderId}` für einen
+  fremden Ordner abruft
+- **THEN** wird der Zugriff mit `IllegalAccessError` abgewiesen
+
+### Requirement: Dokument-Metadaten abrufen
+
+Das Portal SHALL die Metadaten eines Dokuments über
+`GET /api/documents/{documentId}` nur zurückgeben, wenn der Benutzer `ADMIN` ist,
+**Eigentümer** ist oder das Dokument **mit ihm geteilt** wurde. Für einen
+Benutzer ohne Zugriff verhält sich das Dokument als nicht vorhanden
+(`NoSuchElementException`).
+
+#### Scenario: Fremdes, nicht geteiltes Dokument nicht abrufbar
+
+- **WHEN** ein `CONSULTANT` die Metadaten eines Dokuments abruft, das ihm weder
+  gehört noch mit ihm geteilt wurde
+- **THEN** wird „Document not found" gemeldet, selbst wenn das Dokument existiert
+
+#### Scenario: Geteiltes Dokument abrufbar
+
+- **WHEN** ein `CONSULTANT` die Metadaten eines mit ihm geteilten Dokuments abruft
+- **THEN** werden die Metadaten zurückgegeben
+
+### Requirement: Dokument herunterladen
+
+Das Portal SHALL den Download über `GET /api/documents/{documentId}/download` nur
+erlauben, wenn der Benutzer `ADMIN` ist, **Eigentümer** ist, das Dokument **mit
+ihm geteilt** wurde ODER eine gültige externe Freigabe besitzt (siehe
+`portal-sharing`). Andernfalls antwortet das Portal mit HTTP 403. Die
+Zugriffsprüfung SHALL auch beim Download tatsächlich erzwungen werden (kein
+ungeprüfter Abruf per ID).
+
+#### Scenario: Eigentümer lädt herunter
+
+- **WHEN** der Eigentümer den Download-Endpoint aufruft
+- **THEN** wird die Datei als Resource zurückgegeben
+
+#### Scenario: Consultant lädt geteiltes Dokument herunter
+
+- **WHEN** ein `CONSULTANT` ein mit ihm geteiltes Dokument herunterlädt
+- **THEN** wird die Datei als Resource zurückgegeben
+
+#### Scenario: Kein Zugriff ohne Eigentum/Freigabe
+
+- **WHEN** ein `CONSULTANT` ohne Eigentum und ohne Freigabe den Download eines
+  fremden Dokuments aufruft
+- **THEN** antwortet das Portal mit HTTP 403 (Forbidden)
+
+## ADDED Requirements
 
 ### Requirement: Interne Dokument-Freigabe an einen Nutzer
 
@@ -213,4 +159,3 @@ Eigentum bzw. `ADMIN` verlangen (eine reine Freigabe berechtigt NICHT zum Änder
 - **WHEN** ein `CONSULTANT` versucht, ein nur mit ihm geteiltes (nicht eigenes)
   Dokument umzubenennen, zu verschieben oder zu löschen
 - **THEN** wird die Aktion abgewiesen (kein Schreibzugriff durch Freigabe)
-

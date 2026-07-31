@@ -1,12 +1,16 @@
 package de.proudig.site.service;
 
 import de.proudig.site.domain.Document;
+import de.proudig.site.domain.DocumentShare;
 import de.proudig.site.domain.Folder;
 import de.proudig.site.domain.User;
 import de.proudig.site.dto.DocumentDto;
 import de.proudig.site.repository.DocumentRepository;
+import de.proudig.site.repository.DocumentShareRepository;
 import de.proudig.site.repository.FolderRepository;
+import de.proudig.site.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
@@ -20,6 +24,8 @@ public class DocumentService {
     private final FolderRepository folderRepository;
     private final FileStorageService fileStorageService;
     private final ActivityLogService activityLogService;
+    private final DocumentShareRepository shareRepository;
+    private final UserRepository userRepository;
 
     public DocumentDto uploadDocument(MultipartFile file, String folderId, String description, User user) throws IOException {
         String storagePath = fileStorageService.store(file, "documents");
@@ -37,32 +43,49 @@ public class DocumentService {
     }
 
     public List<DocumentDto> getDocumentsByUser(User user) {
-        List<Document> documents = isStaff(user) ? documentRepository.findAll() : documentRepository.findByUploadedBy(user);
+        // Nur ADMIN sieht alle Dokumente; CONSULTANT nur eigene.
+        List<Document> documents = isAdmin(user) ? documentRepository.findAll() : documentRepository.findByUploadedBy(user);
         return documents.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    public List<DocumentDto> getSharedWithMe(User user) {
+        return shareRepository.findBySharedWith(user).stream()
+            .map(share -> mapToDto(share.getDocument()))
+            .collect(Collectors.toList());
     }
 
     public List<DocumentDto> getDocumentsInFolder(String folderId, User user) {
         Folder folder = folderRepository.findById(folderId).orElseThrow(() -> new NoSuchElementException("Folder not found"));
-        if (!folder.getOwner().getId().equals(user.getId()) && !isStaff(user)) {
+        if (!folder.getOwner().getId().equals(user.getId()) && !isAdmin(user)) {
             throw new IllegalAccessError("Access denied");
         }
         return documentRepository.findByFolder(folder).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     public DocumentDto getDocument(String documentId, User user) {
-        Document document = isStaff(user)
-            ? documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"))
-            : documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        if (!canAccess(user, document)) {
+            // Für Nicht-Berechtigte verhält sich das Dokument als nicht vorhanden.
+            throw new NoSuchElementException("Document not found");
+        }
         return mapToDto(document);
     }
 
-    public DocumentDto getDocumentById(String documentId) {
+    /**
+     * Für den Download: liefert das Dokument nur, wenn der Benutzer Zugriff hat
+     * (Eigentümer, geteilt oder ADMIN); sonst {@link IllegalAccessError} (HTTP 403).
+     */
+    public DocumentDto getDocumentForDownload(String documentId, User user) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found: " + documentId));
+        if (!canAccess(user, document)) {
+            throw new IllegalAccessError("Access denied");
+        }
         return mapToDto(document);
     }
 
     public DocumentDto updateDocument(String documentId, String description, User user) {
         Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        // Schreiben verlangt Eigentum oder ADMIN — eine Freigabe berechtigt NICHT.
         if (!document.getUploadedBy().getId().equals(user.getId()) && !isAdmin(user)) {
             throw new NoSuchElementException("Document not found");
         }
@@ -82,13 +105,46 @@ public class DocumentService {
         documentRepository.delete(document);
     }
 
+    /** ADMIN teilt ein Dokument lesend mit einem Benutzer. Idempotent. */
+    public DocumentDto shareDocument(String documentId, String userId, User admin) {
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        User grantee = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User not found"));
+        if (!shareRepository.existsByDocumentAndSharedWith(document, grantee)) {
+            shareRepository.save(DocumentShare.builder().document(document).sharedWith(grantee).sharedBy(admin).build());
+            activityLogService.log(admin, "SHARE", "DOCUMENT", document.getId(), document.getFileName());
+        }
+        return mapToDto(document);
+    }
+
+    /** ADMIN widerruft die Freigabe eines Dokuments für einen Benutzer. */
+    @Transactional
+    public void unshareDocument(String documentId, String userId, User admin) {
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        User grantee = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User not found"));
+        shareRepository.deleteByDocumentAndSharedWith(document, grantee);
+        activityLogService.log(admin, "UNSHARE", "DOCUMENT", document.getId(), document.getFileName());
+    }
+
+    /** Grantees eines Dokuments (für die Admin-Freigabeverwaltung). */
+    public List<java.util.Map<String, String>> getSharedUsers(String documentId) {
+        Document document = documentRepository.findById(documentId).orElseThrow(() -> new NoSuchElementException("Document not found"));
+        return shareRepository.findByDocument(document).stream()
+            .map(share -> java.util.Map.of(
+                "userId", share.getSharedWith().getId(),
+                "name", share.getSharedWith().getFirstName() + " " + share.getSharedWith().getLastName()))
+            .collect(Collectors.toList());
+    }
+
+    /** Zentrale Zugriffsregel: ADMIN, Eigentümer oder mit dem Benutzer geteilt. */
+    public boolean canAccess(User user, Document document) {
+        return isAdmin(user)
+            || document.getUploadedBy().getId().equals(user.getId())
+            || shareRepository.existsByDocumentAndSharedWith(document, user);
+    }
+
     public String getDocumentFilePath(String documentId, User user) {
         Document document = documentRepository.findByIdAndUploadedBy(documentId, user).orElseThrow(() -> new NoSuchElementException("Document not found"));
         return document.getStoragePath();
-    }
-
-    private boolean isStaff(User user) {
-        return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()) || "CONSULTANT".equals(role.getName()));
     }
 
     private boolean isAdmin(User user) {
@@ -99,10 +155,12 @@ public class DocumentService {
         return DocumentDto.builder().id(document.getId()).fileName(document.getFileName()).storagePath(document.getStoragePath()).contentType(document.getContentType()).fileSize(document.getFileSize()).folderId(document.getFolder() != null ? document.getFolder().getId() : null).uploadedById(document.getUploadedBy().getId()).uploadedByName(document.getUploadedBy().getFirstName() + " " + document.getUploadedBy().getLastName()).description(document.getDescription()).createdAt(document.getCreatedAt()).updatedAt(document.getUpdatedAt()).build();
     }
 
-    public DocumentService(final DocumentRepository documentRepository, final FolderRepository folderRepository, final FileStorageService fileStorageService, final ActivityLogService activityLogService) {
+    public DocumentService(final DocumentRepository documentRepository, final FolderRepository folderRepository, final FileStorageService fileStorageService, final ActivityLogService activityLogService, final DocumentShareRepository shareRepository, final UserRepository userRepository) {
         this.documentRepository = documentRepository;
         this.folderRepository = folderRepository;
         this.fileStorageService = fileStorageService;
         this.activityLogService = activityLogService;
+        this.shareRepository = shareRepository;
+        this.userRepository = userRepository;
     }
 }
