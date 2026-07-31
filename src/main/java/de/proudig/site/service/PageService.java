@@ -52,6 +52,31 @@ public class PageService {
         return pages.map(this::mapToDto);
     }
 
+    public org.springframework.data.domain.Page<PageDto> getPublishedOfferings(Pageable pageable) {
+        org.springframework.data.domain.Page<Page> pages = pageRepository.findByCategoryAndStatus(PageCategory.OFFERING, PageStatus.PUBLISHED, pageable);
+        return pages.map(this::mapToDto);
+    }
+
+    /**
+     * Veröffentlichte Offerings, gefiltert auf einen exakten ganzen Tag (kein
+     * LIKE-Substring: "Beratung" matcht NICHT "Strategieberatung"). Bei kleinem
+     * Offering-Volumen unkritisch als In-Memory-Filter; bei Wachstum auf JPQL
+     * mit Token-Match umstellen.
+     */
+    public org.springframework.data.domain.Page<PageDto> getPublishedOfferingsByTag(String tag, Pageable pageable) {
+        List<Page> all = pageRepository
+            .findByCategoryAndStatus(PageCategory.OFFERING, PageStatus.PUBLISHED, Pageable.unpaged())
+            .getContent();
+        List<PageDto> filtered = all.stream()
+            .filter(p -> p.getTagsList().contains(tag))
+            .map(this::mapToDto)
+            .collect(Collectors.toList());
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<PageDto> content = start >= filtered.size() ? List.of() : filtered.subList(start, end);
+        return new PageImpl<>(content, pageable, filtered.size());
+    }
+
     public PageDto getBySlug(String slug) {
         Page page = pageRepository.findBySlug(slug).orElseThrow(() -> new NoSuchElementException("Page not found: " + slug));
         if (page.getStatus() != PageStatus.PUBLISHED) {

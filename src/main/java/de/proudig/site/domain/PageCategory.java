@@ -4,5 +4,6 @@ public enum PageCategory {
     BLOG,
     SEMINAR,
     NEWS,
-    STATIC
+    STATIC,
+    OFFERING
 }

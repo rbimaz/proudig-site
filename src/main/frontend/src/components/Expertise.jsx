@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Presentation,
   MessageSquare,
@@ -8,6 +9,15 @@ import {
   Brain
 } from './Icons';
 import { useFadeUp } from '../hooks/useFadeUp';
+import { OFFERINGS } from '../config/offerings';
+
+// Ziel je Leistungs-Karte: Weiterbildung -> bestehende Seminar-Übersicht,
+// übrige Karten -> Offering-Übersicht ihres Tags (Key aus der zentralen Config).
+const targetFor = (title) => {
+  if (title === 'Weiterbildung') return '/seminare';
+  const offering = OFFERINGS.find((o) => o.title === title);
+  return offering ? `/offerings/${offering.key}` : null;
+};
 
 export const Expertise = () => {
   const { ref, isVisible } = useFadeUp();
@@ -57,9 +67,11 @@ export const Expertise = () => {
         <div className="expertise-grid">
           {items.map((item, index) => {
             const Icon = item.icon;
+            const to = targetFor(item.title);
             return (
-              <div
+              <Link
                 key={index}
+                to={to}
                 className={`expertise-card fade-up ${isVisible ? 'visible' : ''}`}
                 style={{ transitionDelay: `${index * 50}ms` }}
               >
@@ -68,7 +80,7 @@ export const Expertise = () => {
                 </div>
                 <h3 className="expertise-title">{item.title}</h3>
                 <p className="expertise-description">{item.description}</p>
-              </div>
+              </Link>
             );
           })}
         </div>

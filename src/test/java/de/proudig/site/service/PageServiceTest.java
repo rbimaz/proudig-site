@@ -57,4 +57,30 @@ class PageServiceTest {
         assertThat(result.getContent().get(0).getSlug()).isEqualTo("news-1");
         assertThat(result.getContent().get(0).getCategory()).isEqualTo(PageCategory.NEWS);
     }
+
+    @Test
+    @DisplayName("getPublishedOfferingsByTag matcht nur den exakten ganzen Tag, nicht Teilzeichenketten")
+    void getPublishedOfferingsByTagExactMatch() {
+        User author = new User();
+        author.setId("a1");
+        author.setFirstName("Anna");
+        author.setLastName("Autor");
+        Page beratung = Page.builder()
+                .id("o1").slug("beratung-1").title("Beratung 1")
+                .category(PageCategory.OFFERING).status(PageStatus.PUBLISHED)
+                .tags("Beratung, Digitalisierung").author(author).build();
+        Page strategieberatung = Page.builder()
+                .id("o2").slug("strategie-1").title("Strategieberatung 1")
+                .category(PageCategory.OFFERING).status(PageStatus.PUBLISHED)
+                .tags("Strategieberatung").author(author).build();
+
+        when(pageRepository.findByCategoryAndStatus(PageCategory.OFFERING, PageStatus.PUBLISHED, Pageable.unpaged()))
+                .thenReturn(new PageImpl<>(List.of(beratung, strategieberatung)));
+
+        org.springframework.data.domain.Page<PageDto> result =
+                pageService.getPublishedOfferingsByTag("Beratung", PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getSlug()).isEqualTo("beratung-1");
+    }
 }

@@ -93,7 +93,11 @@ export const PageEditor = ({ category }) => {
   const handleChange = (field, value) => {
     setData(prev => {
       const updated = { ...prev, [field]: value };
-      if (field === 'title') {
+      // Slug nur bei neuen Seiten automatisch aus dem Titel ableiten. Bei
+      // bestehenden Seiten würde das die URL still überschreiben (bricht Links
+      // und kann mit einem vorhandenen Slug kollidieren). Slug bleibt manuell
+      // im eigenen Feld editierbar.
+      if (field === 'title' && isNew) {
         updated.slug = slugify(value);
       }
       return updated;
