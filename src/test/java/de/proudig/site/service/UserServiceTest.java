@@ -50,6 +50,7 @@ class UserServiceTest {
     @Mock private RefreshTokenRepository refreshTokenRepository;
     @Mock private ActivityLogRepository activityLogRepository;
     @Mock private ExternalShareLinkRepository externalShareLinkRepository;
+    @Mock private de.proudig.site.repository.DocumentShareRepository documentShareRepository;
     @Mock private ContentBlockRepository contentBlockRepository;
     @Mock private FolderRepository folderRepository;
     @Mock private DocumentRepository documentRepository;

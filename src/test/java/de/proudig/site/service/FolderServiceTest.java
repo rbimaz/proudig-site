@@ -298,13 +298,14 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Consultant, When Root-Ordner, Then alle Ordner")
-        void consultantSeesAllRootFolders() {
-            when(folderRepository.findByParentFolderIsNull()).thenReturn(List.of(testFolder));
+        @DisplayName("Given Consultant, When Root-Ordner, Then nur eigene")
+        void consultantSeesOnlyOwnRootFolders() {
+            when(folderRepository.findByOwnerAndParentFolderIsNull(consultant)).thenReturn(List.of(testFolder));
 
             List<FolderDto> result = folderService.getRootFolders(consultant);
 
             assertThat(result).hasSize(1);
+            verify(folderRepository, never()).findByParentFolderIsNull();
         }
 
         @Test
@@ -340,11 +341,11 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Personal, When fremder Einzelordner, Then via findById")
-        void staffCanGetForeignFolderById() {
+        @DisplayName("Given Admin, When fremder Einzelordner, Then via findById")
+        void adminCanGetForeignFolderById() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
 
-            FolderDto result = folderService.getFolderById("folder-id", consultant);
+            FolderDto result = folderService.getFolderById("folder-id", admin);
 
             assertThat(result.getId()).isEqualTo("folder-id");
             verify(folderRepository, never()).findByIdAndOwner(any(), any());

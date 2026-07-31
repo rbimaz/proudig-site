@@ -14,7 +14,8 @@ const PortalLayoutInner = () => {
   const isDocumentsPage = location.pathname === '/admin/portal/documents';
 
   const navItems = [
-    { label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' },
+    // Dashboard nutzt ADMIN-only Portal-Statistiken -> nur für Admins.
+    ...(isAdmin() ? [{ label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' }] : []),
     { label: 'Meine Dokumente', path: '/admin/portal/documents', icon: 'bi-folder-fill' },
     ...(isAdmin() ? [{ label: 'Benutzer', path: '/admin/portal/users', icon: 'bi-people-fill' }] : [])
   ];

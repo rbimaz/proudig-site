@@ -32,7 +32,8 @@ export const AdminHome = () => {
   };
 
   const handlePortalClick = () => {
-    navigate('/admin/portal');
+    // Consultants haben kein Portal-Dashboard -> direkt zu den Dokumenten.
+    navigate(isAdmin() ? '/admin/portal' : '/admin/portal/documents');
   };
 
   return (
@@ -83,14 +84,14 @@ export const AdminHome = () => {
             </div>
           )}
 
-          {hasRole('ADMIN') && (
+          {(hasRole('ADMIN') || hasRole('CONSULTANT')) && (
             <div className="admin-home-card" onClick={handlePortalClick} role="button" tabIndex={0}>
               <div className="admin-home-card-icon">
                 <i className="bi bi-folder-fill"></i>
               </div>
               <h2>Dokumenten-Portal</h2>
               <p>Dokumente hochladen, teilen, verwalten</p>
-              <span className="admin-home-card-hint">Nur Administratoren</span>
+              <span className="admin-home-card-hint">{hasRole('ADMIN') ? 'Administratoren & Consultants' : 'Eigene & geteilte Dokumente'}</span>
             </div>
           )}
 

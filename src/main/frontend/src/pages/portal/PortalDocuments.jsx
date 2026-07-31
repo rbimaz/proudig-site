@@ -4,6 +4,7 @@ import { useFolderTree } from '../../contexts/FolderTreeContext';
 import { ActionButton, ActionButtonGroup } from '../../components/ActionButton';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ShareLinkDialog } from './ShareLinkDialog';
+import { InternalShareDialog } from './InternalShareDialog';
 
 /**
  * Portal "Meine Dokumente" - Option 4 (Toolbar-geführt, kompakt)
@@ -17,10 +18,13 @@ import { ShareLinkDialog } from './ShareLinkDialog';
 export const PortalDocuments = () => {
   const { authFetch, user } = useAuth();
   const isStaff = !!user?.roles?.some(r => r === 'ADMIN' || r === 'CONSULTANT');
+  const isAdmin = !!user?.roles?.includes('ADMIN');
   const { currentFolderId, setCurrentFolderId, folderPath, setFolderPath, triggerRefresh } = useFolderTree();
   const [folders, setFolders] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [sharedWithMe, setSharedWithMe] = useState([]);
   const [shareTarget, setShareTarget] = useState(null);
+  const [internalShareTarget, setInternalShareTarget] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -58,6 +62,14 @@ export const PortalDocuments = () => {
       else setFolders([]);
       if (docsRes.ok) setDocuments(await docsRes.json());
       else setDocuments([]);
+
+      // "Mit mir geteilt" nur auf Stammebene laden (geteilte Docs liegen flach).
+      if (!currentFolderId) {
+        const sharedRes = await authFetch('/api/documents/shared-with-me');
+        setSharedWithMe(sharedRes.ok ? await sharedRes.json() : []);
+      } else {
+        setSharedWithMe([]);
+      }
     } catch (err) {
       console.error('Fehler beim Laden:', err);
       setError('Fehler beim Laden der Inhalte');
@@ -465,6 +477,13 @@ export const PortalDocuments = () => {
                           label="Extern teilen"
                           onClick={() => setShareTarget({ type: 'DOCUMENT', id: row.data.id, name: row.data.fileName })}
                         />
+                        {isAdmin && (
+                          <ActionButton
+                            icon="bi-people"
+                            label="Intern teilen"
+                            onClick={() => setInternalShareTarget(row.data)}
+                          />
+                        )}
                         <ActionButton
                           icon="bi-trash"
                           label="Löschen"
@@ -482,6 +501,38 @@ export const PortalDocuments = () => {
                 <p>Noch keine Elemente</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Mit mir geteilt - nur auf Stammebene und wenn vorhanden */}
+      {!loading && !currentFolderId && sharedWithMe.length > 0 && (
+        <div className="pd-list-block">
+          <div className="pd-title-block" style={{ marginBottom: '0.5rem' }}>
+            <span className="pd-title-icon"><i className="bi bi-people-fill"></i></span>
+            <h1 style={{ fontSize: '1.1rem' }}>Mit mir geteilt</h1>
+          </div>
+          <div className="pd-list-card">
+            {sharedWithMe.map((doc) => (
+              <div key={`shared-${doc.id}`} className="pd-list-row">
+                <span className="pd-cell-name">
+                  <span className="pd-icon-tile pd-icon-tile-file">
+                    <i className={`bi ${getFileIcon(doc.contentType)}`}></i>
+                  </span>
+                  <span className="pd-name-text">{doc.fileName}</span>
+                </span>
+                <span className="pd-col-size pd-cell-meta">{formatSize(doc.fileSize)}</span>
+                <span className="pd-col-date pd-cell-meta">
+                  {formatDate(doc.createdAt)}
+                  {doc.uploadedByName && <span className="pd-uploader"> · {doc.uploadedByName}</span>}
+                </span>
+                <span className="pd-col-action">
+                  <ActionButtonGroup>
+                    <ActionButton icon="bi-download" label="Download" onClick={() => handleDownload(doc)} />
+                  </ActionButtonGroup>
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -512,6 +563,10 @@ export const PortalDocuments = () => {
 
       {shareTarget && (
         <ShareLinkDialog target={shareTarget} onClose={() => setShareTarget(null)} />
+      )}
+
+      {internalShareTarget && (
+        <InternalShareDialog doc={internalShareTarget} onClose={() => setInternalShareTarget(null)} />
       )}
     </div>
   );

@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'CONSULTANT')")
 public class DocumentController {
     private final DocumentService documentService;
     private final FileStorageService fileStorageService;
@@ -69,15 +69,46 @@ public class DocumentController {
 
     @GetMapping("/{documentId}/download")
     public ResponseEntity<Resource> downloadDocument(@PathVariable String documentId, @RequestParam(defaultValue = "false") boolean inline) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
-            // Portal ist ADMIN-only (Klassen-@PreAuthorize) — Admins dürfen alle Dokumente laden.
-            DocumentDto document = documentService.getDocumentById(documentId);
+            // Zugriffsprüfung erzwingen: Eigentümer, geteilt oder ADMIN.
+            DocumentDto document = documentService.getDocumentForDownload(documentId, user);
             Resource resource = fileStorageService.load(document.getStoragePath(), "documents");
             String contentDisposition = inline ? "inline; filename=\"" + document.getFileName() + "\"" : "attachment; filename=\"" + document.getFileName() + "\"";
             return ResponseEntity.ok().contentType(MediaType.parseMediaType(document.getContentType())).header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition).body(resource);
+        } catch (IllegalAccessError e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/shared-with-me")
+    public ResponseEntity<List<DocumentDto>> getSharedWithMe() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(documentService.getSharedWithMe(user));
+    }
+
+    @GetMapping("/{documentId}/shares")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<Map<String, String>>> getShares(@PathVariable String documentId) {
+        return ResponseEntity.ok(documentService.getSharedUsers(documentId));
+    }
+
+    @PostMapping("/{documentId}/share")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DocumentDto> shareDocument(@PathVariable String documentId, @RequestBody Map<String, String> request) {
+        User admin = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        DocumentDto document = documentService.shareDocument(documentId, request.get("userId"), admin);
+        return ResponseEntity.ok(document);
+    }
+
+    @DeleteMapping("/{documentId}/share/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> unshareDocument(@PathVariable String documentId, @PathVariable String userId) {
+        User admin = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        documentService.unshareDocument(documentId, userId, admin);
+        return ResponseEntity.noContent().build();
     }
 
     public DocumentController(final DocumentService documentService, final FileStorageService fileStorageService) {

@@ -22,5 +22,6 @@
     <include file="db/changelog/016-activity-log-nullable-user.xml"/>
     <include file="db/changelog/017-impressum-markdown-seed.xml"/>
     <include file="db/changelog/018-external-share-links.xml"/>
+    <include file="db/changelog/019-document-shares.xml"/>
 
 </databaseChangeLog>
