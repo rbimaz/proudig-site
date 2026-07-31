@@ -35,6 +35,7 @@ export const AdminLayout = () => {
     { label: 'Blog', path: '/admin/cms/blog', icon: 'bi-pencil-square' },
     { label: 'News', path: '/admin/cms/news', icon: 'bi-newspaper' },
     { label: 'Seminare', path: '/admin/cms/seminare', icon: 'bi-mortarboard-fill' },
+    { label: 'Leistungen', path: '/admin/cms/offerings', icon: 'bi-briefcase' },
     { label: 'Mediathek', path: '/admin/cms/media', icon: 'bi-images' },
     { label: 'Nachrichten', path: '/admin/cms/nachrichten', icon: 'bi-envelope-fill', badge: unreadCount },
     ...(hasRole('ADMIN') ? [{ label: 'Einstellungen', path: '/admin/cms/einstellungen', icon: 'bi-gear-fill' }] : []),

@@ -18,6 +18,8 @@ import { SeminarePage } from './pages/SeminarePage';
 import { SeminarDetailPage } from './pages/SeminarDetailPage';
 import { NewsPage } from './pages/NewsPage';
 import { NewsPostPage } from './pages/NewsPostPage';
+import { OfferingOverviewPage } from './pages/OfferingOverviewPage';
+import { OfferingDetailPage } from './pages/OfferingDetailPage';
 
 // Admin pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -30,6 +32,7 @@ import { BlogList } from './pages/admin/BlogList';
 import { PageEditor } from './pages/admin/PageEditor';
 import { SeminarList } from './pages/admin/SeminarList';
 import { NewsList } from './pages/admin/NewsList';
+import { OfferingList } from './pages/admin/OfferingList';
 import { Settings } from './pages/admin/Settings';
 import { MediaLibrary } from './pages/admin/MediaLibrary';
 import { MessageList } from './pages/admin/MessageList';
@@ -85,6 +88,8 @@ function AppContent() {
         <Route path="/seminare/:slug" element={<SeminarDetailPage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/:slug" element={<NewsPostPage />} />
+        <Route path="/offerings/:key" element={<OfferingOverviewPage />} />
+        <Route path="/offerings/:key/:slug" element={<OfferingDetailPage />} />
 
         {/* Öffentliche externe Freigabe-Links (login-frei) */}
         <Route path="/s/:token" element={<PublicShareView />} />
@@ -105,6 +110,9 @@ function AppContent() {
           <Route path="seminare" element={<SeminarList />} />
           <Route path="seminare/new" element={<PageEditor category="SEMINAR" />} />
           <Route path="seminare/:id" element={<PageEditor category="SEMINAR" />} />
+          <Route path="offerings" element={<OfferingList />} />
+          <Route path="offerings/new" element={<PageEditor category="OFFERING" />} />
+          <Route path="offerings/:id" element={<PageEditor category="OFFERING" />} />
           <Route path="news" element={<NewsList />} />
           <Route path="news/new" element={<PageEditor category="NEWS" />} />
           <Route path="news/:id" element={<PageEditor category="NEWS" />} />
