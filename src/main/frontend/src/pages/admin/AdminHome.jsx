@@ -32,8 +32,8 @@ export const AdminHome = () => {
   };
 
   const handlePortalClick = () => {
-    // Consultants haben kein Portal-Dashboard -> direkt zu den Dokumenten.
-    navigate(isAdmin() ? '/admin/portal' : '/admin/portal/documents');
+    // Nur ADMIN hat das Portal-Dashboard; Consultants direkt zu den Dokumenten.
+    navigate(hasRole('ADMIN') ? '/admin/portal' : '/admin/portal/documents');
   };
 
   return (
@@ -80,7 +80,7 @@ export const AdminHome = () => {
               </div>
               <h2>Content-Management</h2>
               <p>Website-Inhalte, Blog, Seminare, Mediathek</p>
-              <span className="admin-home-card-hint">Für Administratoren</span>
+              <span className="admin-home-card-hint">Administratoren & Consultants</span>
             </div>
           )}
 
@@ -102,7 +102,7 @@ export const AdminHome = () => {
               </div>
               <h2>Nachrichten</h2>
               <p>Kontaktanfragen bearbeiten</p>
-              <span className="admin-home-card-hint">Für Administratoren</span>
+              <span className="admin-home-card-hint">Administratoren & Consultants</span>
               {unreadCount > 0 && <span className="card-badge">{unreadCount}</span>}
             </div>
           )}

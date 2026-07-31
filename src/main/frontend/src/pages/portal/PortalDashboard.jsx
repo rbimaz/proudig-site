@@ -3,8 +3,9 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const PortalDashboard = () => {
-  const { authFetch, isAdmin } = useAuth();
-  const admin = isAdmin();
+  const { authFetch, hasRole } = useAuth();
+  // Echtes ADMIN-only (isAdmin() = ADMIN||CONSULTANT wäre hier zu weit).
+  const admin = hasRole('ADMIN');
   const [stats, setStats] = useState({
     recentUploads: [],
     recentShares: [],

@@ -6,7 +6,7 @@ import { FolderTree } from '../../components/FolderTree';
 import { UserMenu } from '../../components/UserMenu';
 
 const PortalLayoutInner = () => {
-  const { isAdmin } = useAuth();
+  const { hasRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -14,10 +14,10 @@ const PortalLayoutInner = () => {
   const isDocumentsPage = location.pathname === '/admin/portal/documents';
 
   const navItems = [
-    // Dashboard nutzt ADMIN-only Portal-Statistiken -> nur für Admins.
-    ...(isAdmin() ? [{ label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' }] : []),
+    // Dashboard (ADMIN-only Statistiken) und Benutzerverwaltung nur für ADMIN.
+    ...(hasRole('ADMIN') ? [{ label: 'Dashboard', path: '/admin/portal', icon: 'bi-grid-1x2-fill' }] : []),
     { label: 'Meine Dokumente', path: '/admin/portal/documents', icon: 'bi-folder-fill' },
-    ...(isAdmin() ? [{ label: 'Benutzer', path: '/admin/portal/users', icon: 'bi-people-fill' }] : [])
+    ...(hasRole('ADMIN') ? [{ label: 'Benutzer', path: '/admin/portal/users', icon: 'bi-people-fill' }] : [])
   ];
 
   return (
