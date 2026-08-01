@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserMenu } from '../../components/UserMenu';
 
 export const AdminHome = () => {
-  const { user, logout, isAdmin, hasRole, authFetch } = useAuth();
+  const { user, isAdmin, hasRole, authFetch } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -22,11 +23,6 @@ export const AdminHome = () => {
     if (isAdmin()) fetchUnread();
   }, [isAdmin, authFetch]);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/admin/login');
-  };
-
   const handleCmsClick = () => {
     navigate('/admin/cms');
   };
@@ -44,16 +40,7 @@ export const AdminHome = () => {
           <span>rouDig</span>
         </div>
         <div className="admin-home-user">
-          <div className="user-info">
-            <i className="bi bi-person-circle user-avatar"></i>
-            <div className="user-details">
-              <span className="user-name">{user?.firstName} {user?.lastName}</span>
-              <span className="user-email">{user?.email}</span>
-            </div>
-          </div>
-          <button className="btn-logout" onClick={handleLogout}>
-            <i className="bi bi-box-arrow-right"></i> Abmelden
-          </button>
+          <UserMenu />
         </div>
       </header>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const AdminDashboard = () => {
@@ -46,11 +47,11 @@ export const AdminDashboard = () => {
   if (loading) return <div className="loading"><i className="bi bi-arrow-repeat spin"></i> Laden...</div>;
 
   const cards = [
-    { label: 'News', icon: 'bi-newspaper', value: stats.news },
-    { label: 'Blog-Beiträge', icon: 'bi-pencil-square', value: stats.blogPosts },
-    { label: 'Seminare', icon: 'bi-mortarboard-fill', value: stats.seminars },
-    { label: 'Mediathek', icon: 'bi-images', value: stats.media },
-    { label: 'Kontaktanfragen', icon: 'bi-envelope-fill', value: stats.messages }
+    { label: 'News', icon: 'bi-newspaper', value: stats.news, to: '/admin/cms/news' },
+    { label: 'Blog-Beiträge', icon: 'bi-pencil-square', value: stats.blogPosts, to: '/admin/cms/blog' },
+    { label: 'Seminare', icon: 'bi-mortarboard-fill', value: stats.seminars, to: '/admin/cms/seminare' },
+    { label: 'Mediathek', icon: 'bi-images', value: stats.media, to: '/admin/cms/media' },
+    { label: 'Kontaktanfragen', icon: 'bi-envelope-fill', value: stats.messages, to: '/admin/cms/nachrichten' }
   ];
 
   return (
@@ -62,13 +63,13 @@ export const AdminDashboard = () => {
 
       <div className="dashboard-grid">
         {cards.map(card => (
-          <div className="stat-card" key={card.label}>
+          <Link className="stat-card" key={card.label} to={card.to}>
             <div className="stat-icon"><i className={`bi ${card.icon}`}></i></div>
             <div className="stat-content">
               <h3>{card.label}</h3>
               <p className="stat-number">{card.value}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
