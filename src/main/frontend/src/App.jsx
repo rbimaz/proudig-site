@@ -71,7 +71,7 @@ function AppContent() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${isStaticPage ? 'static-layout' : ''}`}>
       {!hideNavbar && <Navbar theme={theme} />}
       {/* ThemeToggle hidden — only variant 10 (udig2) is used */}
 
