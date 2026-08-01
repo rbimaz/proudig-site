@@ -13,18 +13,24 @@ export const Footer = () => {
 
           <div className="footer-links">
             <ul>
+
               <li>
-                <Link to="/seite/ueber-proudig">Über Proudig</Link>
+                <Link to="/news">News</Link>
               </li>
+
+              <li>
+                <Link to="/blog">Blog</Link>
+              </li>
+
+              <li>
+                <a href="/datenschutz">Datenschutz</a>
+              </li>
+
               <li>
                 <Link to="/impressum">Impressum</Link>
               </li>
-              <li>
-                <a href="#datenschutz">Datenschutz</a>
-              </li>
-              {/*<li>
-                <a href="#agb">AGB</a>
-              </li>*/}
+
+
             </ul>
           </div>
         </div>
