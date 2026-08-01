@@ -29,7 +29,7 @@ class SettingServiceTest {
     @BeforeEach
     void setUp() {
         Clock fixed = Clock.fixed(Instant.parse("2026-06-01T00:00:00Z"), ZoneOffset.UTC);
-        settingService = new SettingService(settingRepository, fixed, "", "90d", "0 0 * * * *");
+        settingService = new SettingService(settingRepository, fixed, "", "90d", "0 0 * * * *", "false");
     }
 
     @Test
@@ -66,6 +66,28 @@ class SettingServiceTest {
     @DisplayName("Ungültige Duration wird beim Setzen abgewiesen")
     void rejectsInvalidDuration() {
         assertThatThrownBy(() -> settingService.set(SettingService.KEY_ARCHIVE_RETENTION, "30x", null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Launch-Status: ohne DB-Wert greift der Default false")
+    void siteLaunchedFallsBackToFalse() {
+        when(settingRepository.findById(SettingService.KEY_SITE_LAUNCHED)).thenReturn(Optional.empty());
+        assertThat(settingService.isSiteLaunched()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Launch-Status: DB-Wert true schaltet die Site live")
+    void siteLaunchedDbValueTrue() {
+        when(settingRepository.findById(SettingService.KEY_SITE_LAUNCHED))
+                .thenReturn(Optional.of(new Setting(SettingService.KEY_SITE_LAUNCHED, "true")));
+        assertThat(settingService.isSiteLaunched()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Launch-Status: Nicht-Boolean wird beim Setzen abgewiesen")
+    void rejectsNonBooleanLaunched() {
+        assertThatThrownBy(() -> settingService.set(SettingService.KEY_SITE_LAUNCHED, "vielleicht", null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

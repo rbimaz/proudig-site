@@ -51,6 +51,8 @@ import { PortalUserForm } from './pages/portal/PortalUserForm';
 function AppContent() {
   const [theme, setTheme] = useState('udig2');
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('proudig-preview') === 'true');
+  // Launch-Status: null = noch unbekannt (wird geladen), true = Site live, false = Coming Soon.
+  const [launched, setLaunched] = useState(null);
   const location = useLocation();
 
   const isStaticPage = location.pathname === '/impressum' || location.pathname === '/datenschutz' || location.pathname.startsWith('/seite/');
@@ -62,11 +64,24 @@ function AppContent() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Launch-Status vom öffentlichen Endpoint holen. Fehler = fail-safe „nicht live".
+  useEffect(() => {
+    let active = true;
+    fetch('/api/public/site-status')
+      .then((res) => (res.ok ? res.json() : { launched: false }))
+      .then((data) => { if (active) setLaunched(!!data.launched); })
+      .catch(() => { if (active) setLaunched(false); });
+    return () => { active = false; };
+  }, []);
+
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
   };
 
-  if (!unlocked && !isPublicShare) {
+  const gateOpen = unlocked || isPublicShare || launched === true;
+  if (!gateOpen) {
+    // Status noch nicht geladen: weder Inhalt noch Coming Soon zeigen (kein Aufblitzen).
+    if (launched === null) return null;
     return <ComingSoon onUnlock={() => setUnlocked(true)} />;
   }
 

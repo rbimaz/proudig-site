@@ -8,6 +8,8 @@ public class NewsSettingsDto {
     private String defaultArchiveAfter;
     private String archiveRetention;
     private String lifecycleCron;
+    /** Launch-Status der öffentlichen Website (Setting site.launched). */
+    private boolean launched;
 
     public NewsSettingsDto() {
     }
@@ -40,5 +42,13 @@ public class NewsSettingsDto {
 
     public void setLifecycleCron(String lifecycleCron) {
         this.lifecycleCron = lifecycleCron;
+    }
+
+    public boolean isLaunched() {
+        return launched;
+    }
+
+    public void setLaunched(boolean launched) {
+        this.launched = launched;
     }
 }

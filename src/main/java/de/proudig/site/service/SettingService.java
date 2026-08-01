@@ -22,22 +22,26 @@ public class SettingService {
     public static final String KEY_DEFAULT_ARCHIVE_AFTER = "news.default-archive-after";
     public static final String KEY_ARCHIVE_RETENTION = "news.archive-retention";
     public static final String KEY_LIFECYCLE_CRON = "news.lifecycle-cron";
+    public static final String KEY_SITE_LAUNCHED = "site.launched";
 
     private final SettingRepository settingRepository;
     private final Clock clock;
     private final String defaultArchiveAfterFallback;
     private final String archiveRetentionFallback;
     private final String lifecycleCronFallback;
+    private final String siteLaunchedFallback;
 
     public SettingService(SettingRepository settingRepository, Clock clock,
                           @Value("${app.news.default-archive-after:}") String defaultArchiveAfterFallback,
                           @Value("${app.news.archive-retention:90d}") String archiveRetentionFallback,
-                          @Value("${app.news.lifecycle-cron:0 0 * * * *}") String lifecycleCronFallback) {
+                          @Value("${app.news.lifecycle-cron:0 0 * * * *}") String lifecycleCronFallback,
+                          @Value("${app.site.launched:false}") String siteLaunchedFallback) {
         this.settingRepository = settingRepository;
         this.clock = clock;
         this.defaultArchiveAfterFallback = defaultArchiveAfterFallback;
         this.archiveRetentionFallback = archiveRetentionFallback;
         this.lifecycleCronFallback = lifecycleCronFallback;
+        this.siteLaunchedFallback = siteLaunchedFallback;
     }
 
     /** Löst einen Wert auf: DB-Wert (falls gesetzt) vor Property-Fallback. */
@@ -77,6 +81,13 @@ public class SettingService {
         return getString(KEY_LIFECYCLE_CRON, lifecycleCronFallback);
     }
 
+    // ── Launch-Status der öffentlichen Website ──
+
+    /** true = Site ist live (keine „Coming Soon"-Sperre); Default false. */
+    public boolean isSiteLaunched() {
+        return Boolean.parseBoolean(getString(KEY_SITE_LAUNCHED, siteLaunchedFallback));
+    }
+
     /** Prüft das Format bekannter Einstellungen; wirft IllegalArgumentException bei Ungültigkeit. */
     public void validate(String key, String value) {
         switch (key) {
@@ -90,6 +101,11 @@ public class SettingService {
             case KEY_LIFECYCLE_CRON -> {
                 if (value == null || !CronExpression.isValidExpression(value)) {
                     throw new IllegalArgumentException("Ungültiger Cron-Ausdruck: " + value);
+                }
+            }
+            case KEY_SITE_LAUNCHED -> {
+                if (!"true".equals(value) && !"false".equals(value)) {
+                    throw new IllegalArgumentException("Ungültiger Boolean-Wert: " + value);
                 }
             }
             default -> throw new IllegalArgumentException("Unbekannter Einstellungs-Schlüssel: " + key);
