@@ -27,6 +27,10 @@ export const Navbar = ({ theme }) => {
     navigate('/impressum');
     setMobileOpen(false);
   };
+  const goToUeber = () => {
+    navigate('/seite/ueber-proudig');
+    setMobileOpen(false);
+  };
   const goToHome = () => {
     navigate('/');
     setMobileOpen(false);
@@ -66,7 +70,7 @@ export const Navbar = ({ theme }) => {
           </a>
           <ul className="nav-links">
             <li><button className="nav-link" onClick={() => scrollTo('leistungen')}>Leistungen</button></li>
-            <li><button className="nav-link" onClick={() => scrollTo('ueber')}>Über Proudig</button></li>
+            <li><button className="nav-link" onClick={goToUeber}>Über Proudig</button></li>
             <li><button className="nav-link" onClick={() => scrollTo('prozess')}>Prozess</button></li>
             <li><button className="nav-link" onClick={goToNews}>News</button></li>
             {/*<li><button className="nav-link" onClick={goToBlog}>Blog</button></li>
@@ -88,7 +92,7 @@ export const Navbar = ({ theme }) => {
             <X width={32} height={32} />
           </button>
           <button className="mobile-link" onClick={() => scrollTo('leistungen')}>Leistungen</button>
-          <button className="mobile-link" onClick={() => scrollTo('ueber')}>Über Proudig</button>
+          <button className="mobile-link" onClick={goToUeber}>Über Proudig</button>
           <button className="mobile-link" onClick={goToNews}>News</button>
           <button className="mobile-link" onClick={goToBlog}>Blog</button>
           <button className="mobile-link" onClick={goToSeminare}>Seminare</button>

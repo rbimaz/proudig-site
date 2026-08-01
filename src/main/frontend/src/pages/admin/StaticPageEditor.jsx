@@ -14,6 +14,8 @@ export const StaticPageEditor = () => {
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [eyebrow, setEyebrow] = useState('');
   const [status, setStatus] = useState('draft');
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
@@ -34,6 +36,8 @@ export const StaticPageEditor = () => {
         setTitle(page.title || '');
         setSlug(page.slug || '');
         setContent(page.content || '');
+        setExcerpt(page.excerpt || '');
+        setEyebrow(page.metaData || '');
         setStatus(page.status || 'draft');
       }
     } catch (err) {
@@ -56,7 +60,7 @@ export const StaticPageEditor = () => {
     try {
       const method = isNew ? 'POST' : 'PUT';
       const url = isNew ? '/api/admin/pages' : `/api/admin/pages/${id}`;
-      const body = { title, slug, category: 'STATIC', content };
+      const body = { title, slug, category: 'STATIC', content, excerpt, metaData: eyebrow };
 
       const res = await authFetch(url, {
         method,
@@ -90,7 +94,7 @@ export const StaticPageEditor = () => {
         const saveRes = await authFetch('/api/admin/pages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, slug, category: 'STATIC', content })
+          body: JSON.stringify({ title, slug, category: 'STATIC', content, excerpt, metaData: eyebrow })
         });
         if (!saveRes.ok) throw new Error('Speichern fehlgeschlagen');
         const saved = await saveRes.json();
@@ -107,7 +111,7 @@ export const StaticPageEditor = () => {
         await authFetch(`/api/admin/pages/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, slug, category: 'STATIC', content })
+          body: JSON.stringify({ title, slug, category: 'STATIC', content, excerpt, metaData: eyebrow })
         });
 
         const res = await authFetch(`/api/admin/pages/${id}/publish`, { method: 'PUT' });
@@ -145,12 +149,30 @@ export const StaticPageEditor = () => {
       {/* Title & Slug */}
       <div className="static-editor-meta">
         <div className="form-group">
+          <label>Eyebrow (kleine Label-Zeile über dem Titel)</label>
+          <input
+            type="text"
+            value={eyebrow}
+            onChange={(e) => setEyebrow(e.target.value)}
+            placeholder="z.B. LEISTUNGEN"
+          />
+        </div>
+        <div className="form-group">
           <label>Seitentitel</label>
           <input
             type="text"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="z.B. Impressum, Leistungen, Datenschutz"
+          />
+        </div>
+        <div className="form-group">
+          <label>Untertitel</label>
+          <input
+            type="text"
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
+            placeholder="Kurzer Untertitel unter dem Titel"
           />
         </div>
         <div className="form-group">

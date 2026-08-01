@@ -77,6 +77,7 @@ export const StaticPageRenderer = ({ slug: fixedSlug }) => {
         <section className="section">
           <div className="container">
             <div className="section-header">
+              {page.metaData && <span className="section-tag">{page.metaData}</span>}
               <h2 className="section-title">{page.title}</h2>
               {page.excerpt && <p className="section-subtitle">{page.excerpt}</p>}
             </div>
