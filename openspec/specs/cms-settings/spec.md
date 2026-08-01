@@ -2,7 +2,6 @@
 
 ## Purpose
 Definiert persistente, über die Admin-UI konfigurierbare Systemeinstellungen (Key-Value) mit Property-Fallback (DB-Wert vor application.properties-Default), ADMIN-beschränkte Verwaltung und die hier genutzten News-Lebenszyklus-Defaults.
-
 ## Requirements
 ### Requirement: Persistente Systemeinstellungen mit Property-Fallback
 
@@ -50,3 +49,23 @@ Die Admin-Einstellungsseite SHALL die folgenden News-Lebenszyklus-Defaults anzei
 
 - **WHEN** ein ADMIN einen Duration- oder Cron-Wert im falschen Format speichern will
 - **THEN** wird die Eingabe als ungültig zurückgewiesen und der bisherige Wert bleibt erhalten
+
+### Requirement: Launch-Umschalter in der Admin-Einstellungsseite
+
+Die Admin-Einstellungsseite SHALL einen Umschalter „Website live schalten"
+bereitstellen, der die persistente Einstellung `site.launched` liest und setzt. Der
+Umschalter SHALL reversibel sein (Site wieder auf „Coming Soon" schalten) und wie
+alle Systemeinstellungen ausschließlich der Rolle `ADMIN` zugänglich sein.
+
+#### Scenario: Site über die Einstellungen live schalten
+
+- **WHEN** ein ADMIN den Umschalter aktiviert und speichert
+- **THEN** wird `site.launched = true` persistiert und die Website ist ohne
+  „Coming Soon"-Sperre öffentlich erreichbar
+
+#### Scenario: Launch zurücknehmen
+
+- **WHEN** ein ADMIN den Umschalter deaktiviert und speichert
+- **THEN** wird `site.launched = false` persistiert und die „Coming Soon"-Sperre
+  gilt wieder (Preview-Zugang ausgenommen)
+

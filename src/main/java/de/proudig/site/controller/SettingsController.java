@@ -25,10 +25,12 @@ public class SettingsController {
 
     @GetMapping
     public ResponseEntity<NewsSettingsDto> getSettings() {
-        return ResponseEntity.ok(new NewsSettingsDto(
+        NewsSettingsDto dto = new NewsSettingsDto(
                 settingService.getNewsDefaultArchiveAfter(),
                 settingService.getNewsArchiveRetentionRaw(),
-                settingService.getNewsLifecycleCron()));
+                settingService.getNewsLifecycleCron());
+        dto.setLaunched(settingService.isSiteLaunched());
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping
@@ -38,13 +40,17 @@ public class SettingsController {
 
         // Erst alle Werte validieren, dann persistieren — sonst bliebe bei einem ungültigen
         // Wert ein Teil der Änderungen gespeichert (Spec: bisheriger Wert bleibt erhalten).
+        String launched = String.valueOf(request.isLaunched());
+
         settingService.validate(SettingService.KEY_DEFAULT_ARCHIVE_AFTER, defaultAfter);
         settingService.validate(SettingService.KEY_ARCHIVE_RETENTION, request.getArchiveRetention());
         settingService.validate(SettingService.KEY_LIFECYCLE_CRON, request.getLifecycleCron());
+        settingService.validate(SettingService.KEY_SITE_LAUNCHED, launched);
 
         settingService.set(SettingService.KEY_DEFAULT_ARCHIVE_AFTER, defaultAfter, user);
         settingService.set(SettingService.KEY_ARCHIVE_RETENTION, request.getArchiveRetention(), user);
         settingService.set(SettingService.KEY_LIFECYCLE_CRON, request.getLifecycleCron(), user);
+        settingService.set(SettingService.KEY_SITE_LAUNCHED, launched, user);
         return getSettings();
     }
 

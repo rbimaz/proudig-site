@@ -107,6 +107,25 @@ export const Settings = () => {
 
       <form className="editor-form">
         <div className="form-section">
+          <h3>Website-Status</h3>
+
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={!!settings.launched}
+                onChange={(e) => update('launched', e.target.checked)}
+                style={{ width: 'auto' }}
+              />
+              Website live schalten
+            </label>
+            <small className="form-hint">
+              Aktiviert = Website öffentlich erreichbar. Deaktiviert = „Coming Soon"-Sperre (Vorschau per Passwort bleibt möglich).
+            </small>
+          </div>
+        </div>
+
+        <div className="form-section">
           <h3>News-Lebenszyklus</h3>
 
           <div className="form-group">
