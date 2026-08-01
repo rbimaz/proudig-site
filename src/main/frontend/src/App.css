@@ -3829,6 +3829,16 @@ section {
   transform: translateY(0);
 }
 
+.static-page-inner ul,
+.static-page-inner ol {
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+}
+
+.static-page-inner li {
+  margin-bottom: 0.5rem;
+}
+
 .static-page-loading {
   display: flex;
   flex-direction: column;

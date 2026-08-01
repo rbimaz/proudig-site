@@ -14,6 +14,9 @@ export const Footer = () => {
           <div className="footer-links">
             <ul>
               <li>
+                <Link to="/seite/ueber-proudig">Über Proudig</Link>
+              </li>
+              <li>
                 <Link to="/impressum">Impressum</Link>
               </li>
               <li>
