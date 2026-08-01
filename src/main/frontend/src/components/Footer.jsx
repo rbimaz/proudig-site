@@ -22,9 +22,9 @@ export const Footer = () => {
                 <Link to="/blog">Blog</Link>
               </li>
 
-              <li>
+              {/*<li>
                 <a href="/datenschutz">Datenschutz</a>
-              </li>
+              </li>*/}
 
               <li>
                 <Link to="/impressum">Impressum</Link>

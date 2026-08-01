@@ -83,4 +83,15 @@ class PageServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getSlug()).isEqualTo("beratung-1");
     }
+
+    @Test
+    @DisplayName("getAllTags splittet komma-getrennte Tags und liefert distinct/sortiert")
+    void getAllTagsSplitsAndDedupes() {
+        when(pageRepository.findDistinctTagsByCategoryAndStatus(PageCategory.OFFERING, PageStatus.PUBLISHED))
+                .thenReturn(List.of("Beratung, Digitalisierung", "Studien", "Beratung"));
+
+        List<String> tags = pageService.getAllTags(PageCategory.OFFERING);
+
+        assertThat(tags).containsExactly("Beratung", "Digitalisierung", "Studien");
+    }
 }
