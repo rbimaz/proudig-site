@@ -9,9 +9,7 @@ CTA-Buttons dargestellt; interne Ziele navigieren clientseitig über den
 React-Router, während externe Ziele als Standard-Anchor gerendert werden. Das
 Verhalten gilt konsistent über alle öffentlichen Content-Renderer und die
 Editor-Vorschau im CMS.
-
 ## Requirements
-
 ### Requirement: CTA-Button aus Markdown-Link
 
 CMS-Inhalte SHALL einen Markdown-Link, dessen Title exakt `button` lautet
@@ -84,3 +82,15 @@ Seite.
 - **WHEN** eine Redakteurin im Seiten-Editor `[Jetzt anfragen](/kontakt "button")`
   eingibt und die Vorschau ansieht
 - **THEN** zeigt die Vorschau denselben CTA-Button wie die veröffentlichte Seite
+
+### Requirement: CTA-Button-Größe entspricht dem Navbar-Button
+
+Der CTA-Button (`.btn-cta`, erzeugt über die Markdown-Button-Konvention) SHALL in
+seiner Größe dem Navbar-Button (`.nav-cta`) entsprechen (gleiches Padding und
+Schriftgröße), damit er nicht überdimensioniert wirkt.
+
+#### Scenario: CTA-Button so groß wie Navbar-Button
+
+- **WHEN** ein CTA-Button in gerendertem Markdown-Inhalt angezeigt wird
+- **THEN** hat er dieselbe Größe (Padding, Schriftgröße) wie der Navbar-Button
+

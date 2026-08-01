@@ -635,6 +635,28 @@ body {
   width: 100%;
 }
 
+/* Sticky-Footer nur für STATIC-Seiten: Content füllt den Raum, Footer bleibt unten. */
+.app.static-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.app.static-layout .static-page-content {
+  flex: 1;
+}
+
+/* Sticky-Footer für Content-Seiten mit gemeinsamem .page-Wrapper (Footer als
+   letztes Kind): Footer bleibt bei wenig Inhalt am unteren Rand. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page .footer {
+  margin-top: auto;
+}
+
 /* ============================================================================
    TYPOGRAPHY
    ============================================================================ */
@@ -769,8 +791,9 @@ section {
 }
 
 .btn-cta {
-  padding: 1rem 2.5rem;
-  font-size: 1.125rem;
+  padding: 10px 24px;
+  font-size: 14px;
+  border-radius: 10px;
 }
 
 [data-theme="light"] .btn-cta {
@@ -4282,6 +4305,11 @@ section {
   font-size: 1.05rem;
 }
 
+/* Intro-Block der Offering-Übersicht: gleicher Hintergrund wie Hero/Grid. */
+.offering-intro {
+  background: rgb(240, 242, 245);
+}
+
 .news-list-section {
   padding: 0rem 0 6rem;
 
@@ -4396,7 +4424,7 @@ section {
 }
 
 /* ── Hero-News-Box (Landing 1c) ── */
-.hero-udig2-newsbox { flex: 0 0 440px; align-items: stretch; }
+.hero-udig2-newsbox { flex: 0 0 440px; align-items: stretch; margin-left: auto; }
 .hero-newsbox {
   width: 100%;
   max-width: 440px;
