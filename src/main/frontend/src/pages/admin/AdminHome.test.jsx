@@ -198,8 +198,9 @@ describe('AdminHome', () => {
 
       renderAdminHome(user, () => true);
 
-      const logoutButton = screen.getByText(/Abmelden/);
-      fireEvent.click(logoutButton);
+      // Abmelden liegt jetzt im User-Menü-Dropdown: erst Menü öffnen, dann klicken.
+      fireEvent.click(screen.getByRole('button', { name: /Max Admin/i }));
+      fireEvent.click(screen.getByText(/Abmelden/));
 
       expect(mockLogout).toHaveBeenCalled();
     });
