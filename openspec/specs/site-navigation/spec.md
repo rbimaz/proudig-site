@@ -19,13 +19,15 @@ per Router), statt zum Landing-Anker `#ueber` zu scrollen.
 - **WHEN** ein Nutzer im geöffneten Mobil-Menü auf „Über Proudig" tippt
 - **THEN** navigiert die App auf `/seite/ueber-proudig` und das Mobil-Menü schließt
 
-### Requirement: Footer-Link „Über Proudig"
+### Requirement: Footer-Navigationslinks
 
-Der Footer SHALL einen Link „Über Proudig" enthalten, der auf `/seite/ueber-proudig`
-navigiert.
+Der Footer SHALL die folgenden Navigationslinks enthalten: **News** (`/news`),
+**Blog** (`/blog`), **Datenschutz** (`/datenschutz`) und **Impressum**
+(`/impressum`).
 
-#### Scenario: Footer-Link vorhanden
+#### Scenario: Footer-Links vorhanden
 
 - **WHEN** ein Nutzer den Footer betrachtet
-- **THEN** ist ein Link „Über Proudig" sichtbar, der auf `/seite/ueber-proudig` führt
+- **THEN** sind Links zu News, Blog, Datenschutz und Impressum sichtbar und führen
+  auf die jeweilige Route
 
