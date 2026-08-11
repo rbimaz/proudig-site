@@ -44,6 +44,9 @@ src/main/resources/static/assets/
 ### Portal-Runtime-Uploads ###
 data/
 
+### Environment (echte Secrets — nur .env.example wird versioniert) ###
+.env
+
 ### Claude Code (lokale Overrides) ###
 .claude/settings.local.json
 

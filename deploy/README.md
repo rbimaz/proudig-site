@@ -94,9 +94,66 @@ Standard: `proudig2026` — aenderbar in `/opt/proudig/.env` auf dem Server.
 | Volume | Inhalt |
 |--------|--------|
 | `proudig-pgdata` | PostgreSQL Datenbank |
+| `keycloak-db-data` | Keycloak-Datenbank |
+| `nextcloud-db-data` | NextCloud-Datenbank |
+| `nextcloud-redis-data` | NextCloud Redis (Locking/Cache) |
+| `nextcloud-data` | NextCloud-Anwendung + hochgeladene Dateien |
 | `caddy_data` | Let's Encrypt Zertifikate |
 | `caddy_config` | Caddy Konfiguration |
-| `./data/files` | Hochgeladene Dokumente |
+| `./data/files` | Hochgeladene Dokumente (Portal) |
+
+## NextCloud + Keycloak (Subdomains)
+
+Zusätzliche Dienste im selben Compose-Stack, erreichbar über eigene Subdomains
+hinter Caddy (TLS automatisch via Let's Encrypt):
+
+- `https://files.proudig.ai` → NextCloud (Dateiablage)
+- `https://auth.proudig.ai` → Keycloak (Identity Provider)
+
+### 1. DNS
+
+A-Records beim Registrar auf die Server-IP zeigen lassen:
+- `files.proudig.ai` → `<Server-IP>`
+- `auth.proudig.ai` → `<Server-IP>`
+
+### 2. Secrets
+
+Die neuen Dienste brauchen Pflicht-Passwörter (`KEYCLOAK_DB_PASSWORD`,
+`KEYCLOAK_ADMIN_PASSWORD`, `NEXTCLOUD_DB_PASSWORD`, `NEXTCLOUD_REDIS_PASSWORD`,
+`NEXTCLOUD_ADMIN_PASSWORD`); ohne sie bricht `docker compose up` ab (`:?`-Guards).
+
+`./deploy.sh` erzeugt sie **automatisch** als starke Zufallswerte (`openssl rand`)
+und schreibt sie in `/opt/proudig/.env`. Der Schritt ist idempotent: auf bereits
+deployten Servern werden nur fehlende Zeilen ergänzt, bestehende Werte bleiben
+unangetastet. Kein manuelles Passwort-Management nötig — Variablennamen siehe
+`.env.example` (Repo-Root).
+
+NextCloud-/Keycloak-Admin-Passwort bei Bedarf aus der `.env` auslesen:
+
+```bash
+ssh proudig 'grep -E "NEXTCLOUD_ADMIN_PASSWORD|KEYCLOAK_ADMIN_PASSWORD" /opt/proudig/.env'
+```
+
+### 3. Start
+
+```bash
+# gesamter Stack
+docker compose up -d
+# oder nur die neuen Dienste
+docker compose up -d keycloak nextcloud nextcloud-cron
+```
+
+### 4. Backup
+
+Zusätzlich zur Portal-DB sichern:
+```bash
+# NextCloud-Dateien + DB
+docker compose exec nextcloud-db pg_dump -U nextcloud nextcloud > nextcloud-db.sql
+docker run --rm -v nextcloud-data:/data -v "$PWD":/backup alpine \
+  tar czf /backup/nextcloud-data.tgz -C /data .
+# Keycloak-DB (Realm-/Nutzerdaten)
+docker compose exec keycloak-db pg_dump -U keycloak keycloak > keycloak-db.sql
+```
 
 ## Ausfuehrliche Anleitung
 

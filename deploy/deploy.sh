@@ -196,10 +196,21 @@ DB_PASSWORD=proudig123
 PREVIEW_PASSWORD=proudig2026
 ENVFILE
     chmod 600 /opt/proudig/.env
-    echo "       .env erstellt (Standard-Passwoerter — bitte aendern!)"
+    echo "       .env erstellt (Portal-Standard-Passwoerter — bitte aendern!)"
 else
     echo "       .env bereits vorhanden (wird beibehalten)."
 fi
+
+# NextCloud/Keycloak brauchen Pflicht-Secrets (Compose :? Guards). Fehlende
+# Werte einmalig als starke Zufalls-Passwoerter ergaenzen — idempotent, damit
+# bestehende .env-Dateien (nur DB/Preview) den Stack nicht abbrechen lassen.
+for KEY in KEYCLOAK_DB_PASSWORD KEYCLOAK_ADMIN_PASSWORD NEXTCLOUD_DB_PASSWORD NEXTCLOUD_REDIS_PASSWORD NEXTCLOUD_ADMIN_PASSWORD; do
+    if ! grep -q "^${KEY}=" /opt/proudig/.env; then
+        echo "${KEY}=$(openssl rand -hex 24)" >> /opt/proudig/.env
+        echo "       ${KEY} generiert."
+    fi
+done
+chmod 600 /opt/proudig/.env
 '
 
     # Schritt 6: Docker Build + Start

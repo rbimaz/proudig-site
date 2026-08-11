@@ -39,6 +39,55 @@ proudig.ai, www.proudig.ai {
 }
 
 # ==============================================================================
+# HTTPS-Zugriff für files.proudig.ai (NextCloud)
+# ==============================================================================
+# Eigene Subdomain, damit NextCloud in Frames laufen darf (kein DENY hier) und
+# der strikte proudig.ai-Block unberührt bleibt. TLS terminiert hier, intern HTTP.
+
+files.proudig.ai {
+    reverse_proxy nextcloud:80
+
+    # NextCloud-Service-Discovery: well-known CalDAV/CardDAV/Webfinger umleiten
+    # (verhindert Admin-Warnungen).
+    redir /.well-known/carddav /remote.php/dav 301
+    redir /.well-known/caldav /remote.php/dav 301
+    redir /.well-known/webfinger /index.php/.well-known/webfinger 301
+    redir /.well-known/nodeinfo /index.php/.well-known/nodeinfo 301
+
+    header {
+        # KEIN X-Frame-Options: DENY — NextCloud setzt eigene Header (SAMEORIGIN).
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+
+    log {
+        output stdout
+        format console
+    }
+}
+
+# ==============================================================================
+# HTTPS-Zugriff für auth.proudig.ai (Keycloak)
+# ==============================================================================
+# TLS terminiert hier; Caddy setzt X-Forwarded-*, passend zu KC_PROXY_HEADERS.
+
+auth.proudig.ai {
+    reverse_proxy keycloak:8080
+
+    header {
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+
+    log {
+        output stdout
+        format console
+    }
+}
+
+# ==============================================================================
 # FALLBACK: IP-basierter HTTP-Zugriff (für Tests ohne Domain)
 # ==============================================================================
 # Zum Aktivieren: Block einkommentieren und HTTPS-Block oben auskommentieren.

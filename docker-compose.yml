@@ -73,6 +73,167 @@ services:
     networks:
       - proudig-network
 
+  # ---------- Keycloak Datenbank ----------
+  keycloak-db:
+    image: postgres:14-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KEYCLOAK_DB_USER:-keycloak}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD fehlt (siehe .env)}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KEYCLOAK_DB_USER:-keycloak} -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    networks:
+      - proudig-network
+
+  # ---------- Keycloak (Identity Provider, auth.proudig.ai) ----------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: keycloak
+    restart: unless-stopped
+    command: start
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USER:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD fehlt (siehe .env)}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD fehlt (siehe .env)}
+      # Öffentlicher Hostname; TLS terminiert an Caddy, daher HTTP intern + Proxy-Header.
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-https://auth.proudig.ai}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+        reservations:
+          memory: 256M
+    networks:
+      - proudig-network
+
+  # ---------- NextCloud Datenbank ----------
+  nextcloud-db:
+    image: postgres:14-alpine
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: ${NEXTCLOUD_DB_USER:-nextcloud}
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD:?NEXTCLOUD_DB_PASSWORD fehlt (siehe .env)}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - nextcloud-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NEXTCLOUD_DB_USER:-nextcloud} -d nextcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    networks:
+      - proudig-network
+
+  # ---------- NextCloud Redis (Locking / Cache) ----------
+  nextcloud-redis:
+    image: redis:7-alpine
+    container_name: nextcloud-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${NEXTCLOUD_REDIS_PASSWORD:?NEXTCLOUD_REDIS_PASSWORD fehlt (siehe .env)}
+    volumes:
+      - nextcloud-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${NEXTCLOUD_REDIS_PASSWORD:?NEXTCLOUD_REDIS_PASSWORD fehlt} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    networks:
+      - proudig-network
+
+  # ---------- NextCloud (Dateiablage, files.proudig.ai) ----------
+  nextcloud:
+    image: nextcloud:30-apache
+    container_name: nextcloud
+    restart: unless-stopped
+    volumes:
+      - nextcloud-data:/var/www/html
+    environment:
+      POSTGRES_HOST: nextcloud-db
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: ${NEXTCLOUD_DB_USER:-nextcloud}
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD:?NEXTCLOUD_DB_PASSWORD fehlt (siehe .env)}
+      REDIS_HOST: nextcloud-redis
+      REDIS_HOST_PASSWORD: ${NEXTCLOUD_REDIS_PASSWORD:?NEXTCLOUD_REDIS_PASSWORD fehlt (siehe .env)}
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:-admin}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?NEXTCLOUD_ADMIN_PASSWORD fehlt (siehe .env)}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_TRUSTED_DOMAINS:-files.proudig.ai}
+      # TLS terminiert an Caddy → Overwrite-Header für korrekte URL-Generierung.
+      OVERWRITEPROTOCOL: https
+      OVERWRITECLIURL: ${NEXTCLOUD_OVERWRITECLIURL:-https://files.proudig.ai}
+      TRUSTED_PROXIES: proudig-proxy
+    depends_on:
+      nextcloud-db:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    networks:
+      - proudig-network
+
+  # ---------- NextCloud Cron (Background-Jobs) ----------
+  nextcloud-cron:
+    image: nextcloud:30-apache
+    container_name: nextcloud-cron
+    restart: unless-stopped
+    volumes:
+      - nextcloud-data:/var/www/html
+    entrypoint: /cron.sh
+    depends_on:
+      nextcloud:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    networks:
+      - proudig-network
+
   # ---------- Caddy Reverse Proxy ----------
   # HTTPS für proudig.ai mit automatischem Let's Encrypt Zertifikat
   proudig-proxy:
@@ -98,5 +259,9 @@ networks:
 
 volumes:
   proudig-pgdata:
+  keycloak-db-data:     # Keycloak-Datenbank (persistent)
+  nextcloud-db-data:    # NextCloud-Datenbank (persistent)
+  nextcloud-redis-data: # NextCloud-Redis (persistent)
+  nextcloud-data:       # NextCloud-Anwendung + Dateien (persistent)
   caddy_data:           # Let's Encrypt Zertifikate (persistent)
   caddy_config:         # Caddy Konfiguration (persistent)
