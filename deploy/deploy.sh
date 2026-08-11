@@ -27,7 +27,6 @@ ACTION="${2:-deploy}"
 REMOTE_DIR="/opt/proudig"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Farben
 GREEN='\033[0;32m'
@@ -108,143 +107,23 @@ fi
 do_deploy() {
     echo ""
     echo "============================================"
-    echo "  ProuDig — Docker Deployment"
+    echo "  ProuDig — Deployment laeuft ueber Ansible"
     echo "============================================"
-    echo "  SSH-Host:  ${SSH_HOST}"
-    echo "  Projekt:   ${PROJECT_DIR}"
     echo ""
-
-    # Schritt 1: Sicherstellen, dass Docker vorhanden ist
-    info "[1/5] Docker auf Server pruefen..."
-    HAS_DOCKER=$(ssh "${SSH_HOST}" "command -v docker &>/dev/null && docker compose version &>/dev/null && echo yes || echo no")
-    if [ "$HAS_DOCKER" != "yes" ]; then
-        warn "Docker nicht gefunden — starte Setup..."
-        do_setup
-    fi
-
-    # Schritt 2: Alten Systemd-Service stoppen (vor Docker-Migration)
-    info "[2/6] Alte Services pruefen (Host-Apache + Java)..."
-    remote_exec '
-# Alter Java-Service
-if systemctl is-active --quiet proudig-site 2>/dev/null; then
-    run systemctl stop proudig-site
-    run systemctl disable proudig-site
-    echo "       proudig-site Service gestoppt."
-fi
-# Alter Host-Apache (blockiert Port 80 fuer Docker)
-if systemctl is-active --quiet apache2 2>/dev/null; then
-    run systemctl stop apache2
-    run systemctl disable apache2
-    echo "       Host-Apache gestoppt."
-fi
-echo "       Alte Services bereinigt."
-'
-
-    # Schritt 3: Vorheriges Image taggen (fuer Rollback)
-    info "[3/6] Vorheriges Image sichern (Rollback)..."
-    remote_exec '
-IMAGE_ID=$(docker images -q proudig-proudig-app 2>/dev/null | head -1)
-if [ -n "$IMAGE_ID" ]; then
-    docker tag "$IMAGE_ID" proudig-app:previous 2>/dev/null || true
-    echo "       Vorheriges Image getaggt."
-else
-    echo "       Kein vorheriges Image vorhanden (Erstinstallation)."
-fi
-'
-
-    # Schritt 4: Projekt-Dateien uebertragen
-    info "[4/6] Projekt-Dateien uebertragen..."
-    cd "$PROJECT_DIR"
-
-    # Nur die relevanten Dateien packen und uebertragen
-    tar czf /tmp/proudig-deploy.tar.gz \
-        --exclude='node_modules' \
-        --exclude='.git' \
-        --exclude='target' \
-        --exclude='*.class' \
-        --exclude='.idea' \
-        --exclude='.vscode' \
-        --exclude='hero-varianten-vergleich.html' \
-        --exclude='hero-landing-vergleich.html' \
-        -C "$PROJECT_DIR" .
-
-    ARCHIVE_SIZE=$(du -h /tmp/proudig-deploy.tar.gz | cut -f1)
-    echo "       Archiv: ${ARCHIVE_SIZE}"
-
-    scp -q /tmp/proudig-deploy.tar.gz "${SSH_HOST}:/tmp/proudig-deploy.tar.gz"
-    rm -f /tmp/proudig-deploy.tar.gz
-
-    remote_exec '
-cd /opt/proudig
-# Altes Repo-Verzeichnis leeren (aber data/ behalten)
-find /opt/proudig -maxdepth 1 -not -name "proudig" -not -name "data" -not -name "." | while read f; do
-    [ "$f" != "/opt/proudig" ] && rm -rf "$f" 2>/dev/null || true
-done
-tar xzf /tmp/proudig-deploy.tar.gz -C /opt/proudig
-rm -f /tmp/proudig-deploy.tar.gz
-echo "       Dateien entpackt nach /opt/proudig"
-'
-
-    # Schritt 5: .env-Datei erstellen (falls nicht vorhanden)
-    info "[5/6] Umgebungsvariablen pruefen..."
-    remote_exec '
-if [ ! -f /opt/proudig/.env ]; then
-    cat > /opt/proudig/.env <<ENVFILE
-# ProuDig Environment — Passwoerter hier anpassen!
-DB_USER=proudig
-DB_PASSWORD=proudig123
-PREVIEW_PASSWORD=proudig2026
-ENVFILE
-    chmod 600 /opt/proudig/.env
-    echo "       .env erstellt (Portal-Standard-Passwoerter — bitte aendern!)"
-else
-    echo "       .env bereits vorhanden (wird beibehalten)."
-fi
-
-# NextCloud/Keycloak brauchen Pflicht-Secrets (Compose :? Guards). Fehlende
-# Werte einmalig als starke Zufalls-Passwoerter ergaenzen — idempotent, damit
-# bestehende .env-Dateien (nur DB/Preview) den Stack nicht abbrechen lassen.
-for KEY in KEYCLOAK_DB_PASSWORD KEYCLOAK_ADMIN_PASSWORD NEXTCLOUD_DB_PASSWORD NEXTCLOUD_REDIS_PASSWORD NEXTCLOUD_ADMIN_PASSWORD; do
-    if ! grep -q "^${KEY}=" /opt/proudig/.env; then
-        echo "${KEY}=$(openssl rand -hex 24)" >> /opt/proudig/.env
-        echo "       ${KEY} generiert."
-    fi
-done
-chmod 600 /opt/proudig/.env
-'
-
-    # Schritt 6: Docker Build + Start
-    info "[6/6] Docker-Container bauen und starten..."
-    ssh "${SSH_HOST}" bash <<'REMOTE_BUILD'
-set -e
-cd /opt/proudig
-
-echo "       Docker Compose Build (kann beim ersten Mal 5-10 Min dauern)..."
-docker compose build --no-cache proudig-app 2>&1 | tail -5
-
-echo "       Container starten..."
-docker compose --env-file .env up -d 2>&1
-
-echo ""
-echo "       Warte auf Health-Check..."
-for i in $(seq 1 30); do
-    STATUS=$(docker inspect --format='{{.State.Health.Status}}' proudig-app 2>/dev/null || echo "starting")
-    if [ "$STATUS" = "healthy" ]; then
-        echo "       App ist healthy nach ${i}0 Sekunden."
-        break
-    fi
-    if [ "$i" -eq 30 ]; then
-        echo "       WARNUNG: Timeout nach 300 Sekunden."
-        echo "       Logs:"
-        docker logs proudig-app --tail 30
-    fi
-    sleep 10
-done
-REMOTE_BUILD
-
-    # Status anzeigen
-    do_status
-    info "Deployment abgeschlossen!"
+    warn "Der Deploy erfolgt nicht mehr ueber dieses Skript."
+    warn "Ansible ist der einzige Deploy-Pfad (Secrets via Ansible Vault)."
+    echo ""
+    info "Deployen:"
+    echo "    cd deploy/ansible"
+    echo "    ansible-playbook -i inventory.yml playbook.yml --tags deploy"
+    echo ""
+    info "deploy.sh bleibt fuer Betriebsaufgaben:"
+    echo "    ./deploy.sh ${SSH_HOST} --status    # Container-Status"
+    echo "    ./deploy.sh ${SSH_HOST} --logs      # Live-Logs"
+    echo "    ./deploy.sh ${SSH_HOST} --backup    # DB-Backup"
+    echo "    ./deploy.sh ${SSH_HOST} --restart   # Container neustarten"
+    echo ""
+    exit 1
 }
 
 do_restart() {

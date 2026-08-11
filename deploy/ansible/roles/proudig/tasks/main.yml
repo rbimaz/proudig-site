@@ -156,14 +156,18 @@
       - "--exclude=hero-landing-vergleich.html"
   tags: [deploy]
 
-- name: Environment-Datei (.env) erstellen
+- name: Environment-Datei (.env) aus Vault rendern
+  # force: yes → Vault ist die alleinige Quelle der Wahrheit; .env wird bei jedem
+  # Deploy deterministisch neu geschrieben. Voraussetzung: vault_db_password ==
+  # dem Wert, mit dem die laufende proudig-db initialisiert wurde (DB-Paritaet),
+  # sonst verliert die App den DB-Zugang.
   template:
     src: env.j2
     dest: "{{ app_dir }}/.env"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0600"
-    force: no
+    force: yes
   tags: [deploy]
 
 - name: Vorheriges Docker-Image taggen (fuer Rollback)

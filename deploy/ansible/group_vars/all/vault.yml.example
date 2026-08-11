@@ -1,0 +1,33 @@
+# Vorlage fuer group_vars/all/vault.yml (VERSCHLUESSELT ablegen!).
+#
+# WICHTIG (DB-Paritaet): vault_db_password MUSS exakt dem Wert entsprechen, mit
+# dem die laufende proudig-db initialisiert wurde. Postgres wendet
+# POSTGRES_PASSWORD nur beim Erst-Init an — ein abweichender Wert sperrt die App
+# aus. Aktuellen Wert vom Server uebernehmen:  ssh proudig 'cat /opt/proudig/.env'
+#
+# Die Keycloak-/NextCloud-Secrets sind NEU (noch kein initialisiertes Volume) —
+# hier starke Zufallswerte setzen, z. B.:  openssl rand -hex 24
+#
+# Anlegen (editorfrei empfohlen — vim-unabhaengig):
+#   cd deploy/ansible
+#   cp group_vars/all/vault.yml.example group_vars/all/vault.yml
+#   # Werte in der IDE eintragen, dann in-place verschluesseln:
+#   ansible-vault encrypt group_vars/all/vault.yml
+# Oder interaktiv:  ansible-vault create group_vars/all/vault.yml
+#
+# Die verschluesselte vault.yml WIRD committet; diese .example-Datei nur als Doku.
+# Ablage MUSS group_vars/all/ sein (Verzeichnis der Gruppe 'all') — eine lose
+# group_vars/vault.yml wuerde Ansible NICHT laden.
+
+# ── Bestehende Dienste (Paritaet: aktuelle Prod-Werte!) ──
+vault_db_password: "<aktueller-DB-Passwortwert-vom-Server>"
+vault_preview_password: "<aktueller-Preview-Passwortwert-vom-Server>"
+
+# ── Keycloak (neu — starke Zufallswerte) ──
+vault_keycloak_db_password: "<openssl rand -hex 24>"
+vault_keycloak_admin_password: "<openssl rand -hex 24>"
+
+# ── NextCloud (neu — starke Zufallswerte) ──
+vault_nextcloud_db_password: "<openssl rand -hex 24>"
+vault_nextcloud_redis_password: "<openssl rand -hex 24>"
+vault_nextcloud_admin_password: "<openssl rand -hex 24>"

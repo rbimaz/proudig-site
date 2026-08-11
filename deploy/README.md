@@ -4,22 +4,47 @@ Docker-basiertes Deployment mit Caddy Reverse Proxy und automatischem HTTPS.
 
 ## Schnellstart
 
+Deploy läuft über **Ansible** (Secrets via Ansible Vault):
+
 ```bash
-# SSH-Host in ~/.ssh/config einrichten, dann:
-./deploy.sh proudig
+cd deploy/ansible
+ansible-playbook -i inventory.yml playbook.yml --tags deploy
 ```
+
+`deploy.sh` ist nur noch **Ops-Wrapper** (Betrieb), kein Deploy mehr.
 
 ## Befehle
 
 | Befehl | Beschreibung |
 |--------|-------------|
-| `./deploy.sh proudig` | Voll-Deployment (Docker Build + Start) |
-| `./deploy.sh proudig --setup` | Nur Server-Setup (Docker installieren) |
+| `ansible-playbook … --tags deploy` | Deployment (Build + Start), Secrets aus Vault |
+| `ansible-playbook … --tags setup` | Server-Setup (Docker installieren) |
+| `ansible-playbook … --tags rollback` | Vorheriges Image wiederherstellen |
 | `./deploy.sh proudig --restart` | Container neustarten |
 | `./deploy.sh proudig --status` | Status pruefen |
 | `./deploy.sh proudig --logs` | Live-Logs anzeigen |
-| `./deploy.sh proudig --rollback` | Vorheriges Image wiederherstellen |
 | `./deploy.sh proudig --backup` | Datenbank-Backup herunterladen |
+
+### Secrets (Ansible Vault)
+
+Secrets liegen verschlüsselt in `deploy/ansible/group_vars/all/vault.yml`; die
+Server-`.env` wird bei jedem Deploy daraus gerendert. Das Vault-Passwort kommt
+aus einer gitignored Datei (`~/.proudig-vault-pass`, referenziert in
+`deploy/ansible/ansible.cfg`).
+
+> **DB-Parität:** `vault_db_password` muss exakt dem Wert entsprechen, mit dem
+> die laufende `proudig-db` initialisiert wurde (PostgreSQL setzt
+> `POSTGRES_PASSWORD` nur beim Erst-Init). Aktuellen Wert vor dem ersten
+> Ansible-Deploy übernehmen: `ssh proudig 'cat /opt/proudig/.env'`.
+>
+> **DR:** Die Vault-Passwortdatei extern sichern (Passwortmanager) — ohne sie
+> sind die Secrets nicht mehr entschlüsselbar.
+
+Vault anlegen (einmalig): siehe `group_vars/all/vault.yml.example`.
+
+**Erst-Umstellung auf Ansible + Vault:** Vollständiges Server-Runbook (Secrets
+auslesen, Vault anlegen, Trockenlauf, Cutover, Verifikation, Rollback) in
+[`ansible/CUTOVER.md`](ansible/CUTOVER.md).
 
 ## Architektur
 
