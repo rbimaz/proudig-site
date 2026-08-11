@@ -40,4 +40,4 @@
 ## 7. NextCloud-Vorbereitung & Folge-Cleanup
 
 - [x] 7.1 NextCloud/Keycloak-Secrets in diesem Change in Vault+`env.j2` überführt (Cutover unabhängig von einem separaten NextCloud-Schritt; bereitet die Einführung vor). Die `deploy.sh`-Secret-Generierung ist bereits entfernt (Gruppe 4).
-- [ ] 7.2 Folge-Cleanup im Change `nextcloud-p0-infrastructure`: dort ist die Doku (`deploy/README.md`-NextCloud-Abschnitt, `.env.example`) noch auf die alte `deploy.sh`-`openssl`-Generierung formuliert — auf „Secrets via Ansible Vault" umstellen. (Separater Change, nicht hier.)
+- [x] 7.2 Doku-Cleanup: `.env.example`-Header und `deploy/README.md`-NextCloud-Abschnitt (`### 2. Secrets` / `### 3. Start`) von der alten `deploy.sh`-`openssl`-Generierung auf „Secrets via Ansible Vault" + Ansible-Deploy umgestellt.

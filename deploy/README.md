@@ -147,25 +147,26 @@ Die neuen Dienste brauchen Pflicht-Passwörter (`KEYCLOAK_DB_PASSWORD`,
 `KEYCLOAK_ADMIN_PASSWORD`, `NEXTCLOUD_DB_PASSWORD`, `NEXTCLOUD_REDIS_PASSWORD`,
 `NEXTCLOUD_ADMIN_PASSWORD`); ohne sie bricht `docker compose up` ab (`:?`-Guards).
 
-`./deploy.sh` erzeugt sie **automatisch** als starke Zufallswerte (`openssl rand`)
-und schreibt sie in `/opt/proudig/.env`. Der Schritt ist idempotent: auf bereits
-deployten Servern werden nur fehlende Zeilen ergänzt, bestehende Werte bleiben
-unangetastet. Kein manuelles Passwort-Management nötig — Variablennamen siehe
-`.env.example` (Repo-Root).
+Diese Secrets liegen im **Ansible Vault** (`deploy/ansible/group_vars/all/vault.yml`,
+starke Zufallswerte) und werden beim Deploy in `/opt/proudig/.env` gerendert —
+zusammen mit den Portal-Secrets (siehe Abschnitt „Secrets (Ansible Vault)" oben
+und `deploy/ansible/CUTOVER.md`). Kein manuelles Passwort-Management, keine
+Server-Generierung.
 
-NextCloud-/Keycloak-Admin-Passwort bei Bedarf aus der `.env` auslesen:
+NextCloud-/Keycloak-Admin-Passwort bei Bedarf aus dem Vault lesen:
 
 ```bash
-ssh proudig 'grep -E "NEXTCLOUD_ADMIN_PASSWORD|KEYCLOAK_ADMIN_PASSWORD" /opt/proudig/.env'
+ansible-vault view deploy/ansible/group_vars/all/vault.yml
 ```
 
 ### 3. Start
 
+Der Stack startet über den regulären Ansible-Deploy (rendert `.env` aus dem
+Vault und führt `docker compose up -d` aus):
+
 ```bash
-# gesamter Stack
-docker compose up -d
-# oder nur die neuen Dienste
-docker compose up -d keycloak nextcloud nextcloud-cron
+cd deploy/ansible
+ansible-playbook -i inventory.yml playbook.yml --tags deploy
 ```
 
 ### 4. Backup
