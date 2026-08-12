@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Nutzergruppen + interne Ordner-Freigaben (READ/WRITE) an Nutzer oder Gruppe. -->
+    <changeSet id="020-create-user-groups" author="ProuDig">
+        <createTable tableName="user_groups">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uq_user_group_name"/>
+            </column>
+            <column name="created_by" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="user_groups" baseColumnNames="created_by"
+                                 constraintName="fk_user_group_created_by" referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="020-create-user-group-members" author="ProuDig">
+        <createTable tableName="user_group_members">
+            <column name="group_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_group_members" columnNames="group_id, user_id"
+                       constraintName="pk_user_group_members"/>
+        <addForeignKeyConstraint baseTableName="user_group_members" baseColumnNames="group_id"
+                                 constraintName="fk_ugm_group" referencedTableName="user_groups"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="user_group_members" baseColumnNames="user_id"
+                                 constraintName="fk_ugm_user" referencedTableName="users"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="020-create-folder-shares" author="ProuDig">
+        <createTable tableName="folder_shares">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="folder_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_with_user" type="VARCHAR(36)"/>
+            <column name="shared_with_group" type="VARCHAR(36)"/>
+            <column name="shared_by" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="folder_shares" baseColumnNames="folder_id"
+                                 constraintName="fk_folder_share_folder" referencedTableName="folders"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="folder_shares" baseColumnNames="shared_with_user"
+                                 constraintName="fk_folder_share_user" referencedTableName="users"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="folder_shares" baseColumnNames="shared_with_group"
+                                 constraintName="fk_folder_share_group" referencedTableName="user_groups"
+                                 referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="folder_shares" baseColumnNames="shared_by"
+                                 constraintName="fk_folder_share_shared_by" referencedTableName="users"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="folder_shares" columnNames="folder_id, shared_with_user"
+                             constraintName="uq_folder_share_folder_user"/>
+        <addUniqueConstraint tableName="folder_shares" columnNames="folder_id, shared_with_group"
+                             constraintName="uq_folder_share_folder_group"/>
+    </changeSet>
+
+</databaseChangeLog>

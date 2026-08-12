@@ -60,6 +60,13 @@ public class DocumentController {
         return ResponseEntity.ok(document);
     }
 
+    @PutMapping("/{documentId}/content")
+    public ResponseEntity<DocumentDto> updateContent(@PathVariable String documentId, @RequestParam("file") MultipartFile file) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        DocumentDto document = documentService.updateDocumentContent(documentId, file, user);
+        return ResponseEntity.ok(document);
+    }
+
     @DeleteMapping("/{documentId}")
     public ResponseEntity<Void> deleteDocument(@PathVariable String documentId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -109,6 +116,16 @@ public class DocumentController {
         User admin = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         documentService.unshareDocument(documentId, userId, admin);
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(IllegalAccessError.class)
+    public ResponseEntity<String> handleForbidden(IllegalAccessError ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(java.util.NoSuchElementException.class)
+    public ResponseEntity<String> handleNotFound(java.util.NoSuchElementException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     public DocumentController(final DocumentService documentService, final FileStorageService fileStorageService) {

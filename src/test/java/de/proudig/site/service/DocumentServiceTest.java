@@ -28,8 +28,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit Tests für DocumentService – neues Modell: nur ADMIN sieht alles,
- * CONSULTANT nur eigene + mit ihm geteilte; zentrale Zugriffsprüfung inkl. Download.
+ * Unit Tests für DocumentService – zentrale Zugriffsprüfung über PortalAccessService
+ * (Ordner-vererbte Berechtigungen); Listen-/Teilen-Verhalten unverändert.
  */
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
@@ -40,6 +40,7 @@ class DocumentServiceTest {
     @Mock private ActivityLogService activityLogService;
     @Mock private DocumentShareRepository shareRepository;
     @Mock private UserRepository userRepository;
+    @Mock private PortalAccessService access;
 
     @InjectMocks private DocumentService documentService;
 
@@ -109,10 +110,11 @@ class DocumentServiceTest {
         }
 
         @Test
-        @DisplayName("Given Consultant, When fremder Ordner, Then Zugriff verweigert")
-        void consultantCannotListForeignFolderDocuments() {
+        @DisplayName("Given ohne Ordner-Lesezugriff, When fremder Ordner, Then Zugriff verweigert")
+        void cannotListForeignFolderDocuments() {
             Folder folder = Folder.builder().id("fld").owner(owner).build();
             when(folderRepository.findById("fld")).thenReturn(Optional.of(folder));
+            when(access.canRead(consultant, folder)).thenReturn(false);
 
             assertThatThrownBy(() -> documentService.getDocumentsInFolder("fld", consultant))
                     .isInstanceOf(IllegalAccessError.class);
@@ -124,27 +126,19 @@ class DocumentServiceTest {
     class GetTests {
 
         @Test
-        @DisplayName("Given Admin, When fremdes Dokument, Then Zugriff")
-        void adminCanGetForeignDocument() {
+        @DisplayName("Given Zugriff (Admin/Freigabe), When Dokument, Then Zugriff")
+        void canGetWithAccess() {
             when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
+            when(access.canReadDocument(admin, ownDoc)).thenReturn(true);
 
             assertThat(documentService.getDocument("doc-1", admin).getId()).isEqualTo("doc-1");
         }
 
         @Test
-        @DisplayName("Given Consultant mit Freigabe, When Dokument, Then Zugriff")
-        void consultantWithShareCanGet() {
+        @DisplayName("Given kein Zugriff, When fremdes Dokument, Then not found")
+        void withoutAccessCannotGet() {
             when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
-            when(shareRepository.existsByDocumentAndSharedWith(ownDoc, consultant)).thenReturn(true);
-
-            assertThat(documentService.getDocument("doc-1", consultant).getId()).isEqualTo("doc-1");
-        }
-
-        @Test
-        @DisplayName("Given Consultant ohne Freigabe, When fremdes Dokument, Then not found")
-        void consultantWithoutShareCannotGet() {
-            when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
-            when(shareRepository.existsByDocumentAndSharedWith(ownDoc, consultant)).thenReturn(false);
+            when(access.canReadDocument(consultant, ownDoc)).thenReturn(false);
 
             assertThatThrownBy(() -> documentService.getDocument("doc-1", consultant))
                     .isInstanceOf(NoSuchElementException.class);
@@ -156,19 +150,19 @@ class DocumentServiceTest {
     class DownloadTests {
 
         @Test
-        @DisplayName("Given Consultant mit Freigabe, When Download, Then Dokument")
-        void consultantWithShareCanDownload() {
+        @DisplayName("Given Zugriff, When Download, Then Dokument")
+        void withAccessCanDownload() {
             when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
-            when(shareRepository.existsByDocumentAndSharedWith(ownDoc, consultant)).thenReturn(true);
+            when(access.canReadDocument(consultant, ownDoc)).thenReturn(true);
 
             assertThat(documentService.getDocumentForDownload("doc-1", consultant).getId()).isEqualTo("doc-1");
         }
 
         @Test
-        @DisplayName("Given Consultant ohne Freigabe, When Download, Then IllegalAccessError (403)")
-        void consultantWithoutShareCannotDownload() {
+        @DisplayName("Given kein Zugriff, When Download, Then IllegalAccessError (403)")
+        void withoutAccessCannotDownload() {
             when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
-            when(shareRepository.existsByDocumentAndSharedWith(ownDoc, consultant)).thenReturn(false);
+            when(access.canReadDocument(consultant, ownDoc)).thenReturn(false);
 
             assertThatThrownBy(() -> documentService.getDocumentForDownload("doc-1", consultant))
                     .isInstanceOf(IllegalAccessError.class);
@@ -203,9 +197,10 @@ class DocumentServiceTest {
         }
 
         @Test
-        @DisplayName("Given Consultant, When fremdes Dokument löschen, Then not found")
-        void consultantCannotDeleteForeign() {
+        @DisplayName("Given kein Schreibrecht, When fremdes Dokument löschen, Then not found")
+        void cannotDeleteForeign() {
             when(documentRepository.findById("doc-1")).thenReturn(Optional.of(ownDoc));
+            when(access.canModifyDocument(consultant, ownDoc)).thenReturn(false);
 
             assertThatThrownBy(() -> documentService.deleteDocument("doc-1", consultant))
                     .isInstanceOf(NoSuchElementException.class);
@@ -213,16 +208,38 @@ class DocumentServiceTest {
         }
 
         @Test
-        @DisplayName("Given Consultant, When Upload in fremden Ordner, Then Zugriff verweigert")
-        void consultantCannotUploadIntoForeignFolder() throws Exception {
+        @DisplayName("Given kein Schreibrecht auf Ordner, When Upload in fremden Ordner, Then verweigert")
+        void cannotUploadIntoForeignFolder() throws Exception {
             Folder folder = Folder.builder().id("fld").owner(owner).build();
             MultipartFile file = mock(MultipartFile.class);
             when(fileStorageService.store(file, "documents")).thenReturn("path");
             when(folderRepository.findById("fld")).thenReturn(Optional.of(folder));
+            when(access.canWrite(consultant, folder)).thenReturn(false);
 
             assertThatThrownBy(() -> documentService.uploadDocument(file, "fld", null, consultant))
                     .isInstanceOf(IllegalAccessError.class);
             verify(documentRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Given WRITE auf Ordner, When Datei-Inhalt aktualisieren, Then ersetzt")
+        void writeGranteeUpdatesContent() throws Exception {
+            Folder folder = Folder.builder().id("fld").owner(owner).build();
+            Document doc = Document.builder().id("doc-2").fileName("x.pdf").storagePath("old").uploadedBy(owner).folder(folder).build();
+            MultipartFile file = mock(MultipartFile.class);
+            when(documentRepository.findById("doc-2")).thenReturn(Optional.of(doc));
+            when(access.canUpdateDocumentContent(consultant, doc)).thenReturn(true);
+            when(fileStorageService.store(file, "documents")).thenReturn("new");
+            when(file.getSize()).thenReturn(123L);
+            when(file.getContentType()).thenReturn("application/pdf");
+            when(documentRepository.save(any(Document.class))).thenAnswer(i -> i.getArgument(0));
+
+            DocumentDto result = documentService.updateDocumentContent("doc-2", file, consultant);
+
+            assertThat(result.getStoragePath()).isEqualTo("new");
+            assertThat(result.getFileSize()).isEqualTo(123L);
+            verify(fileStorageService).delete("old", "documents");
+            verify(activityLogService).log(eq(consultant), eq("UPDATE"), eq("DOCUMENT"), eq("doc-2"), any());
         }
     }
 }

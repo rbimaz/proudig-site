@@ -44,8 +44,8 @@ describe('PortalDocuments', () => {
   });
 
   const mockFolders = [
-    { id: 'folder-1', name: 'Projekte', documentCount: 5, childFolderCount: 2, hasChildren: true },
-    { id: 'folder-2', name: 'Archiv', documentCount: 0, childFolderCount: 0, hasChildren: false }
+    { id: 'folder-1', name: 'Projekte', documentCount: 5, childFolderCount: 2, hasChildren: true, canWrite: true },
+    { id: 'folder-2', name: 'Archiv', documentCount: 0, childFolderCount: 0, hasChildren: false, canWrite: true }
   ];
 
   const mockDocuments = [
