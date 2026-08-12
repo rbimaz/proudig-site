@@ -44,6 +44,13 @@ src/main/resources/static/assets/
 ### Portal-Runtime-Uploads ###
 data/
 
+### Environment (echte Secrets — nur .env.example wird versioniert) ###
+.env
+
+### Ansible Vault (Passwortdatei — niemals committen; verschluesselte vault.yml schon) ###
+.proudig-vault-pass
+*.vault-pass
+
 ### Claude Code (lokale Overrides) ###
 .claude/settings.local.json
 

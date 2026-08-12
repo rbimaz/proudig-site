@@ -1,0 +1,35 @@
+###############################################################################
+# Globale Variablen — ProuDig Deployment
+###############################################################################
+
+# ── App ──
+app_dir: /opt/proudig
+
+# ── Projektquelle (lokaler Pfad zum Repo-Root) ──
+project_src: "{{ playbook_dir }}/../../"
+
+# ── Datenbank ──
+# Secrets kommen strikt aus group_vars/all/vault.yml (Ansible Vault) — KEIN Default,
+# damit ein fehlender/nicht entschluesselter Vault den Deploy laut abbricht.
+db_user: proudig
+db_password: "{{ vault_db_password }}"
+
+# ── Preview ──
+preview_password: "{{ vault_preview_password }}"
+
+# ── Keycloak (auth.proudig.ai) ──
+# Nicht-geheime Konfig hier; Passwoerter aus dem Vault (kein Default).
+keycloak_db_user: keycloak
+keycloak_db_password: "{{ vault_keycloak_db_password }}"
+keycloak_admin: admin
+keycloak_admin_password: "{{ vault_keycloak_admin_password }}"
+keycloak_hostname: "https://auth.proudig.ai"
+
+# ── NextCloud (files.proudig.ai) ──
+nextcloud_db_user: nextcloud
+nextcloud_db_password: "{{ vault_nextcloud_db_password }}"
+nextcloud_redis_password: "{{ vault_nextcloud_redis_password }}"
+nextcloud_admin_user: admin
+nextcloud_admin_password: "{{ vault_nextcloud_admin_password }}"
+nextcloud_trusted_domains: "files.proudig.ai"
+nextcloud_overwritecliurl: "https://files.proudig.ai"

@@ -4,7 +4,11 @@
 
 ansible-playbook -i inventory.yml playbook.yml --tags deploy
 
-Docker-basiertes Deployment auf einem Linux-Server. Zwei Wege: `deploy.sh` (schnell, direkt) oder Ansible (automatisiert, wiederholbar).
+> **Erst-Umstellung (deploy.sh → Ansible + Vault):** Schritt-für-Schritt-Runbook
+> mit allen Server-Schritten (Secrets auslesen, Vault anlegen, Trockenlauf,
+> Cutover, Verifikation, Rollback) in [`CUTOVER.md`](CUTOVER.md).
+
+Docker-basiertes Deployment auf einem Linux-Server. Der Deploy erfolgt über **Ansible** (Secrets via Ansible Vault). `deploy.sh` ist nur noch **Ops-Wrapper** (`--status`/`--logs`/`--backup`/`--restart`) und deployt nicht mehr selbst.
 
 ## Architektur
 
@@ -40,7 +44,11 @@ Drei Container im Docker-Netzwerk:
 - Docker wird automatisch installiert
 
 
-## Weg 1: deploy.sh (empfohlen fuer schnelle Deployments)
+## Weg 1: deploy.sh — nur noch Ops (kein Deploy mehr)
+
+> Hinweis: `deploy.sh` deployt nicht mehr selbst. Der eigentliche Deploy läuft
+> über Ansible (Weg 2). `deploy.sh` bietet nur noch `--status`/`--logs`/
+> `--backup`/`--restart`. Die folgende SSH-Konfiguration gilt für beide Wege.
 
 ### SSH-Konfiguration
 
@@ -101,18 +109,40 @@ all:
       ansible_ssh_private_key_file: ~/.ssh/id_ed25519
 ```
 
-### Passwoerter sichern (optional)
+### Secrets (Ansible Vault — erforderlich)
+
+Die Secrets liegen verschluesselt in `group_vars/all/vault.yml`;
+`group_vars/all/vars.yml` referenziert sie ohne Default, d. h. **ohne Vault
+schlaegt der Deploy fehl**. Wichtig: die Vault-Datei MUSS im Verzeichnis
+`group_vars/all/` liegen — eine lose `group_vars/vault.yml` wird NICHT geladen.
 
 ```bash
 cd deploy/ansible
-ansible-vault create group_vars/vault.yml
+cp group_vars/all/vault.yml.example group_vars/all/vault.yml
+# Werte eintragen, dann verschluesseln (editorfrei, vim-unabhaengig):
+ansible-vault encrypt group_vars/all/vault.yml
 ```
 
-Inhalt:
+Inhalt (Vorlage: `group_vars/all/vault.yml.example`) — alle Secrets:
 ```yaml
-vault_db_password: "sicheres-passwort"
-vault_preview_password: "preview-passwort"
+vault_db_password: "<aktueller-DB-Wert-vom-Server>"        # Parität!
+vault_preview_password: "<aktueller-Preview-Wert-vom-Server>"
+vault_keycloak_db_password: "<openssl rand -hex 24>"
+vault_keycloak_admin_password: "<openssl rand -hex 24>"
+vault_nextcloud_db_password: "<openssl rand -hex 24>"
+vault_nextcloud_redis_password: "<openssl rand -hex 24>"
+vault_nextcloud_admin_password: "<openssl rand -hex 24>"
 ```
+
+> **DB-Paritaet:** `vault_db_password` MUSS dem Wert entsprechen, mit dem die
+> laufende `proudig-db` initialisiert wurde (Postgres wendet POSTGRES_PASSWORD
+> nur beim Erst-Init an). Aktuellen Wert uebernehmen:
+> `ssh proudig 'cat /opt/proudig/.env'`.
+
+Das Vault-Passwort wird aus `~/.proudig-vault-pass` gelesen (in `ansible.cfg`
+als `vault_password_file` konfiguriert, gitignored). Diese Datei extern sichern
+(DR) — ohne sie sind die Secrets nicht entschluesselbar. Alternativ interaktiv
+mit `--ask-vault-pass`.
 
 ### Deployment
 
@@ -204,18 +234,21 @@ docker system prune -f
 
 ```
 deploy/
-├── deploy.sh                 # Deployment-Skript
+├── deploy.sh                 # Ops-Wrapper (--status/--logs/--backup/--restart)
 ├── httpd-proxy.conf          # Apache VirtualHost-Konfiguration
 ├── httpd-append.conf         # Apache Module laden
 ├── proudig-site.conf         # Apache Site-Config (Legacy)
 ├── proudig-site.service      # Systemd Service (Legacy, vor Docker)
 └── ansible/
-    ├── DEPLOYMENT.md         # Diese Anleitung
+    ├── ansible.cfg          # inventory + vault_password_file
+    ├── CUTOVER.md           # Cutover-Runbook (deploy.sh -> Ansible+Vault)
     ├── inventory.yml         # Server-Konfiguration
     ├── playbook.yml          # Haupt-Playbook
     ├── group_vars/
-    │   ├── all.yml           # Variablen
-    │   └── vault.yml         # Verschluesselte Passwoerter (optional)
+    │   └── all/             # Vars der Gruppe 'all' (Verzeichnis!)
+    │       ├── vars.yml     # Nicht-geheime Variablen
+    │       ├── vault.yml    # Verschluesselte Secrets (Ansible Vault)
+    │       └── vault.yml.example
     └── roles/proudig/
         ├── tasks/main.yml    # Alle Ansible-Tasks
         └── templates/

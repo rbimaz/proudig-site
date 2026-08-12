@@ -4,22 +4,47 @@ Docker-basiertes Deployment mit Caddy Reverse Proxy und automatischem HTTPS.
 
 ## Schnellstart
 
+Deploy läuft über **Ansible** (Secrets via Ansible Vault):
+
 ```bash
-# SSH-Host in ~/.ssh/config einrichten, dann:
-./deploy.sh proudig
+cd deploy/ansible
+ansible-playbook -i inventory.yml playbook.yml --tags deploy
 ```
+
+`deploy.sh` ist nur noch **Ops-Wrapper** (Betrieb), kein Deploy mehr.
 
 ## Befehle
 
 | Befehl | Beschreibung |
 |--------|-------------|
-| `./deploy.sh proudig` | Voll-Deployment (Docker Build + Start) |
-| `./deploy.sh proudig --setup` | Nur Server-Setup (Docker installieren) |
+| `ansible-playbook … --tags deploy` | Deployment (Build + Start), Secrets aus Vault |
+| `ansible-playbook … --tags setup` | Server-Setup (Docker installieren) |
+| `ansible-playbook … --tags rollback` | Vorheriges Image wiederherstellen |
 | `./deploy.sh proudig --restart` | Container neustarten |
 | `./deploy.sh proudig --status` | Status pruefen |
 | `./deploy.sh proudig --logs` | Live-Logs anzeigen |
-| `./deploy.sh proudig --rollback` | Vorheriges Image wiederherstellen |
 | `./deploy.sh proudig --backup` | Datenbank-Backup herunterladen |
+
+### Secrets (Ansible Vault)
+
+Secrets liegen verschlüsselt in `deploy/ansible/group_vars/all/vault.yml`; die
+Server-`.env` wird bei jedem Deploy daraus gerendert. Das Vault-Passwort kommt
+aus einer gitignored Datei (`~/.proudig-vault-pass`, referenziert in
+`deploy/ansible/ansible.cfg`).
+
+> **DB-Parität:** `vault_db_password` muss exakt dem Wert entsprechen, mit dem
+> die laufende `proudig-db` initialisiert wurde (PostgreSQL setzt
+> `POSTGRES_PASSWORD` nur beim Erst-Init). Aktuellen Wert vor dem ersten
+> Ansible-Deploy übernehmen: `ssh proudig 'cat /opt/proudig/.env'`.
+>
+> **DR:** Die Vault-Passwortdatei extern sichern (Passwortmanager) — ohne sie
+> sind die Secrets nicht mehr entschlüsselbar.
+
+Vault anlegen (einmalig): siehe `group_vars/all/vault.yml.example`.
+
+**Erst-Umstellung auf Ansible + Vault:** Vollständiges Server-Runbook (Secrets
+auslesen, Vault anlegen, Trockenlauf, Cutover, Verifikation, Rollback) in
+[`ansible/CUTOVER.md`](ansible/CUTOVER.md).
 
 ## Architektur
 
@@ -94,9 +119,67 @@ Standard: `proudig2026` — aenderbar in `/opt/proudig/.env` auf dem Server.
 | Volume | Inhalt |
 |--------|--------|
 | `proudig-pgdata` | PostgreSQL Datenbank |
+| `keycloak-db-data` | Keycloak-Datenbank |
+| `nextcloud-db-data` | NextCloud-Datenbank |
+| `nextcloud-redis-data` | NextCloud Redis (Locking/Cache) |
+| `nextcloud-data` | NextCloud-Anwendung + hochgeladene Dateien |
 | `caddy_data` | Let's Encrypt Zertifikate |
 | `caddy_config` | Caddy Konfiguration |
-| `./data/files` | Hochgeladene Dokumente |
+| `./data/files` | Hochgeladene Dokumente (Portal) |
+
+## NextCloud + Keycloak (Subdomains)
+
+Zusätzliche Dienste im selben Compose-Stack, erreichbar über eigene Subdomains
+hinter Caddy (TLS automatisch via Let's Encrypt):
+
+- `https://files.proudig.ai` → NextCloud (Dateiablage)
+- `https://auth.proudig.ai` → Keycloak (Identity Provider)
+
+### 1. DNS
+
+A-Records beim Registrar auf die Server-IP zeigen lassen:
+- `files.proudig.ai` → `<Server-IP>`
+- `auth.proudig.ai` → `<Server-IP>`
+
+### 2. Secrets
+
+Die neuen Dienste brauchen Pflicht-Passwörter (`KEYCLOAK_DB_PASSWORD`,
+`KEYCLOAK_ADMIN_PASSWORD`, `NEXTCLOUD_DB_PASSWORD`, `NEXTCLOUD_REDIS_PASSWORD`,
+`NEXTCLOUD_ADMIN_PASSWORD`); ohne sie bricht `docker compose up` ab (`:?`-Guards).
+
+Diese Secrets liegen im **Ansible Vault** (`deploy/ansible/group_vars/all/vault.yml`,
+starke Zufallswerte) und werden beim Deploy in `/opt/proudig/.env` gerendert —
+zusammen mit den Portal-Secrets (siehe Abschnitt „Secrets (Ansible Vault)" oben
+und `deploy/ansible/CUTOVER.md`). Kein manuelles Passwort-Management, keine
+Server-Generierung.
+
+NextCloud-/Keycloak-Admin-Passwort bei Bedarf aus dem Vault lesen:
+
+```bash
+ansible-vault view deploy/ansible/group_vars/all/vault.yml
+```
+
+### 3. Start
+
+Der Stack startet über den regulären Ansible-Deploy (rendert `.env` aus dem
+Vault und führt `docker compose up -d` aus):
+
+```bash
+cd deploy/ansible
+ansible-playbook -i inventory.yml playbook.yml --tags deploy
+```
+
+### 4. Backup
+
+Zusätzlich zur Portal-DB sichern:
+```bash
+# NextCloud-Dateien + DB
+docker compose exec nextcloud-db pg_dump -U nextcloud nextcloud > nextcloud-db.sql
+docker run --rm -v nextcloud-data:/data -v "$PWD":/backup alpine \
+  tar czf /backup/nextcloud-data.tgz -C /data .
+# Keycloak-DB (Realm-/Nutzerdaten)
+docker compose exec keycloak-db pg_dump -U keycloak keycloak > keycloak-db.sql
+```
 
 ## Ausfuehrliche Anleitung
 
