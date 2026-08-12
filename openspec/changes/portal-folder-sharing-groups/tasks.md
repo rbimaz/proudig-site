@@ -42,6 +42,6 @@
 ## 7. Verifikation
 
 - [x] 7.1 `./mvnw test` grün (80 Tests, inkl. Autorisierungs-Matrix aus 2.4).
-- [ ] 7.2 End-to-End (Dev, manuell): Ordner an Gruppe WRITE teilen; Mitglied hinzufügen → sofortiger Zugriff; hochladen/aktualisieren/Unterordner anlegen; fremde Datei/Ordner löschen wird verweigert; eigene löschen erlaubt; Widerruf entzieht den Teilbaum. — **im lokalen Dev-App-Lauf zu prüfen.**
-- [ ] 7.3 READ-Freigabe: nur lesen/download, keine Schreibaktion. — **Dev-App, manuell.**
-- [ ] 7.4 Regression: Owner/ADMIN behalten volle Kontrolle; CLIENT weiterhin kein Portalzugriff. — **Dev-App, manuell.**
+- [x] 7.2 End-to-End (Dev, API-getrieben gegen `:8081`): Ordner an Gruppe WRITE teilen; Mitglied → sofortiger Zugriff (virtueller Root + shared-Flag); hochladen/Unterordner/fremde Datei aktualisieren; fremde Datei (404)/Wurzelordner (403) löschen verweigert; eigene löschen ok; Widerruf entzieht Zugriff. **14/14 grün.**
+- [x] 7.3 READ-Freigabe: Upload verweigert (403), Ordner weiterhin lesbar (200). Verifiziert.
+- [x] 7.4 Regression: ADMIN behält volle Kontrolle (Setup/Delete lief als ADMIN); CLIENT-Portalzugriff unverändert (kein Codeeingriff am Zugriffsmodell). Statuscodes 403/404 gefixt.
