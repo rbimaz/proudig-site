@@ -18,7 +18,7 @@ abgewiesen. Endpoint: `POST /api/documents` (multipart).
 - **WHEN** ein Benutzer mit WRITE-Freigabe auf einen (fremden) Ordner dort eine Datei hochlädt
 - **THEN** wird die Datei im Ordner abgelegt (Eigentümer = der hochladende Benutzer)
 
-#### Scenario: Upload in fremden Ordner ohne Schreibzugriff wird abgelehnt
+#### Scenario: Upload in fremden Ordner wird abgelehnt
 - **WHEN** ein Benutzer ohne WRITE-Freigabe/ohne ADMIN eine Datei in einen fremden Ordner hochlädt
 - **THEN** wird der Upload mit `IllegalAccessError` abgewiesen
 
@@ -44,7 +44,7 @@ Löschen einheitlich gelten.
 - **WHEN** ein Benutzer eine Datei in einem ihm (READ oder WRITE) freigegebenen Ordner-Teilbaum abruft/herunterlädt
 - **THEN** wird der Zugriff gewährt
 
-#### Scenario: Reine READ- oder Einzel-Freigabe erlaubt kein Ändern
+#### Scenario: Geteiltes Dokument ist nur lesbar
 - **WHEN** ein Benutzer mit nur READ- (oder Einzel-Datei-) Freigabe eine Datei aktualisieren, umbenennen, verschieben oder löschen will
 - **THEN** wird die Aktion abgewiesen
 
