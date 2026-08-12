@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +36,9 @@ public class FolderService {
      * oder über eine Gruppe) freigegebenen Ordner als virtuelle Roots.
      */
     public List<FolderDto> getRootFolders(User user) {
+        PortalAccessService.AccessContext ctx = access.contextFor(user);
         if (isAdmin(user)) {
-            return folderRepository.findByParentFolderIsNull().stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
+            return mapList(folderRepository.findByParentFolderIsNull(), ctx);
         }
         Map<String, Folder> roots = new LinkedHashMap<>();
         for (Folder f : folderRepository.findByOwnerAndParentFolderIsNull(user)) {
@@ -46,7 +49,7 @@ public class FolderService {
             Folder f = share.getFolder();
             roots.putIfAbsent(f.getId(), f);
         }
-        return roots.values().stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
+        return mapList(new ArrayList<>(roots.values()), ctx);
     }
 
     public List<FolderDto> getSubFolders(String parentFolderId, User user) {
@@ -54,7 +57,7 @@ public class FolderService {
         if (!access.canRead(user, parentFolder)) {
             throw new IllegalAccessError("Access denied");
         }
-        return folderRepository.findByParentFolder(parentFolder).stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
+        return mapList(folderRepository.findByParentFolder(parentFolder), access.contextFor(user));
     }
 
     public FolderDto getFolderById(String folderId, User user) {
@@ -62,7 +65,7 @@ public class FolderService {
         if (!access.canRead(user, folder)) {
             throw new NoSuchElementException("Folder not found: " + folderId);
         }
-        return mapToDto(folder, user);
+        return mapOne(folder, user);
     }
 
     public FolderDto createFolder(String name, String parentFolderId, User owner) {
@@ -76,7 +79,7 @@ public class FolderService {
         }
         folder = folderRepository.save(folder);
         activityLogService.log(owner, "CREATE", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder, owner);
+        return mapOne(folder, owner);
     }
 
     public FolderDto updateFolder(String folderId, String name, User user) {
@@ -92,7 +95,7 @@ public class FolderService {
         folder.setUpdatedAt(Instant.now());
         folder = folderRepository.save(folder);
         activityLogService.log(user, "RENAME", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder, user);
+        return mapOne(folder, user);
     }
 
     @Transactional
@@ -115,7 +118,7 @@ public class FolderService {
         folder.setUpdatedAt(Instant.now());
         folder = folderRepository.save(folder);
         activityLogService.log(user, "MOVE", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder, user);
+        return mapOne(folder, user);
     }
 
     @Transactional
@@ -142,11 +145,22 @@ public class FolderService {
         return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
-    private FolderDto mapToDto(Folder folder, User user) {
+    /** Bewertet eine Ordnerliste mit EINEM Kontext; die „geteilt"-Kennzeichnung wird gebündelt geladen. */
+    private List<FolderDto> mapList(List<Folder> folders, PortalAccessService.AccessContext ctx) {
+        Set<String> sharedIds = folderShareRepository.findByFolderIn(folders).stream()
+                .map(s -> s.getFolder().getId()).collect(Collectors.toSet());
+        return folders.stream().map(f -> mapToDto(f, ctx, sharedIds)).collect(Collectors.toList());
+    }
+
+    private FolderDto mapOne(Folder folder, User user) {
+        return mapList(List.of(folder), access.contextFor(user)).get(0);
+    }
+
+    private FolderDto mapToDto(Folder folder, PortalAccessService.AccessContext ctx, Set<String> sharedIds) {
         long childCount = folderRepository.countByParentFolder(folder);
         FolderDto dto = FolderDto.builder().id(folder.getId()).name(folder.getName()).parentFolderId(folder.getParentFolder() != null ? folder.getParentFolder().getId() : null).ownerId(folder.getOwner().getId()).createdAt(folder.getCreatedAt()).updatedAt(folder.getUpdatedAt()).documentCount(documentRepository.countByFolder(folder)).childFolderCount(childCount).hasChildren(childCount > 0).build();
-        dto.setShared(!folderShareRepository.findByFolder(folder).isEmpty());
-        dto.setCanWrite(access.canWrite(user, folder));
+        dto.setShared(sharedIds.contains(folder.getId()));
+        dto.setCanWrite(access.canWrite(ctx, folder));
         return dto;
     }
 

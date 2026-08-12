@@ -13,6 +13,9 @@ import java.util.Optional;
 public interface FolderShareRepository extends JpaRepository<FolderShare, String> {
     List<FolderShare> findByFolder(Folder folder);
 
+    /** Alle Freigaben zu einer Menge von Ordnern (für die „geteilt"-Kennzeichnung einer Liste). */
+    List<FolderShare> findByFolderIn(Collection<Folder> folders);
+
     Optional<FolderShare> findByFolderAndSharedWithUser(Folder folder, User user);
 
     Optional<FolderShare> findByFolderAndSharedWithGroup(Folder folder, UserGroup group);
