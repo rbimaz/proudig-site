@@ -30,6 +30,9 @@ export const PortalDocuments = () => {
   const [folderShareTarget, setFolderShareTarget] = useState(null);
   const [groupsOpen, setGroupsOpen] = useState(false);
   const [updateDocId, setUpdateDocId] = useState(null);
+  const [conflict, setConflict] = useState(null);
+  // Schreibrecht im aktuellen Ordner: Stammverzeichnis = eigener Bereich; sonst aus dem Ordner-DTO.
+  const currentCanWrite = folderPath.length === 0 ? true : (folderPath[folderPath.length - 1]?.canWrite ?? true);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -84,34 +87,75 @@ export const PortalDocuments = () => {
     }
   };
 
+  const askConflict = (file, existing) =>
+    new Promise((resolve) => setConflict({ file, existing, resolve }));
+
+  const dedupName = (name, taken) => {
+    if (!taken.has(name)) return name;
+    const dot = name.lastIndexOf('.');
+    const base = dot > 0 ? name.slice(0, dot) : name;
+    const ext = dot > 0 ? name.slice(dot) : '';
+    let i = 2;
+    while (taken.has(`${base} (${i})${ext}`)) i++;
+    return `${base} (${i})${ext}`;
+  };
+
+  const uploadOne = async (file, nameOverride) => {
+    const formData = new FormData();
+    formData.append('file', file, nameOverride || file.name);
+    if (currentFolderId) formData.append('folderId', currentFolderId);
+    const res = await authFetch('/api/documents', { method: 'POST', body: formData });
+    if (res.ok) {
+      const newDoc = await res.json();
+      setDocuments(prev => [newDoc, ...prev]);
+      triggerRefresh();
+    } else if (res.status === 403) {
+      setError('Keine Berechtigung zum Hochladen in diesem Ordner');
+    } else {
+      setError('Fehler beim Hochladen: ' + file.name);
+    }
+  };
+
+  const replaceContent = async (existing, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await authFetch(`/api/documents/${existing.id}/content`, { method: 'PUT', body: formData });
+    if (res.ok) {
+      const updated = await res.json();
+      setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d));
+    } else if (res.status === 403) {
+      setError('Keine Berechtigung zum Aktualisieren dieser Datei');
+    } else {
+      setError('Aktualisieren fehlgeschlagen: ' + file.name);
+    }
+  };
+
   const handleUpload = async (files) => {
     if (!files || files.length === 0) return;
+    if (!currentCanWrite) { setError('Keine Berechtigung zum Hochladen in diesem Ordner'); return; }
     setUploading(true);
     setError('');
-
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
-      if (currentFolderId) formData.append('folderId', currentFolderId);
-
+    const taken = new Set(documents.map(d => d.fileName));
+    for (const file of Array.from(files)) {
       try {
-        const res = await authFetch('/api/documents', {
-          method: 'POST',
-          body: formData
-        });
-        if (res.ok) {
-          const newDoc = await res.json();
-          setDocuments(prev => [newDoc, ...prev]);
-          triggerRefresh();
+        const existing = documents.find(d => d.fileName === file.name);
+        if (existing) {
+          const choice = await askConflict(file, existing);
+          if (choice === 'cancel') continue;
+          if (choice === 'replace') { await replaceContent(existing, file); continue; }
+          // 'keep': mit entschärftem Namen hochladen
+          const newName = dedupName(file.name, taken);
+          taken.add(newName);
+          await uploadOne(file, newName);
         } else {
-          setError('Fehler beim Hochladen: ' + file.name);
+          taken.add(file.name);
+          await uploadOne(file);
         }
       } catch (err) {
         console.error('Fehler beim Hochladen:', err);
         setError('Fehler beim Hochladen: ' + err.message);
       }
     }
-
     setUploading(false);
   };
 
@@ -301,7 +345,7 @@ export const PortalDocuments = () => {
   };
 
   const handleOpenFolder = (folder) => {
-    setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
+    setFolderPath(prev => [...prev, { id: folder.id, name: folder.name, canWrite: folder.canWrite }]);
     setCurrentFolderId(folder.id);
   };
 
@@ -410,12 +454,21 @@ export const PortalDocuments = () => {
                 <i className="bi bi-people"></i> Gruppen
               </button>
             )}
-            <button className="pd-btn-secondary" onClick={handleUploadClick} disabled={uploading}>
-              <i className="bi bi-upload"></i> Hochladen
-            </button>
-            <button className="pd-btn-primary" onClick={handleCreateFolder}>
-              <i className="bi bi-plus-lg"></i> Neuer Ordner
-            </button>
+            {currentCanWrite && (
+              <>
+                <button className="pd-btn-secondary" onClick={handleUploadClick} disabled={uploading}>
+                  <i className="bi bi-upload"></i> Hochladen
+                </button>
+                <button className="pd-btn-primary" onClick={handleCreateFolder}>
+                  <i className="bi bi-plus-lg"></i> Neuer Ordner
+                </button>
+              </>
+            )}
+            {!currentCanWrite && (
+              <span className="pd-readonly-hint" style={{ color: '#888', fontSize: '0.9rem' }}>
+                <i className="bi bi-eye"></i> Nur Lesezugriff
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -478,11 +531,13 @@ export const PortalDocuments = () => {
                           label="Öffnen"
                           onClick={(e) => { e.stopPropagation(); handleOpenFolder(row.data); }}
                         />
-                        <ActionButton
-                          icon="bi-pencil"
-                          label="Umbenennen"
-                          onClick={(e) => { e.stopPropagation(); handleRenameFolder(row.data); }}
-                        />
+                        {row.data.canWrite && (
+                          <ActionButton
+                            icon="bi-pencil"
+                            label="Umbenennen"
+                            onClick={(e) => { e.stopPropagation(); handleRenameFolder(row.data); }}
+                          />
+                        )}
                         {isAdmin && (
                           <ActionButton
                             icon="bi-people"
@@ -495,12 +550,14 @@ export const PortalDocuments = () => {
                           label="Extern teilen"
                           onClick={(e) => { e.stopPropagation(); setShareTarget({ type: 'FOLDER', id: row.data.id, name: row.data.name }); }}
                         />
-                        <ActionButton
-                          icon="bi-trash"
-                          label="Löschen"
-                          danger
-                          onClick={(e) => { e.stopPropagation(); handleDeleteFolder(row.data); }}
-                        />
+                        {row.data.canWrite && (
+                          <ActionButton
+                            icon="bi-trash"
+                            label="Löschen"
+                            danger
+                            onClick={(e) => { e.stopPropagation(); handleDeleteFolder(row.data); }}
+                          />
+                        )}
                       </ActionButtonGroup>
                     </span>
                   </div>
@@ -526,16 +583,13 @@ export const PortalDocuments = () => {
                           label="Download"
                           onClick={() => handleDownload(row.data)}
                         />
-                        <ActionButton
-                          icon="bi-arrow-repeat"
-                          label="Aktualisieren"
-                          onClick={() => handleUpdateContentClick(row.data)}
-                        />
-                        <ActionButton
-                          icon="bi-pencil"
-                          label="Umbenennen"
-                          onClick={() => {/* TODO: implement file rename */}}
-                        />
+                        {currentCanWrite && (
+                          <ActionButton
+                            icon="bi-arrow-repeat"
+                            label="Aktualisieren"
+                            onClick={() => handleUpdateContentClick(row.data)}
+                          />
+                        )}
                         <ActionButton
                           icon="bi-link-45deg"
                           label="Extern teilen"
@@ -548,12 +602,14 @@ export const PortalDocuments = () => {
                             onClick={() => setInternalShareTarget(row.data)}
                           />
                         )}
-                        <ActionButton
-                          icon="bi-trash"
-                          label="Löschen"
-                          danger
-                          onClick={() => handleDeleteDocument(row.data)}
-                        />
+                        {currentCanWrite && (
+                          <ActionButton
+                            icon="bi-trash"
+                            label="Löschen"
+                            danger
+                            onClick={() => handleDeleteDocument(row.data)}
+                          />
+                        )}
                       </ActionButtonGroup>
                     </span>
                   </div>
@@ -601,19 +657,21 @@ export const PortalDocuments = () => {
         </div>
       )}
 
-      {/* Drop Zone Block - Gutter */}
-      <div className="pd-gutter">
-        <div
-          className={`pd-dropzone ${dragActive ? 'drag-active' : ''}`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <i className="bi bi-cloud-arrow-up"></i>
-          <span>Dateien hier ablegen</span>
+      {/* Drop Zone Block - Gutter (nur bei Schreibrecht) */}
+      {currentCanWrite && (
+        <div className="pd-gutter">
+          <div
+            className={`pd-dropzone ${dragActive ? 'drag-active' : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <i className="bi bi-cloud-arrow-up"></i>
+            <span>Dateien hier ablegen</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Confirm Dialog */}
       <ConfirmDialog
@@ -642,6 +700,29 @@ export const PortalDocuments = () => {
 
       {groupsOpen && (
         <GroupsDialog onClose={() => setGroupsOpen(false)} />
+      )}
+
+      {conflict && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}
+          onClick={() => { conflict.resolve('cancel'); setConflict(null); }}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: 12, padding: '1.5rem', width: 'min(460px, 92vw)', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginTop: 0 }}>Datei existiert bereits</h3>
+            <p>Im aktuellen Ordner gibt es bereits <strong>„{conflict.file.name}"</strong>. Was möchtest du tun?</p>
+            <p style={{ color: '#888', fontSize: '0.85rem' }}>
+              „Ersetzen" aktualisiert den Inhalt der vorhandenen Datei (auch wenn sie von jemand anderem stammt).
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: '1rem' }}>
+              <button className="pd-btn-secondary" onClick={() => { conflict.resolve('cancel'); setConflict(null); }}>Abbrechen</button>
+              <button className="pd-btn-secondary" onClick={() => { conflict.resolve('keep'); setConflict(null); }}>Beide behalten</button>
+              <button className="pd-btn-primary" onClick={() => { conflict.resolve('replace'); setConflict(null); }}>Ersetzen</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

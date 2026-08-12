@@ -14,6 +14,8 @@ public class FolderDto {
     private boolean hasChildren;
     /** Ob der Ordner intern freigegeben ist (Kennzeichnung im realen Pfad / an virtuellen Roots). */
     private boolean shared;
+    /** Ob der anfragende Nutzer in diesem Ordner schreiben darf (Upload/Anlegen/Aktualisieren). */
+    private boolean canWrite;
 
     public boolean isShared() {
         return this.shared;
@@ -21,6 +23,14 @@ public class FolderDto {
 
     public void setShared(final boolean shared) {
         this.shared = shared;
+    }
+
+    public boolean isCanWrite() {
+        return this.canWrite;
+    }
+
+    public void setCanWrite(final boolean canWrite) {
+        this.canWrite = canWrite;
     }
 
 

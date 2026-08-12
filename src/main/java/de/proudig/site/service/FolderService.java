@@ -35,7 +35,7 @@ public class FolderService {
      */
     public List<FolderDto> getRootFolders(User user) {
         if (isAdmin(user)) {
-            return folderRepository.findByParentFolderIsNull().stream().map(this::mapToDto).collect(Collectors.toList());
+            return folderRepository.findByParentFolderIsNull().stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
         }
         Map<String, Folder> roots = new LinkedHashMap<>();
         for (Folder f : folderRepository.findByOwnerAndParentFolderIsNull(user)) {
@@ -46,7 +46,7 @@ public class FolderService {
             Folder f = share.getFolder();
             roots.putIfAbsent(f.getId(), f);
         }
-        return roots.values().stream().map(this::mapToDto).collect(Collectors.toList());
+        return roots.values().stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
     }
 
     public List<FolderDto> getSubFolders(String parentFolderId, User user) {
@@ -54,7 +54,7 @@ public class FolderService {
         if (!access.canRead(user, parentFolder)) {
             throw new IllegalAccessError("Access denied");
         }
-        return folderRepository.findByParentFolder(parentFolder).stream().map(this::mapToDto).collect(Collectors.toList());
+        return folderRepository.findByParentFolder(parentFolder).stream().map(f -> mapToDto(f, user)).collect(Collectors.toList());
     }
 
     public FolderDto getFolderById(String folderId, User user) {
@@ -62,7 +62,7 @@ public class FolderService {
         if (!access.canRead(user, folder)) {
             throw new NoSuchElementException("Folder not found: " + folderId);
         }
-        return mapToDto(folder);
+        return mapToDto(folder, user);
     }
 
     public FolderDto createFolder(String name, String parentFolderId, User owner) {
@@ -76,7 +76,7 @@ public class FolderService {
         }
         folder = folderRepository.save(folder);
         activityLogService.log(owner, "CREATE", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder);
+        return mapToDto(folder, owner);
     }
 
     public FolderDto updateFolder(String folderId, String name, User user) {
@@ -92,7 +92,7 @@ public class FolderService {
         folder.setUpdatedAt(Instant.now());
         folder = folderRepository.save(folder);
         activityLogService.log(user, "RENAME", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder);
+        return mapToDto(folder, user);
     }
 
     @Transactional
@@ -115,7 +115,7 @@ public class FolderService {
         folder.setUpdatedAt(Instant.now());
         folder = folderRepository.save(folder);
         activityLogService.log(user, "MOVE", "FOLDER", folder.getId(), folder.getName());
-        return mapToDto(folder);
+        return mapToDto(folder, user);
     }
 
     @Transactional
@@ -142,10 +142,11 @@ public class FolderService {
         return user.getRoles().stream().anyMatch(role -> "ADMIN".equals(role.getName()));
     }
 
-    private FolderDto mapToDto(Folder folder) {
+    private FolderDto mapToDto(Folder folder, User user) {
         long childCount = folderRepository.countByParentFolder(folder);
         FolderDto dto = FolderDto.builder().id(folder.getId()).name(folder.getName()).parentFolderId(folder.getParentFolder() != null ? folder.getParentFolder().getId() : null).ownerId(folder.getOwner().getId()).createdAt(folder.getCreatedAt()).updatedAt(folder.getUpdatedAt()).documentCount(documentRepository.countByFolder(folder)).childFolderCount(childCount).hasChildren(childCount > 0).build();
         dto.setShared(!folderShareRepository.findByFolder(folder).isEmpty());
+        dto.setCanWrite(access.canWrite(user, folder));
         return dto;
     }
 
