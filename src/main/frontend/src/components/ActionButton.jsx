@@ -34,6 +34,7 @@ export const ActionButton = ({ icon, label, danger = false, onClick, disabled = 
     color: 'var(--ink-3)',
     transition: 'all 0.15s ease',
     opacity: disabled ? 0.5 : 1,
+    flexShrink: 0,
   };
 
   // Hover/Fokus: in Primärfarbe (bzw. Gefahr) GEFÜLLT, Icon weiß.

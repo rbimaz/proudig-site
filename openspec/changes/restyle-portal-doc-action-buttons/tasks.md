@@ -8,6 +8,7 @@
 
 - [x] 2a `.portal-documents-v2`: `max-width: 1200px` entfernt (füllt die Breite).
 - [x] 2b `--gutter: 0 40px` → `0` (Blöcke an der 2rem-Basis von `.portal-content` = Navbar-Rand); Mobile-Override (`0 16px`) unberührt.
+- [x] 2c Aktionsspalte content-breit: `grid-template-columns … auto` statt fixer `132px` (Desktop + ≤900px) + `flex-shrink: 0` an den Buttons → bis zu 5 Buttons werden nicht gestaucht.
 
 ## 3. Verifikation
 

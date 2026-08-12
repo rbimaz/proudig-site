@@ -23,6 +23,11 @@ Text-Beschriftungen angezeigt (reine Icon-Buttons).
 - **WHEN** der Mauszeiger über einem nicht-gefährlichen Aktions-Button liegt (oder er den Fokus hat)
 - **THEN** ist der Button in Orange gefüllt und das Icon weiß
 
+#### Scenario: Buttons werden nicht gestaucht
+
+- **WHEN** eine Zeile mehrere Aktionen (bis zu fünf) enthält
+- **THEN** behalten die Buttons ihre 42×42-Größe; die Aktionsspalte passt ihre Breite an die Buttons an (kein Zusammenquetschen)
+
 #### Scenario: Lösch-Button füllt in Rot
 
 - **WHEN** der Mauszeiger über dem »Löschen«-Button liegt (oder er den Fokus hat)
