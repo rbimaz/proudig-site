@@ -23,7 +23,7 @@ export const UserMenu = () => {
   }, [open]);
 
   const initials = `${(user?.firstName || '').charAt(0)}${(user?.lastName || '').charAt(0)}`.toUpperCase() || 'U';
-  const roleLabel = hasRole('ADMIN') ? 'Administrator' : (hasRole('CONSULTANT') ? 'Redakteur' : 'Benutzer');
+  const roleLabel = hasRole('ADMIN') ? 'Administrator' : (hasRole('CONSULTANT') ? 'Consultant' : 'Benutzer');
   const go = (path) => { setOpen(false); navigate(path); };
   const handleLogout = async () => { setOpen(false); await logout(); navigate('/admin/login'); };
 
