@@ -5,6 +5,8 @@ import { ActionButton, ActionButtonGroup } from '../../components/ActionButton';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ShareLinkDialog } from './ShareLinkDialog';
 import { InternalShareDialog } from './InternalShareDialog';
+import { FolderShareDialog } from './FolderShareDialog';
+import { GroupsDialog } from './GroupsDialog';
 
 /**
  * Portal "Meine Dokumente" - Option 4 (Toolbar-geführt, kompakt)
@@ -25,6 +27,9 @@ export const PortalDocuments = () => {
   const [sharedWithMe, setSharedWithMe] = useState([]);
   const [shareTarget, setShareTarget] = useState(null);
   const [internalShareTarget, setInternalShareTarget] = useState(null);
+  const [folderShareTarget, setFolderShareTarget] = useState(null);
+  const [groupsOpen, setGroupsOpen] = useState(false);
+  const [updateDocId, setUpdateDocId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -37,6 +42,7 @@ export const PortalDocuments = () => {
     danger: false
   });
   const fileInputRef = useRef(null);
+  const updateInputRef = useRef(null);
 
   useEffect(() => {
     fetchContent();
@@ -265,6 +271,35 @@ export const PortalDocuments = () => {
     }
   };
 
+  const handleUpdateContentClick = (doc) => {
+    setUpdateDocId(doc.id);
+    updateInputRef.current?.click();
+  };
+
+  const handleUpdateContentFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !updateDocId) { setUpdateDocId(null); return; }
+    setError('');
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await authFetch(`/api/documents/${updateDocId}/content`, { method: 'PUT', body: formData });
+      if (res.ok) {
+        const updated = await res.json();
+        setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d));
+      } else if (res.status === 403) {
+        setError('Keine Berechtigung zum Aktualisieren dieser Datei');
+      } else {
+        setError('Aktualisieren fehlgeschlagen');
+      }
+    } catch (err) {
+      setError('Aktualisieren fehlgeschlagen: ' + err.message);
+    } finally {
+      setUpdateDocId(null);
+    }
+  };
+
   const handleOpenFolder = (folder) => {
     setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
     setCurrentFolderId(folder.id);
@@ -329,6 +364,13 @@ export const PortalDocuments = () => {
         onChange={(e) => handleUpload(e.target.files)}
         style={{ display: 'none' }}
       />
+      {/* Hidden input for replacing a file's content */}
+      <input
+        ref={updateInputRef}
+        type="file"
+        onChange={handleUpdateContentFile}
+        style={{ display: 'none' }}
+      />
 
       {/* Title Block - Gutter */}
       <div className="pd-title-block">
@@ -363,6 +405,11 @@ export const PortalDocuments = () => {
 
           {/* Actions right */}
           <div className="pd-toolbar-actions">
+            {isAdmin && (
+              <button className="pd-btn-secondary" onClick={() => setGroupsOpen(true)}>
+                <i className="bi bi-people"></i> Gruppen
+              </button>
+            )}
             <button className="pd-btn-secondary" onClick={handleUploadClick} disabled={uploading}>
               <i className="bi bi-upload"></i> Hochladen
             </button>
@@ -416,6 +463,11 @@ export const PortalDocuments = () => {
                     <span className="pd-cell-name">
                       <span className="pd-icon-tile"><i className="bi bi-folder-fill"></i></span>
                       <span className="pd-name-text">{row.data.name}</span>
+                      {row.data.shared && (
+                        <span title="Intern geteilt" style={{ marginLeft: 8, color: '#e8600b' }}>
+                          <i className="bi bi-people-fill"></i>
+                        </span>
+                      )}
                     </span>
                     <span className="pd-col-size pd-cell-meta">{formatFolderSize(row.data)}</span>
                     <span className="pd-col-date pd-cell-meta">—</span>
@@ -431,6 +483,13 @@ export const PortalDocuments = () => {
                           label="Umbenennen"
                           onClick={(e) => { e.stopPropagation(); handleRenameFolder(row.data); }}
                         />
+                        {isAdmin && (
+                          <ActionButton
+                            icon="bi-people"
+                            label="Intern teilen"
+                            onClick={(e) => { e.stopPropagation(); setFolderShareTarget(row.data); }}
+                          />
+                        )}
                         <ActionButton
                           icon="bi-link-45deg"
                           label="Extern teilen"
@@ -466,6 +525,11 @@ export const PortalDocuments = () => {
                           icon="bi-download"
                           label="Download"
                           onClick={() => handleDownload(row.data)}
+                        />
+                        <ActionButton
+                          icon="bi-arrow-repeat"
+                          label="Aktualisieren"
+                          onClick={() => handleUpdateContentClick(row.data)}
                         />
                         <ActionButton
                           icon="bi-pencil"
@@ -567,6 +631,17 @@ export const PortalDocuments = () => {
 
       {internalShareTarget && (
         <InternalShareDialog doc={internalShareTarget} onClose={() => setInternalShareTarget(null)} />
+      )}
+
+      {folderShareTarget && (
+        <FolderShareDialog
+          folder={folderShareTarget}
+          onClose={() => { setFolderShareTarget(null); fetchContent(); }}
+        />
+      )}
+
+      {groupsOpen && (
+        <GroupsDialog onClose={() => setGroupsOpen(false)} />
       )}
     </div>
   );

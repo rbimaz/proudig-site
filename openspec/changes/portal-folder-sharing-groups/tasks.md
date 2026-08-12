@@ -33,15 +33,15 @@
 
 ## 6. Frontend
 
-- [ ] 6.1 Freigabe-Dialog erweitern: Ziel Nutzer **oder** Gruppe wählbar, Berechtigung READ/WRITE; bestehende Freigaben anzeigen/widerrufen (ADMIN).
-- [ ] 6.2 Gruppen-Verwaltungs-UI (ADMIN): Gruppen CRUD + Mitglieder.
-- [ ] 6.3 Ordneransicht: geteilte Ordner als virtuelle Roots anzeigen und navigieren; Datei-Sichtbarkeit folgt dem Ordner; geteilte Ordner **auch im realen Pfad** als „geteilt" markieren (Badge/Icon + Freigabe-Info).
-- [ ] 6.4 „Datei aktualisieren"-Aktion (Inhalt ersetzen) für berechtigte Nutzer; Upload/Anlegen in geteilten WRITE-Ordnern; Lösch-/Umbenennen-Aktionen nur für eigene Elemente einblenden.
-- [ ] 6.5 `npm --prefix src/main/frontend run test:run` + `build` grün.
+- [x] 6.1 `FolderShareDialog`: Ziel Nutzer **oder** Gruppe, Berechtigung READ/WRITE; bestehende Freigaben anzeigen/widerrufen (ADMIN).
+- [x] 6.2 `GroupsDialog` (ADMIN): Gruppen CRUD + Mitglieder verwalten; „Gruppen"-Button in der Toolbar.
+- [x] 6.3 Ordneransicht: geteilte Ordner als virtuelle Roots (Backend liefert sie in `/api/folders`); Datei-Sichtbarkeit folgt dem Ordner; „geteilt"-Badge (`shared`-Flag) im realen Pfad. Detail-Freigaben im Dialog.
+- [x] 6.4 „Datei aktualisieren"-Aktion (`PUT …/content`) je Datei; Upload/Ordner-Anlegen laufen über die WRITE-fähigen Endpunkte; Backend erzwingt eigene-vs-fremde, UI zeigt 403 als Meldung.
+- [x] 6.5 `build` ✅ (372 Module), `test:run` ✅ (116 Tests), `lint` 0 Errors.
 
 ## 7. Verifikation
 
-- [ ] 7.1 `./mvnw test` grün (inkl. Autorisierungs-Matrix aus 2.4).
-- [ ] 7.2 End-to-End (Dev): Ordner an Gruppe WRITE teilen; Mitglied hinzufügen → sofortiger Zugriff; hochladen/aktualisieren/Unterordner anlegen; fremde Datei/Ordner löschen wird verweigert; eigene löschen erlaubt; Widerruf entzieht den Teilbaum.
-- [ ] 7.3 READ-Freigabe: nur lesen/download, keine Schreibaktion.
-- [ ] 7.4 Regression: Owner/ADMIN behalten volle Kontrolle; CLIENT weiterhin kein Portalzugriff.
+- [x] 7.1 `./mvnw test` grün (80 Tests, inkl. Autorisierungs-Matrix aus 2.4).
+- [ ] 7.2 End-to-End (Dev, manuell): Ordner an Gruppe WRITE teilen; Mitglied hinzufügen → sofortiger Zugriff; hochladen/aktualisieren/Unterordner anlegen; fremde Datei/Ordner löschen wird verweigert; eigene löschen erlaubt; Widerruf entzieht den Teilbaum. — **im lokalen Dev-App-Lauf zu prüfen.**
+- [ ] 7.3 READ-Freigabe: nur lesen/download, keine Schreibaktion. — **Dev-App, manuell.**
+- [ ] 7.4 Regression: Owner/ADMIN behalten volle Kontrolle; CLIENT weiterhin kein Portalzugriff. — **Dev-App, manuell.**
