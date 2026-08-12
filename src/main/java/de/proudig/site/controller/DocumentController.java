@@ -118,6 +118,16 @@ public class DocumentController {
         return ResponseEntity.noContent().build();
     }
 
+    @ExceptionHandler(IllegalAccessError.class)
+    public ResponseEntity<String> handleForbidden(IllegalAccessError ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(java.util.NoSuchElementException.class)
+    public ResponseEntity<String> handleNotFound(java.util.NoSuchElementException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
     public DocumentController(final DocumentService documentService, final FileStorageService fileStorageService) {
         this.documentService = documentService;
         this.fileStorageService = fileStorageService;
