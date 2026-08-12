@@ -12,6 +12,16 @@ public class FolderDto {
     private long documentCount;
     private long childFolderCount;
     private boolean hasChildren;
+    /** Ob der Ordner intern freigegeben ist (Kennzeichnung im realen Pfad / an virtuellen Roots). */
+    private boolean shared;
+
+    public boolean isShared() {
+        return this.shared;
+    }
+
+    public void setShared(final boolean shared) {
+        this.shared = shared;
+    }
 
 
     public static class FolderDtoBuilder {

@@ -60,6 +60,13 @@ public class DocumentController {
         return ResponseEntity.ok(document);
     }
 
+    @PutMapping("/{documentId}/content")
+    public ResponseEntity<DocumentDto> updateContent(@PathVariable String documentId, @RequestParam("file") MultipartFile file) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        DocumentDto document = documentService.updateDocumentContent(documentId, file, user);
+        return ResponseEntity.ok(document);
+    }
+
     @DeleteMapping("/{documentId}")
     public ResponseEntity<Void> deleteDocument(@PathVariable String documentId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

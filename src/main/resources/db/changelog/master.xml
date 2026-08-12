@@ -23,5 +23,6 @@
     <include file="db/changelog/017-impressum-markdown-seed.xml"/>
     <include file="db/changelog/018-external-share-links.xml"/>
     <include file="db/changelog/019-document-shares.xml"/>
+    <include file="db/changelog/020-groups-folder-shares.xml"/>
 
 </databaseChangeLog>

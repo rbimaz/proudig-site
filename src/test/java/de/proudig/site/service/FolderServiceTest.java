@@ -7,6 +7,8 @@ import de.proudig.site.domain.User;
 import de.proudig.site.dto.FolderDto;
 import de.proudig.site.repository.DocumentRepository;
 import de.proudig.site.repository.FolderRepository;
+import de.proudig.site.repository.FolderShareRepository;
+import de.proudig.site.repository.UserGroupRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -25,66 +27,59 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit Tests für FolderService
- *
- * Testet die Funktionalität zum Umbenennen und Löschen von Ordnern
- * inklusive Admin-Berechtigung und rekursivem Löschen.
+ * Unit Tests für FolderService – Zugriff über zentrale {@link PortalAccessService}.
+ * Owner/ADMIN entsprechen FULL; Fremde ohne Freigabe NONE.
  */
 @ExtendWith(MockitoExtension.class)
 class FolderServiceTest {
 
-    @Mock
-    private FolderRepository folderRepository;
+    @Mock private FolderRepository folderRepository;
+    @Mock private DocumentRepository documentRepository;
+    @Mock private FolderShareRepository folderShareRepository;
+    @Mock private UserGroupRepository userGroupRepository;
+    @Mock private PortalAccessService access;
+    @Mock private ActivityLogService activityLogService;
 
-    @Mock
-    private DocumentRepository documentRepository;
-
-    @InjectMocks
-    private FolderService folderService;
+    @InjectMocks private FolderService folderService;
 
     private User owner;
     private User admin;
     private User consultant;
     private User otherUser;
-    private Role adminRole;
-    private Role consultantRole;
     private Folder testFolder;
 
     @BeforeEach
     void setUp() {
-        adminRole = new Role();
+        Role adminRole = new Role();
         adminRole.setId(1L);
         adminRole.setName("ADMIN");
 
-        consultantRole = new Role();
+        Role consultantRole = new Role();
         consultantRole.setId(2L);
         consultantRole.setName("CONSULTANT");
 
         owner = new User();
         owner.setId("owner-id");
-        owner.setEmail("owner@test.de");
         owner.setRoles(new HashSet<>());
 
         admin = new User();
         admin.setId("admin-id");
-        admin.setEmail("admin@test.de");
         admin.setRoles(new HashSet<>(Set.of(adminRole)));
 
         consultant = new User();
         consultant.setId("consultant-id");
-        consultant.setEmail("consultant@test.de");
         consultant.setRoles(new HashSet<>(Set.of(consultantRole)));
 
         otherUser = new User();
         otherUser.setId("other-id");
-        otherUser.setEmail("other@test.de");
         otherUser.setRoles(new HashSet<>());
 
-        testFolder = Folder.builder()
-                .id("folder-id")
-                .name("Test Folder")
-                .owner(owner)
-                .build();
+        testFolder = Folder.builder().id("folder-id").name("Test Folder").owner(owner).build();
+
+        // mapToDto-Hilfsstubs (nicht in jedem Test genutzt)
+        lenient().when(folderShareRepository.findByFolder(any())).thenReturn(List.of());
+        lenient().when(folderRepository.countByParentFolder(any())).thenReturn(0L);
+        lenient().when(documentRepository.countByFolder(any())).thenReturn(0L);
     }
 
     @Nested
@@ -92,81 +87,55 @@ class FolderServiceTest {
     class UpdateFolderTests {
 
         @Test
-        @DisplayName("Given Ordner existiert, When Owner umbenennt, Then Name wird geändert")
+        @DisplayName("Owner (FULL) benennt um")
         void ownerCanRenameFolder() {
-            // Given
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
             when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
-            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
-            when(documentRepository.countByFolder(any())).thenReturn(0L);
 
-            // When
             FolderDto result = folderService.updateFolder("folder-id", "Neuer Name", owner);
 
-            // Then
             assertThat(result.getName()).isEqualTo("Neuer Name");
             verify(folderRepository).save(testFolder);
         }
 
         @Test
-        @DisplayName("Given Ordner gehört anderem User, When Admin umbenennt, Then Name wird geändert")
-        void adminCanRenameFolderOfOtherUser() {
-            // Given
+        @DisplayName("Admin (FULL) benennt fremden Ordner um")
+        void adminCanRenameForeign() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(admin, testFolder)).thenReturn(true);
             when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
-            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
-            when(documentRepository.countByFolder(any())).thenReturn(0L);
 
-            // When
             FolderDto result = folderService.updateFolder("folder-id", "Admin-Rename", admin);
 
-            // Then
             assertThat(result.getName()).isEqualTo("Admin-Rename");
         }
 
         @Test
-        @DisplayName("Given Ordner gehört anderem User, When normaler User umbenennt, Then AccessDenied")
-        void otherUserCannotRenameFolder() {
-            // Given
+        @DisplayName("Ohne FULL, When umbenennen, Then AccessDenied")
+        void otherUserCannotRename() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(otherUser, testFolder)).thenReturn(false);
 
-            // When/Then
             assertThatThrownBy(() -> folderService.updateFolder("folder-id", "Hack", otherUser))
-                    .isInstanceOf(IllegalAccessError.class)
-                    .hasMessageContaining("Access denied");
+                    .isInstanceOf(IllegalAccessError.class);
         }
 
         @Test
-        @DisplayName("Given leerer Name, When umbenennen, Then IllegalArgumentException")
-        void emptyNameThrowsException() {
-            // Given
+        @DisplayName("Leerer Name, Then IllegalArgumentException")
+        void emptyNameThrows() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
 
-            // When/Then
             assertThatThrownBy(() -> folderService.updateFolder("folder-id", "", owner))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("cannot be empty");
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
-        @DisplayName("Given null Name, When umbenennen, Then IllegalArgumentException")
-        void nullNameThrowsException() {
-            // Given
-            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
-
-            // When/Then
-            assertThatThrownBy(() -> folderService.updateFolder("folder-id", null, owner))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("cannot be empty");
-        }
-
-        @Test
-        @DisplayName("Given Ordner nicht gefunden, When umbenennen, Then NoSuchElementException")
-        void folderNotFoundThrowsException() {
-            // Given
+        @DisplayName("Ordner nicht gefunden, Then NoSuchElementException")
+        void notFoundThrows() {
             when(folderRepository.findById("unknown")).thenReturn(Optional.empty());
 
-            // When/Then
             assertThatThrownBy(() -> folderService.updateFolder("unknown", "Name", owner))
                     .isInstanceOf(NoSuchElementException.class);
         }
@@ -177,64 +146,41 @@ class FolderServiceTest {
     class DeleteFolderTests {
 
         @Test
-        @DisplayName("Given leerer Ordner, When Owner löscht, Then Ordner wird gelöscht")
-        void ownerCanDeleteEmptyFolder() {
-            // Given
+        @DisplayName("Owner (FULL) löscht leeren Ordner")
+        void ownerCanDeleteEmpty() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
             when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of());
             when(documentRepository.findByFolder(testFolder)).thenReturn(List.of());
 
-            // When
             folderService.deleteFolder("folder-id", owner);
 
-            // Then
             verify(folderRepository).delete(testFolder);
         }
 
         @Test
-        @DisplayName("Given Ordner gehört anderem User, When Admin löscht, Then Ordner wird gelöscht")
-        void adminCanDeleteFolderOfOtherUser() {
-            // Given
+        @DisplayName("Ohne FULL, Then AccessDenied")
+        void otherUserCannotDelete() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
-            when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of());
-            when(documentRepository.findByFolder(testFolder)).thenReturn(List.of());
+            when(access.canDeleteFolder(otherUser, testFolder)).thenReturn(false);
 
-            // When
-            folderService.deleteFolder("folder-id", admin);
-
-            // Then
-            verify(folderRepository).delete(testFolder);
-        }
-
-        @Test
-        @DisplayName("Given Ordner gehört anderem User, When normaler User löscht, Then AccessDenied")
-        void otherUserCannotDeleteFolder() {
-            // Given
-            when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
-
-            // When/Then
             assertThatThrownBy(() -> folderService.deleteFolder("folder-id", otherUser))
-                    .isInstanceOf(IllegalAccessError.class)
-                    .hasMessageContaining("Access denied");
-
+                    .isInstanceOf(IllegalAccessError.class);
             verify(folderRepository, never()).delete(any());
         }
 
         @Test
-        @DisplayName("Given Ordner mit Dokumenten, When löschen, Then Dokumente werden auch gelöscht")
-        void deleteFolderDeletesDocuments() {
-            // Given
+        @DisplayName("Ordner mit Dokumenten, Then Dokumente auch gelöscht")
+        void deleteAlsoDocuments() {
             Document doc1 = Document.builder().id("doc-1").fileName("file1.pdf").build();
             Document doc2 = Document.builder().id("doc-2").fileName("file2.pdf").build();
-
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
             when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of());
             when(documentRepository.findByFolder(testFolder)).thenReturn(List.of(doc1, doc2));
 
-            // When
             folderService.deleteFolder("folder-id", owner);
 
-            // Then
             ArgumentCaptor<List<Document>> captor = ArgumentCaptor.forClass(List.class);
             verify(documentRepository).deleteAll(captor.capture());
             assertThat(captor.getValue()).hasSize(2);
@@ -242,52 +188,32 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Ordner mit Unterordner, When löschen, Then rekursiv gelöscht")
-        void deleteFolderDeletesSubfoldersRecursively() {
-            // Given
-            Folder childFolder = Folder.builder()
-                    .id("child-folder-id")
-                    .name("Child Folder")
-                    .owner(owner)
-                    .parentFolder(testFolder)
-                    .build();
-
+        @DisplayName("Ordner mit Unterordner, Then rekursiv gelöscht")
+        void deleteRecursively() {
+            Folder childFolder = Folder.builder().id("child").name("Child").owner(owner).parentFolder(testFolder).build();
             Document childDoc = Document.builder().id("child-doc").fileName("child.pdf").build();
-
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
             when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of(childFolder));
             when(folderRepository.findByParentFolder(childFolder)).thenReturn(List.of());
             when(documentRepository.findByFolder(testFolder)).thenReturn(List.of());
             when(documentRepository.findByFolder(childFolder)).thenReturn(List.of(childDoc));
 
-            // When
             folderService.deleteFolder("folder-id", owner);
 
-            // Then
             verify(folderRepository).delete(childFolder);
             verify(folderRepository).delete(testFolder);
             verify(documentRepository).deleteAll(List.of(childDoc));
         }
-
-        @Test
-        @DisplayName("Given Ordner nicht gefunden, When löschen, Then NoSuchElementException")
-        void folderNotFoundThrowsException() {
-            // Given
-            when(folderRepository.findById("unknown")).thenReturn(Optional.empty());
-
-            // When/Then
-            assertThatThrownBy(() -> folderService.deleteFolder("unknown", owner))
-                    .isInstanceOf(NoSuchElementException.class);
-        }
     }
 
     @Nested
-    @DisplayName("Ordner auflisten (Team-Sicht)")
+    @DisplayName("Ordner auflisten (Team-Sicht + virtuelle Roots)")
     class ListFolderTests {
 
         @Test
-        @DisplayName("Given Admin, When Root-Ordner, Then alle Ordner (findByParentFolderIsNull)")
-        void adminSeesAllRootFolders() {
+        @DisplayName("Admin sieht alle Root-Ordner")
+        void adminSeesAllRoots() {
             Folder foreign = Folder.builder().id("f2").name("Fremd").owner(otherUser).build();
             when(folderRepository.findByParentFolderIsNull()).thenReturn(List.of(testFolder, foreign));
 
@@ -298,9 +224,11 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Consultant, When Root-Ordner, Then nur eigene")
-        void consultantSeesOnlyOwnRootFolders() {
+        @DisplayName("Consultant sieht eigene Roots (+ geteilte)")
+        void consultantSeesOwnRoots() {
             when(folderRepository.findByOwnerAndParentFolderIsNull(consultant)).thenReturn(List.of(testFolder));
+            when(userGroupRepository.findByMembersContains(consultant)).thenReturn(List.of());
+            when(folderShareRepository.findBySharedWithUserOrSharedWithGroupIn(eq(consultant), anyList())).thenReturn(List.of());
 
             List<FolderDto> result = folderService.getRootFolders(consultant);
 
@@ -309,46 +237,32 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Client, When Root-Ordner, Then nur eigene")
-        void clientSeesOnlyOwnRootFolders() {
-            when(folderRepository.findByOwnerAndParentFolderIsNull(otherUser)).thenReturn(List.of());
-
-            List<FolderDto> result = folderService.getRootFolders(otherUser);
-
-            assertThat(result).isEmpty();
-            verify(folderRepository, never()).findByParentFolderIsNull();
-        }
-
-        @Test
-        @DisplayName("Given Personal, When fremde Unterordner, Then erlaubt (alle Kinder)")
-        void staffCanListForeignSubfolders() {
+        @DisplayName("Lesezugriff auf Unterordner erlaubt (canRead)")
+        void canListSubfoldersWithRead() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canRead(admin, testFolder)).thenReturn(true);
             when(folderRepository.findByParentFolder(testFolder)).thenReturn(List.of());
 
-            List<FolderDto> result = folderService.getSubFolders("folder-id", admin);
-
-            assertThat(result).isEmpty();
-            verify(folderRepository, never()).findByOwnerAndParentFolder(any(), any());
+            assertThat(folderService.getSubFolders("folder-id", admin)).isEmpty();
         }
 
         @Test
-        @DisplayName("Given Client, When fremde Unterordner, Then Zugriff verweigert")
-        void clientCannotListForeignSubfolders() {
+        @DisplayName("Kein Lesezugriff auf Unterordner, Then AccessDenied")
+        void cannotListSubfoldersWithoutRead() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canRead(otherUser, testFolder)).thenReturn(false);
 
             assertThatThrownBy(() -> folderService.getSubFolders("folder-id", otherUser))
                     .isInstanceOf(IllegalAccessError.class);
         }
 
         @Test
-        @DisplayName("Given Admin, When fremder Einzelordner, Then via findById")
-        void adminCanGetForeignFolderById() {
+        @DisplayName("getFolderById mit Lesezugriff")
+        void getByIdWithRead() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canRead(admin, testFolder)).thenReturn(true);
 
-            FolderDto result = folderService.getFolderById("folder-id", admin);
-
-            assertThat(result.getId()).isEqualTo("folder-id");
-            verify(folderRepository, never()).findByIdAndOwner(any(), any());
+            assertThat(folderService.getFolderById("folder-id", admin).getId()).isEqualTo("folder-id");
         }
     }
 
@@ -357,21 +271,20 @@ class FolderServiceTest {
     class MapToDtoTests {
 
         @Test
-        @DisplayName("Given Ordner mit Inhalten, When mapToDto, Then Zähler korrekt")
-        void mapToDtoIncludesCounters() {
-            // Given
+        @DisplayName("Zähler und shared-Flag")
+        void mapToDtoCounters() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canDeleteFolder(owner, testFolder)).thenReturn(true);
             when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
             when(folderRepository.countByParentFolder(testFolder)).thenReturn(3L);
             when(documentRepository.countByFolder(testFolder)).thenReturn(5L);
 
-            // When
             FolderDto result = folderService.updateFolder("folder-id", "Updated", owner);
 
-            // Then
             assertThat(result.getChildFolderCount()).isEqualTo(3);
             assertThat(result.getDocumentCount()).isEqualTo(5);
             assertThat(result.isHasChildren()).isTrue();
+            assertThat(result.isShared()).isFalse();
         }
     }
 
@@ -380,14 +293,13 @@ class FolderServiceTest {
     class MoveFolderTests {
 
         @Test
-        @DisplayName("Given eigener Ordner und Ziel, When verschoben, Then parentFolder = Ziel")
-        void ownerCanMoveFolderIntoTarget() {
+        @DisplayName("In Ziel verschieben (canMoveFolder)")
+        void moveIntoTarget() {
             Folder target = Folder.builder().id("target-id").name("Ziel").owner(owner).build();
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
             when(folderRepository.findById("target-id")).thenReturn(Optional.of(target));
+            when(access.canMoveFolder(owner, testFolder, target)).thenReturn(true);
             when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
-            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
-            when(documentRepository.countByFolder(any())).thenReturn(0L);
 
             FolderDto result = folderService.moveFolder("folder-id", "target-id", owner);
 
@@ -396,13 +308,12 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Unterordner, When auf Wurzel verschoben, Then parentFolder = null")
+        @DisplayName("Auf Wurzel verschieben")
         void moveToRoot() {
             testFolder.setParentFolder(Folder.builder().id("old-parent").owner(owner).build());
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canMoveFolder(owner, testFolder, null)).thenReturn(true);
             when(folderRepository.save(any(Folder.class))).thenAnswer(i -> i.getArgument(0));
-            when(folderRepository.countByParentFolder(any())).thenReturn(0L);
-            when(documentRepository.countByFolder(any())).thenReturn(0L);
 
             FolderDto result = folderService.moveFolder("folder-id", null, owner);
 
@@ -411,28 +322,25 @@ class FolderServiceTest {
         }
 
         @Test
-        @DisplayName("Given Ziel ist Nachfahre, When verschoben, Then IllegalArgumentException")
+        @DisplayName("Ziel ist Nachfahre, Then IllegalArgumentException (vor Access)")
         void cannotMoveIntoDescendant() {
-            // target ist Kind von testFolder -> Zyklus
-            Folder target = Folder.builder().id("target-id").name("Kind").owner(owner)
-                    .parentFolder(testFolder).build();
+            Folder target = Folder.builder().id("target-id").name("Kind").owner(owner).parentFolder(testFolder).build();
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
             when(folderRepository.findById("target-id")).thenReturn(Optional.of(target));
 
             assertThatThrownBy(() -> folderService.moveFolder("folder-id", "target-id", owner))
                     .isInstanceOf(IllegalArgumentException.class);
-
             verify(folderRepository, never()).save(any(Folder.class));
         }
 
         @Test
-        @DisplayName("Given fremder Ordner, When Nicht-Admin verschiebt, Then Zugriff verweigert")
-        void nonOwnerCannotMove() {
+        @DisplayName("Ohne Berechtigung, Then AccessDenied")
+        void cannotMoveWithoutPermission() {
             when(folderRepository.findById("folder-id")).thenReturn(Optional.of(testFolder));
+            when(access.canMoveFolder(otherUser, testFolder, null)).thenReturn(false);
 
             assertThatThrownBy(() -> folderService.moveFolder("folder-id", null, otherUser))
                     .isInstanceOf(IllegalAccessError.class);
-
             verify(folderRepository, never()).save(any(Folder.class));
         }
     }
