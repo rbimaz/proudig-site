@@ -16,7 +16,7 @@
   --line-2: #eef2f4;
   --bg: #f5f7f8;
   --surface: #ffffff;
-  --gutter: 0 40px;
+  --gutter: 0;
 }
 
 .portal-login-page,
@@ -1575,7 +1575,7 @@
    ============================================================================ */
 
 .portal-documents-v2 {
-  max-width: 1200px;
+  /* Voll-breit wie die Navbar; horizontale Ausrichtung kommt aus .portal-content (2rem). */
   padding-bottom: 40px;
 }
 

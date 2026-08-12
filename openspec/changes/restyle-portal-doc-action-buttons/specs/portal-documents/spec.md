@@ -32,3 +32,21 @@ Text-Beschriftungen angezeigt (reine Icon-Buttons).
 
 - **WHEN** eine Aktion als Icon-Button angezeigt wird
 - **THEN** trägt sie ein `aria-label`/`title` mit der Aktionsbezeichnung
+
+### Requirement: Breite und rechte Ausrichtung der Dokumente-Seite
+
+Die Dokumente-Seite (`/admin/portal/documents`) SHALL die verfügbare Breite des
+Inhaltsbereichs füllen (keine feste Maximalbreite auf Desktop) und ihre Blöcke
+(Titel, Toolbar, Liste) horizontal an derselben Basis-Einrückung wie die
+Portal-Navbar ausrichten. Der **rechte Abstand** von Toolbar/Liste zum Rand SHALL
+demselben Wert entsprechen wie der rechte Abstand des Benutzer-Menüs in der Navbar.
+
+#### Scenario: Tabelle nutzt die volle Breite
+
+- **WHEN** die Dokumente-Seite auf einem breiten Viewport angezeigt wird
+- **THEN** füllt die Liste die verfügbare Breite (kein großer leerer Bereich rechts)
+
+#### Scenario: Rechter Rand entspricht der Navbar
+
+- **WHEN** Toolbar/Liste und das Navbar-Benutzermenü angezeigt werden
+- **THEN** liegt ihr rechter Rand auf derselben vertikalen Kante
