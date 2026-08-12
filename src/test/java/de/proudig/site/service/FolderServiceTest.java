@@ -76,8 +76,9 @@ class FolderServiceTest {
 
         testFolder = Folder.builder().id("folder-id").name("Test Folder").owner(owner).build();
 
-        // mapToDto-Hilfsstubs (nicht in jedem Test genutzt)
-        lenient().when(folderShareRepository.findByFolder(any())).thenReturn(List.of());
+        // mapToDto/Kontext-Hilfsstubs (nicht in jedem Test genutzt)
+        lenient().when(access.contextFor(any())).thenReturn(new PortalAccessService.AccessContext(false, "x", Map.of()));
+        lenient().when(folderShareRepository.findByFolderIn(any())).thenReturn(List.of());
         lenient().when(folderRepository.countByParentFolder(any())).thenReturn(0L);
         lenient().when(documentRepository.countByFolder(any())).thenReturn(0L);
     }

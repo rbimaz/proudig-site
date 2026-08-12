@@ -18,13 +18,15 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * Sicherheitskritische Autorisierungs-Matrix für {@link PortalAccessService}:
  * Rolle × Quelle (Eigentum/ADMIN/User-/Gruppen-Share) × Aktion × eigen/fremd ×
- * Wurzel/Teilbaum, inkl. Union und Vererbung über mehrere Ebenen.
+ * Wurzel/Teilbaum, inkl. Union und Vererbung. Bewertung läuft kontextbasiert
+ * (Gruppen + Freigaben je Anfrage einmal geladen).
  */
 @ExtendWith(MockitoExtension.class)
 class PortalAccessServiceTest {
@@ -41,9 +43,9 @@ class PortalAccessServiceTest {
     private User stranger;  // ohne jede Beziehung
     private UserGroup group;
 
-    private Folder root;    // owner=owner
-    private Folder sub;     // parent=root, owner=owner
-    private Folder granteeSub; // parent=root, owner=grantee (selbst angelegt)
+    private Folder root;        // owner=owner
+    private Folder sub;         // parent=root, owner=owner
+    private Folder granteeSub;  // parent=root, owner=grantee (selbst angelegt)
 
     @BeforeEach
     void setUp() {
@@ -74,14 +76,18 @@ class PortalAccessServiceTest {
         return u;
     }
 
-    private FolderShare share(Folder folder, SharePermission perm, User u, UserGroup g) {
+    private FolderShare share(Folder folder, SharePermission perm) {
         FolderShare s = new FolderShare();
         s.setId("share-" + folder.getId());
         s.setFolder(folder);
         s.setPermission(perm);
-        s.setSharedWithUser(u);
-        s.setSharedWithGroup(g);
         return s;
+    }
+
+    /** Stubbt den Kontextaufbau: Gruppen + Freigaben (Query-Ergebnis) des Nutzers. */
+    private void withShares(User u, List<UserGroup> groups, FolderShare... shares) {
+        when(userGroupRepository.findByMembersContains(u)).thenReturn(groups);
+        when(folderShareRepository.findBySharedWithUserOrSharedWithGroupIn(eq(u), anyList())).thenReturn(List.of(shares));
     }
 
     @Nested
@@ -97,23 +103,21 @@ class PortalAccessServiceTest {
         @Test
         @DisplayName("Eigentümer hat FULL")
         void ownerFull() {
-            lenient().when(userGroupRepository.findByMembersContains(owner)).thenReturn(List.of());
+            withShares(owner, List.of());
             assertThat(access.effectivePermission(owner, root)).isEqualTo(PortalAccessService.AccessLevel.FULL);
         }
 
         @Test
         @DisplayName("Eigentum am Vorfahren ⇒ FULL auf Nachfahren")
         void ownerOfAncestorFull() {
-            lenient().when(userGroupRepository.findByMembersContains(owner)).thenReturn(List.of());
+            withShares(owner, List.of());
             assertThat(access.effectivePermission(owner, sub)).isEqualTo(PortalAccessService.AccessLevel.FULL);
         }
 
         @Test
         @DisplayName("Keine Beziehung ⇒ NONE")
         void strangerNone() {
-            when(userGroupRepository.findByMembersContains(stranger)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(sub)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of());
+            withShares(stranger, List.of());
             assertThat(access.effectivePermission(stranger, sub)).isEqualTo(PortalAccessService.AccessLevel.NONE);
             assertThat(access.canRead(stranger, sub)).isFalse();
         }
@@ -121,8 +125,7 @@ class PortalAccessServiceTest {
         @Test
         @DisplayName("User-Share READ ⇒ READ (lesen ja, schreiben nein)")
         void userShareRead() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.READ, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.READ));
             assertThat(access.effectivePermission(grantee, root)).isEqualTo(PortalAccessService.AccessLevel.READ);
             assertThat(access.canRead(grantee, root)).isTrue();
             assertThat(access.canWrite(grantee, root)).isFalse();
@@ -131,8 +134,7 @@ class PortalAccessServiceTest {
         @Test
         @DisplayName("Gruppen-Share WRITE (Nutzer Mitglied) ⇒ WRITE")
         void groupShareWrite() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of(group));
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.WRITE, null, group)));
+            withShares(grantee, List.of(group), share(root, SharePermission.WRITE));
             assertThat(access.effectivePermission(grantee, root)).isEqualTo(PortalAccessService.AccessLevel.WRITE);
             assertThat(access.canWrite(grantee, root)).isTrue();
         }
@@ -140,19 +142,14 @@ class PortalAccessServiceTest {
         @Test
         @DisplayName("Union: User-READ + Gruppen-WRITE ⇒ WRITE")
         void unionReadWrite() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of(group));
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(
-                    share(root, SharePermission.READ, grantee, null),
-                    share(root, SharePermission.WRITE, null, group)));
+            withShares(grantee, List.of(group), share(root, SharePermission.READ), share(root, SharePermission.WRITE));
             assertThat(access.effectivePermission(grantee, root)).isEqualTo(PortalAccessService.AccessLevel.WRITE);
         }
 
         @Test
         @DisplayName("Vererbung: Share auf Vorfahr wirkt auf Nachfahren")
         void inheritedFromAncestor() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(sub)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.WRITE, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.WRITE));
             assertThat(access.canWrite(grantee, sub)).isTrue();
         }
     }
@@ -164,32 +161,28 @@ class PortalAccessServiceTest {
         @Test
         @DisplayName("WRITE-Empfänger kann geteilten Wurzelordner NICHT löschen")
         void writeGranteeCannotDeleteSharedRoot() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.WRITE, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.WRITE));
             assertThat(access.canDeleteFolder(grantee, root)).isFalse();
         }
 
         @Test
         @DisplayName("WRITE-Empfänger kann selbst angelegten Unterordner löschen (Owner ⇒ FULL)")
         void writeGranteeCanDeleteOwnSub() {
-            lenient().when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
+            withShares(grantee, List.of());
             assertThat(access.canDeleteFolder(grantee, granteeSub)).isTrue();
         }
 
         @Test
         @DisplayName("Verschieben des eigenen Unterordners innerhalb WRITE-Teilbaums erlaubt")
         void moveOwnSubWithinWriteSubtree() {
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            // Ziel = sub (fremd), grantee hat WRITE über root-Share
-            when(folderShareRepository.findByFolder(sub)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.WRITE, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.WRITE));
             assertThat(access.canMoveFolder(grantee, granteeSub, sub)).isTrue();
         }
 
         @Test
         @DisplayName("Verschieben auf Wurzel durch Empfänger verweigert (verlässt Teilbaum)")
         void moveToRootDeniedForGrantee() {
-            lenient().when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
+            withShares(grantee, List.of());
             assertThat(access.canMoveFolder(grantee, granteeSub, null)).isFalse();
         }
     }
@@ -207,8 +200,7 @@ class PortalAccessServiceTest {
         void readViaFolderShare() {
             Document doc = docByOwner();
             when(documentShareRepository.existsByDocumentAndSharedWith(doc, grantee)).thenReturn(false);
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.READ, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.READ));
             assertThat(access.canReadDocument(grantee, doc)).isTrue();
         }
 
@@ -216,8 +208,7 @@ class PortalAccessServiceTest {
         @DisplayName("WRITE-Empfänger darf fremde Datei aktualisieren, aber nicht löschen")
         void updateYesDeleteNoForForeignFile() {
             Document doc = docByOwner();
-            when(userGroupRepository.findByMembersContains(grantee)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of(share(root, SharePermission.WRITE, grantee, null)));
+            withShares(grantee, List.of(), share(root, SharePermission.WRITE));
             assertThat(access.canUpdateDocumentContent(grantee, doc)).isTrue();
             assertThat(access.canModifyDocument(grantee, doc)).isFalse();
         }
@@ -234,9 +225,28 @@ class PortalAccessServiceTest {
         void noAccessNoRead() {
             Document doc = docByOwner();
             when(documentShareRepository.existsByDocumentAndSharedWith(doc, stranger)).thenReturn(false);
-            when(userGroupRepository.findByMembersContains(stranger)).thenReturn(List.of());
-            when(folderShareRepository.findByFolder(root)).thenReturn(List.of());
+            withShares(stranger, List.of());
             assertThat(access.canReadDocument(stranger, doc)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Batching (kontextbasiert)")
+    class Batching {
+
+        @Test
+        @DisplayName("Ein Kontext, mehrere Ordner ⇒ Gruppen/Freigaben nur einmal geladen")
+        void contextBuiltOnce() {
+            withShares(grantee, List.of(), share(root, SharePermission.WRITE));
+
+            PortalAccessService.AccessContext ctx = access.contextFor(grantee);
+            access.effectivePermission(ctx, root);
+            access.effectivePermission(ctx, sub);
+            access.effectivePermission(ctx, granteeSub);
+
+            verify(userGroupRepository, times(1)).findByMembersContains(grantee);
+            verify(folderShareRepository, times(1)).findBySharedWithUserOrSharedWithGroupIn(eq(grantee), anyList());
+            verifyNoMoreInteractions(folderShareRepository);
         }
     }
 }

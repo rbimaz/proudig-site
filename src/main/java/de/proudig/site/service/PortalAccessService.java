@@ -12,7 +12,9 @@ import de.proudig.site.repository.UserGroupRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Zentrale, autoritative Zugriffsprüfung für Ordner und Dokumente.
@@ -22,6 +24,10 @@ import java.util.List;
  * Vorfahren (voll), sowie READ/WRITE-Freigaben an den Nutzer oder eine seiner
  * Gruppen auf dem Ordner oder einem Vorfahren. Sicherheitskritisch — einzige
  * Quelle der Wahrheit; kein Enforcement in Controllern duplizieren.
+ *
+ * <p>Für Listen wird ein {@link AccessContext} je Anfrage einmal aufgebaut
+ * (Gruppen + Freigaben des Nutzers einmal geladen); die Bewertung einzelner
+ * Ordner löst dann keine weiteren Freigabe-/Gruppen-Queries aus.
  */
 @Service
 public class PortalAccessService {
@@ -29,6 +35,26 @@ public class PortalAccessService {
     /** Stufen aufsteigend nach Mächtigkeit (ordinal für max()). */
     public enum AccessLevel {
         NONE, READ, WRITE, FULL
+    }
+
+    /**
+     * Vorab geladener Bewertungskontext eines Nutzers: ADMIN-Flag, Nutzer-ID und
+     * eine Map „Freigabe-Ordner-ID → Berechtigung" (aus Nutzer- und Gruppen-Shares).
+     */
+    public static class AccessContext {
+        private final boolean admin;
+        private final String userId;
+        private final Map<String, AccessLevel> shareByFolderId;
+
+        public AccessContext(boolean admin, String userId, Map<String, AccessLevel> shareByFolderId) {
+            this.admin = admin;
+            this.userId = userId;
+            this.shareByFolderId = shareByFolderId;
+        }
+
+        public boolean isAdmin() {
+            return admin;
+        }
     }
 
     private final FolderShareRepository folderShareRepository;
@@ -43,63 +69,91 @@ public class PortalAccessService {
         this.documentShareRepository = documentShareRepository;
     }
 
-    // ---------- Ordner ----------
+    // ---------- Kontext (je Anfrage einmal) ----------
 
-    /** Effektive Berechtigung des Nutzers auf den Ordner (Vorfahren-Walk, Union). */
+    /**
+     * Baut den Bewertungskontext für den Nutzer: Gruppen einmal, Freigaben (direkt
+     * + über Gruppen) einmal in eine Ordner-ID → Berechtigung-Map.
+     */
     @Transactional(readOnly = true)
-    public AccessLevel effectivePermission(User user, Folder folder) {
-        if (isAdmin(user)) {
+    public AccessContext contextFor(User user) {
+        boolean admin = isAdmin(user);
+        Map<String, AccessLevel> shareByFolderId = new HashMap<>();
+        if (!admin) {
+            List<UserGroup> groups = userGroupRepository.findByMembersContains(user);
+            for (FolderShare share : folderShareRepository.findBySharedWithUserOrSharedWithGroupIn(user, groups)) {
+                AccessLevel lvl = share.getPermission() == SharePermission.WRITE
+                        ? AccessLevel.WRITE : AccessLevel.READ;
+                shareByFolderId.merge(share.getFolder().getId(), lvl, this::max);
+            }
+        }
+        return new AccessContext(admin, user.getId(), shareByFolderId);
+    }
+
+    // ---------- Ordner (kontextbasiert) ----------
+
+    /** Effektive Berechtigung gegen den vorab geladenen Kontext (keine DB-Queries). */
+    public AccessLevel effectivePermission(AccessContext ctx, Folder folder) {
+        if (ctx.admin) {
             return AccessLevel.FULL;
         }
-        List<UserGroup> groups = userGroupRepository.findByMembersContains(user);
         AccessLevel best = AccessLevel.NONE;
         for (Folder cursor = folder; cursor != null; cursor = cursor.getParentFolder()) {
-            if (cursor.getOwner().getId().equals(user.getId())) {
+            if (cursor.getOwner().getId().equals(ctx.userId)) {
                 return AccessLevel.FULL;
             }
-            for (FolderShare share : folderShareRepository.findByFolder(cursor)) {
-                if (shareApplies(share, user, groups)) {
-                    AccessLevel lvl = share.getPermission() == SharePermission.WRITE
-                            ? AccessLevel.WRITE : AccessLevel.READ;
-                    best = max(best, lvl);
-                }
+            AccessLevel lvl = ctx.shareByFolderId.get(cursor.getId());
+            if (lvl != null) {
+                best = max(best, lvl);
             }
         }
         return best;
     }
 
-    /** Browsen/Download im Ordner-Teilbaum. */
-    public boolean canRead(User user, Folder folder) {
-        return atLeast(effectivePermission(user, folder), AccessLevel.READ);
+    public boolean canRead(AccessContext ctx, Folder folder) {
+        return atLeast(effectivePermission(ctx, folder), AccessLevel.READ);
     }
 
-    /** Hochladen / Unterordner anlegen / vorhandene Dateien aktualisieren im Ordner. */
-    public boolean canWrite(User user, Folder folder) {
-        return atLeast(effectivePermission(user, folder), AccessLevel.WRITE);
+    public boolean canWrite(AccessContext ctx, Folder folder) {
+        return atLeast(effectivePermission(ctx, folder), AccessLevel.WRITE);
     }
 
-    /**
-     * Ordner löschen/umbenennen. Nur FULL — d. h. ADMIN, Eigentümer oder ein
-     * selbst (als Owner) angelegter Unterordner im WRITE-Teilbaum (Owner ⇒ FULL);
-     * der geteilte Wurzel-/fremde Ordner ist NICHT löschbar (nur WRITE geerbt).
-     */
-    public boolean canDeleteFolder(User user, Folder folder) {
-        return effectivePermission(user, folder) == AccessLevel.FULL;
+    public boolean canDeleteFolder(AccessContext ctx, Folder folder) {
+        return effectivePermission(ctx, folder) == AccessLevel.FULL;
     }
 
-    /**
-     * Ordner verschieben: FULL auf dem Ordner selbst; das Ziel muss beschreibbar
-     * sein (bzw. Root nur für ADMIN/eigenen Baum) — kein Verlassen des erlaubten
-     * Bereichs.
-     */
-    public boolean canMoveFolder(User user, Folder folder, Folder target) {
-        if (effectivePermission(user, folder) != AccessLevel.FULL) {
+    public boolean canMoveFolder(AccessContext ctx, Folder folder, Folder target) {
+        if (effectivePermission(ctx, folder) != AccessLevel.FULL) {
             return false;
         }
         if (target == null) {
-            return isAdmin(user) || ownsRootAncestor(user, folder);
+            return ctx.admin || ownsRootAncestor(ctx.userId, folder);
         }
-        return canWrite(user, target);
+        return canWrite(ctx, target);
+    }
+
+    // ---------- Ordner (Einzelprüfung; baut intern einen Kontext) ----------
+
+    /** Effektive Berechtigung des Nutzers auf den Ordner (Vorfahren-Walk, Union). */
+    @Transactional(readOnly = true)
+    public AccessLevel effectivePermission(User user, Folder folder) {
+        return effectivePermission(contextFor(user), folder);
+    }
+
+    public boolean canRead(User user, Folder folder) {
+        return canRead(contextFor(user), folder);
+    }
+
+    public boolean canWrite(User user, Folder folder) {
+        return canWrite(contextFor(user), folder);
+    }
+
+    public boolean canDeleteFolder(User user, Folder folder) {
+        return canDeleteFolder(contextFor(user), folder);
+    }
+
+    public boolean canMoveFolder(User user, Folder folder, Folder target) {
+        return canMoveFolder(contextFor(user), folder, target);
     }
 
     // ---------- Dokumente ----------
@@ -139,21 +193,12 @@ public class PortalAccessService {
 
     // ---------- Helfer ----------
 
-    private boolean shareApplies(FolderShare share, User user, List<UserGroup> groups) {
-        if (share.getSharedWithUser() != null
-                && share.getSharedWithUser().getId().equals(user.getId())) {
-            return true;
-        }
-        return share.getSharedWithGroup() != null
-                && groups.stream().anyMatch(g -> g.getId().equals(share.getSharedWithGroup().getId()));
-    }
-
-    private boolean ownsRootAncestor(User user, Folder folder) {
+    private boolean ownsRootAncestor(String userId, Folder folder) {
         Folder root = folder;
         while (root.getParentFolder() != null) {
             root = root.getParentFolder();
         }
-        return root.getOwner().getId().equals(user.getId());
+        return root.getOwner().getId().equals(userId);
     }
 
     private boolean isAdmin(User user) {
