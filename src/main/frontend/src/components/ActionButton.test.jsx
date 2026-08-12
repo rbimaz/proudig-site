@@ -18,8 +18,8 @@ describe('ActionButton', () => {
       const button = screen.getByRole('button', { name: 'Test' });
 
       expect(button).toHaveStyle({
-        width: '34px',
-        height: '34px',
+        width: '42px',
+        height: '42px',
         borderRadius: '8px',
         background: '#fff',
       });
@@ -54,8 +54,8 @@ describe('ActionButton', () => {
 
       expect(button).toHaveStyle({
         borderColor: 'var(--orange)',
-        color: 'var(--orange)',
-        background: 'var(--orange-weak)',
+        color: '#fff',
+        background: 'var(--orange)',
       });
     });
 
@@ -83,8 +83,8 @@ describe('ActionButton', () => {
 
       expect(button).toHaveStyle({
         borderColor: 'var(--danger)',
-        color: 'var(--danger)',
-        background: 'var(--danger-weak)',
+        color: '#fff',
+        background: 'var(--danger)',
       });
     });
   });
@@ -99,7 +99,7 @@ describe('ActionButton', () => {
 
       expect(button).toHaveStyle({
         borderColor: 'var(--orange)',
-        color: 'var(--orange)',
+        color: '#fff',
       });
     });
 

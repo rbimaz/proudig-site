@@ -16,7 +16,7 @@
   --line-2: #eef2f4;
   --bg: #f5f7f8;
   --surface: #ffffff;
-  --gutter: 0 40px;
+  --gutter: 0;
 }
 
 .portal-login-page,
@@ -1575,7 +1575,7 @@
    ============================================================================ */
 
 .portal-documents-v2 {
-  max-width: 1200px;
+  /* Voll-breit wie die Navbar; horizontale Ausrichtung kommt aus .portal-content (2rem). */
   padding-bottom: 40px;
 }
 
@@ -1756,7 +1756,7 @@
 
 .pd-list-header {
   display: grid;
-  grid-template-columns: 1fr 130px 170px 132px;
+  grid-template-columns: 1fr 130px 170px auto;
   gap: 14px;
   padding: 11px 18px;
   background: var(--line-2);
@@ -1768,7 +1768,7 @@
 
 .pd-list-row {
   display: grid;
-  grid-template-columns: 1fr 130px 170px 132px;
+  grid-template-columns: 1fr 130px 170px auto;
   align-items: center;
   gap: 14px;
   padding: 13px 18px;
@@ -1891,7 +1891,7 @@
 @media (max-width: 900px) {
   .pd-list-header,
   .pd-list-row {
-    grid-template-columns: 1fr 132px;
+    grid-template-columns: 1fr auto;
   }
 
   .pd-col-size,

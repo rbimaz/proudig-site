@@ -21,8 +21,8 @@ export const ActionButton = ({ icon, label, danger = false, onClick, disabled = 
   const isActive = hovered || focused;
 
   const baseStyle = {
-    width: 34,
-    height: 34,
+    width: 42,
+    height: 42,
     borderRadius: 8,
     display: 'grid',
     placeItems: 'center',
@@ -32,20 +32,22 @@ export const ActionButton = ({ icon, label, danger = false, onClick, disabled = 
     borderColor: 'var(--line)',
     background: '#fff',
     color: 'var(--ink-3)',
-    transition: 'all 0.14s ease',
+    transition: 'all 0.15s ease',
     opacity: disabled ? 0.5 : 1,
+    flexShrink: 0,
   };
 
+  // Hover/Fokus: in Primärfarbe (bzw. Gefahr) GEFÜLLT, Icon weiß.
   const activeStyle = danger
     ? {
         borderColor: 'var(--danger)',
-        color: 'var(--danger)',
-        background: 'var(--danger-weak)',
+        color: '#fff',
+        background: 'var(--danger)',
       }
     : {
         borderColor: 'var(--orange)',
-        color: 'var(--orange)',
-        background: 'var(--orange-weak)',
+        color: '#fff',
+        background: 'var(--orange)',
       };
 
   const style = {
@@ -66,7 +68,7 @@ export const ActionButton = ({ icon, label, danger = false, onClick, disabled = 
       onBlur={() => setFocused(false)}
       style={style}
     >
-      <i className={`bi ${icon}`} style={{ fontSize: 16 }} />
+      <i className={`bi ${icon}`} style={{ fontSize: 18 }} />
     </button>
   );
 };
