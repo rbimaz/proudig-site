@@ -33,7 +33,7 @@ als beim Umbenennen).
 - **WHEN** ein Benutzer einen Ordner ohne `parentFolderId` anlegt
 - **THEN** wird ein Ordner mit `parentFolder = NULL` und dem Benutzer als Eigentümer erstellt
 
-#### Scenario: Unterordner unter fremdem Ordner ohne Schreibzugriff wird abgelehnt
+#### Scenario: Unterordner unter fremdem Ordner wird abgelehnt
 - **WHEN** ein Benutzer einen Ordner mit einem `parentFolderId` anlegt, dessen übergeordneter Ordner einem anderen Benutzer gehört und für den er keine WRITE-Freigabe/kein ADMIN hat
 - **THEN** wird die Anlage mit `IllegalAccessError` abgewiesen
 
@@ -59,7 +59,7 @@ Hinweis (Ist-Zustand): Das Löschen ist rekursiv, nicht auf leere Ordner
 beschränkt. Es werden nur die Datenbanksätze der Dokumente entfernt — die
 **physischen Dateien im Dateisystem bleiben erhalten** (verwaiste Dateien).
 
-#### Scenario: Eigentümer löscht Ordner mit Inhalt
+#### Scenario: Ordner mit Inhalt wird rekursiv gelöscht
 - **WHEN** der Eigentümer einen Ordner löscht, der Unterordner und Dokumente enthält
 - **THEN** werden der Ordner, seine Unterordner und die Dokument-Metadaten entfernt
 
@@ -71,7 +71,7 @@ beschränkt. Es werden nur die Datenbanksätze der Dokumente entfernt — die
 - **WHEN** ein WRITE-Empfänger den geteilten Wurzelordner oder einen von jemand anderem angelegten Ordner löscht
 - **THEN** wird mit `IllegalAccessError` abgewiesen und nichts gelöscht
 
-#### Scenario: Fremder Ordner ohne jegliche Berechtigung nicht löschbar
+#### Scenario: Fremder Ordner ohne Adminrechte nicht löschbar
 - **WHEN** ein Benutzer ohne Eigentum, ADMIN oder WRITE-Freigabe einen Ordner löscht
 - **THEN** wird abgewiesen und nichts gelöscht
 
@@ -86,9 +86,13 @@ WRITE-Teilbaum) liegen. Das System SHALL ein Verschieben ablehnen (HTTP 400), we
 das Ziel der Ordner selbst oder einer seiner Nachfahren ist (Zyklus-Schutz). Nach
 erfolgreichem Verschieben SHALL sich der Ordnerbaum aktualisieren.
 
-#### Scenario: Ordner in anderen eigenen Ordner verschieben
+#### Scenario: Ordner in anderen Ordner verschieben
 - **WHEN** ein Nutzer einen eigenen Ordner auf einen anderen eigenen Ordner zieht und ablegt
 - **THEN** wird der Ordner unter das Ziel gehängt (`parentFolder` = Ziel)
+
+#### Scenario: Ordner auf die Wurzel verschieben
+- **WHEN** ein Eigentümer (bzw. ADMIN) einen eigenen Unterordner auf den Wurzelbereich zieht und ablegt
+- **THEN** wird der Ordner zum Wurzelordner (`parentFolder` = leer)
 
 #### Scenario: WRITE-Empfänger verschiebt selbst angelegten Ordner im Teilbaum
 - **WHEN** ein WRITE-Empfänger einen von ihm angelegten Unterordner innerhalb desselben WRITE-Teilbaums verschiebt
@@ -98,6 +102,6 @@ erfolgreichem Verschieben SHALL sich der Ordnerbaum aktualisieren.
 - **WHEN** ein Nutzer versucht, einen Ordner in sich selbst oder einen seiner Nachfahren zu verschieben
 - **THEN** lehnt das System mit HTTP 400 ab und die Struktur bleibt unverändert
 
-#### Scenario: Verschieben aus dem Berechtigungsbereich heraus abgelehnt
+#### Scenario: Fremde Ordner sind nicht betroffen
 - **WHEN** der Ordner oder das Ziel außerhalb des eigenen Baums bzw. des WRITE-Teilbaums liegt
 - **THEN** wird das Verschieben abgelehnt
