@@ -1,0 +1,32 @@
+###############################################################################
+# Migrations-Inventar — ProuDig Server-Umzug (alt -> neu)
+#
+# Zwei Gruppen:
+#   source  = aktueller (alter) Produktions-Server  -> Export + Transfer
+#   target  = neuer Server                           -> Import + Verifikation
+#
+# Anpassen: ansible_host (IP), ansible_user, SSH-Key je Host.
+#
+# WICHTIG (direkter Transfer source->target): Der alte Server muss den neuen
+# per SSH erreichen. Am einfachsten via Agent-Forwarding beim Aufruf:
+#   ssh-add ~/.ssh/instance1.pem ~/.ssh/instance2.pem
+#   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \
+#     -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+###############################################################################
+
+migration:
+  children:
+    source:
+      hosts:
+        proudig-old:
+          ansible_host: OLD_SERVER_IP        # <-- alte Server-IP
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/instance1.pem
+          ansible_python_interpreter: /usr/bin/python3
+    target:
+      hosts:
+        proudig-new:
+          ansible_host: NEW_SERVER_IP        # <-- neue Server-IP
+          ansible_user: root
+          ansible_ssh_private_key_file: ~/.ssh/instance2.pem
+          ansible_python_interpreter: /usr/bin/python3

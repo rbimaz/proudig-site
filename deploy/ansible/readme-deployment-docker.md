@@ -163,6 +163,29 @@ ansible-playbook -i inventory.yml playbook.yml --tags deploy --ask-vault-pass
 ansible-playbook -i inventory.yml playbook.yml --tags rollback
 ```
 
+### Server-Migration (Umzug auf neuen Server)
+
+Vollständiger Umzug aller Daten (PostgreSQL + `data/files/`) mit separatem
+Playbook `migrate.yml` und `inventory.migration.yml` (Gruppen `source`/`target`).
+Big-Bang-Cutover, direkter Transfer alt→neu:
+
+```bash
+cd deploy/ansible
+
+# 1. Export auf dem alten Server (App-Freeze, pg_dump + tar, MANIFEST)
+ansible-playbook -i inventory.migration.yml migrate.yml --tags export
+
+# 2. Direkter Transfer alt -> neu (Agent-Forwarding empfohlen)
+ansible-playbook -i inventory.migration.yml migrate.yml \
+  --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+
+# 3. Import + Verifikation auf dem neuen Server (Restore + Deploy aus Vault)
+ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
+```
+
+Vollständiger Ablauf inkl. Probelauf, DNS-Umstellung und Rollback:
+siehe **MIGRATION-RUNBOOK.md**.
+
 
 ## Konfiguration
 
@@ -242,15 +265,23 @@ deploy/
 └── ansible/
     ├── ansible.cfg          # inventory + vault_password_file
     ├── CUTOVER.md           # Cutover-Runbook (deploy.sh -> Ansible+Vault)
-    ├── inventory.yml         # Server-Konfiguration
-    ├── playbook.yml          # Haupt-Playbook
+    ├── MIGRATION-RUNBOOK.md  # Runbook Server-Umzug (alt -> neu)
+    ├── inventory.yml         # Server-Konfiguration (Deploy)
+    ├── inventory.migration.yml # Server-Umzug (Gruppen source/target)
+    ├── playbook.yml          # Haupt-Playbook (setup/deploy/rollback)
+    ├── migrate.yml           # Migrations-Playbook (export/transfer/import/verify)
     ├── group_vars/
     │   └── all/             # Vars der Gruppe 'all' (Verzeichnis!)
     │       ├── vars.yml     # Nicht-geheime Variablen
     │       ├── vault.yml    # Verschluesselte Secrets (Ansible Vault)
     │       └── vault.yml.example
     └── roles/proudig/
-        ├── tasks/main.yml    # Alle Ansible-Tasks
+        ├── tasks/
+        │   ├── main.yml     # Deploy-Tasks (setup/deploy/rollback)
+        │   ├── migrate-export.yml   # Export (Quell-Server)
+        │   ├── migrate-transfer.yml # Direkter Transfer alt->neu
+        │   ├── migrate-import.yml   # Import + Deploy (Ziel-Server)
+        │   └── migrate-verify.yml   # Paritäts-Verifikation
         └── templates/
             └── env.j2        # .env Template
 ```
