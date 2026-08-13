@@ -1,0 +1,131 @@
+---
+###############################################################################
+# EXPORT (Quell-Server) — erzeugt ein zeitgestempeltes Migrations-Bundle:
+#   {{ migration_dir }}/proudig-migration-<ts>/{db.sql, files.tgz, MANIFEST}
+# und schreibt den Bundle-Namen nach {{ migration_dir }}/LATEST.
+###############################################################################
+
+- name: Preflight — proudig-db läuft
+  shell: docker inspect --format='{{ '{{' }}.State.Running{{ '}}' }}' proudig-db
+  register: db_running
+  changed_when: false
+  failed_when: "'true' not in db_running.stdout"
+
+- name: Code-Version des Deploy-Checkouts erfassen (Kontroll-Node)
+  # Diese Version wird beim Import auf dem Ziel-Server deployt. Wird im MANIFEST
+  # festgehalten und beim Import gegengeprüft (kein Liquibase-Re-Run durch
+  # abweichenden Code).
+  shell: git -C "{{ project_src }}" rev-parse HEAD
+  delegate_to: localhost
+  become: false
+  register: source_git
+  changed_when: false
+
+- name: App einfrieren (Schreibzugriffe stoppen)
+  # freeze_app=false für Probeläufe (Export im Live-Betrieb, leicht inkonsistent).
+  shell: |
+    cd {{ app_dir }}
+    docker compose stop proudig-app
+  when: freeze_app | bool
+  register: freeze_result
+  changed_when: true
+
+- name: Freeze verifizieren — app down, db up
+  shell: |
+    APP=$(docker inspect --format='{{ '{{' }}.State.Running{{ '}}' }}' proudig-app 2>/dev/null || echo "false")
+    DB=$(docker inspect --format='{{ '{{' }}.State.Running{{ '}}' }}' proudig-db 2>/dev/null || echo "false")
+    echo "app=${APP} db=${DB}"
+    [ "$DB" = "true" ] || { echo "FEHLER: proudig-db läuft nicht"; exit 1; }
+    if [ "{{ freeze_app | bool | lower }}" = "true" ] && [ "$APP" = "true" ]; then
+      echo "FEHLER: proudig-app läuft trotz Freeze"; exit 1
+    fi
+  register: freeze_check
+  changed_when: false
+
+- name: Bundle-Zeitstempel ermitteln
+  shell: date +%Y%m%d-%H%M%S
+  register: ts
+  changed_when: false
+
+- name: Bundle-Namen setzen
+  set_fact:
+    bundle_name: "proudig-migration-{{ ts.stdout }}"
+    bundle_dir: "{{ migration_dir }}/proudig-migration-{{ ts.stdout }}"
+
+- name: Bundle-Verzeichnis anlegen
+  file:
+    path: "{{ bundle_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Datenbank sichern (pg_dump -> db.sql)
+  shell: >
+    docker exec proudig-db pg_dump -U {{ db_user }} {{ db_name }}
+    > {{ bundle_dir }}/db.sql
+  args:
+    creates: "{{ bundle_dir }}/db.sql"
+
+- name: db.sql ist nicht leer
+  shell: test -s {{ bundle_dir }}/db.sql && wc -c < {{ bundle_dir }}/db.sql
+  register: dbsql_size
+  changed_when: false
+
+- name: Uploads archivieren (data/files -> files.tgz)
+  # -C data + Eintrag "files" -> relative Pfade, portabel beim Entpacken.
+  shell: >
+    tar czf {{ bundle_dir }}/files.tgz -C {{ app_dir }}/data files
+  args:
+    creates: "{{ bundle_dir }}/files.tgz"
+
+- name: Referenz-Zeilenzahlen aus der DB lesen
+  shell: >
+    docker exec proudig-db psql -U {{ db_user }} -d {{ db_name }} -tA
+    -c "select count(*) from {{ item }}"
+  loop: [users, documents, folders]
+  register: rowcounts
+  changed_when: false
+
+- name: Image-Info des Quell-Servers erfassen
+  shell: |
+    docker inspect --format='{{ '{{' }}.Image{{ '}}' }}' proudig-app 2>/dev/null || echo "unknown"
+  register: source_image
+  changed_when: false
+
+- name: Prüfsummen der Artefakte berechnen
+  shell: |
+    cd {{ bundle_dir }}
+    sha256sum db.sql files.tgz > SHA256SUMS
+    cat SHA256SUMS
+  register: checksums
+  changed_when: true
+
+- name: MANIFEST schreiben
+  copy:
+    dest: "{{ bundle_dir }}/MANIFEST"
+    mode: "0600"
+    content: |
+      # ProuDig Migrations-Bundle
+      source_host={{ inventory_hostname }} ({{ ansible_host | default('') }})
+      timestamp={{ ts.stdout }}
+      source_git={{ source_git.stdout }}
+      source_image={{ source_image.stdout }}
+      db_name={{ db_name }}
+      frozen={{ freeze_app | bool }}
+      rows_users={{ rowcounts.results[0].stdout | trim }}
+      rows_documents={{ rowcounts.results[1].stdout | trim }}
+      rows_folders={{ rowcounts.results[2].stdout | trim }}
+
+- name: LATEST-Zeiger aktualisieren
+  copy:
+    dest: "{{ migration_dir }}/LATEST"
+    content: "{{ bundle_name }}\n"
+    mode: "0600"
+
+- name: Export-Zusammenfassung
+  debug:
+    msg:
+      - "Bundle: {{ bundle_dir }}"
+      - "db.sql Bytes: {{ dbsql_size.stdout }}"
+      - "Zeilen users/documents/folders: {{ rowcounts.results[0].stdout | trim }}/{{ rowcounts.results[1].stdout | trim }}/{{ rowcounts.results[2].stdout | trim }}"
+      - "Code-Version (source_git): {{ source_git.stdout }}"
+      - "App eingefroren: {{ freeze_app | bool }}"
