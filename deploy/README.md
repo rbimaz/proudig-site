@@ -24,6 +24,16 @@ ansible-playbook -i inventory.yml playbook.yml --tags deploy
 | `./deploy.sh proudig --status` | Status pruefen |
 | `./deploy.sh proudig --logs` | Live-Logs anzeigen |
 | `./deploy.sh proudig --backup` | Datenbank-Backup herunterladen |
+| `ansible-playbook -i inventory.migration.yml migrate.yml --tags export/transfer/import/verify` | Server-Umzug (alt → neu) |
+
+### Server-Migration (Umzug auf neuen Server)
+
+Vollständiger Umzug aller Daten (PostgreSQL `proudigdb` + Uploads `data/files/`)
+auf einen neuen Server, ohne dass Benutzer etwas tun müssen. Tooling:
+`deploy/ansible/migrate.yml` + `inventory.migration.yml`. Ablauf (Big-Bang,
+direkter Transfer alt→neu): **Export → Transfer → Import → Verify**. Vollständige
+Schritt-für-Schritt-Anleitung inkl. Probelauf, DNS-Umstellung und Rollback:
+`deploy/ansible/MIGRATION-RUNBOOK.md`.
 
 ### Secrets (Ansible Vault)
 

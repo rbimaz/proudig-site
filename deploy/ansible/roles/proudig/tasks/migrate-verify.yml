@@ -1,0 +1,82 @@
+---
+###############################################################################
+# VERIFY (Ziel-Server) — belegt die Datenparität nach dem Import.
+#   - App healthy
+#   - DB-Zeilenzahlen == MANIFEST
+#   - Beispiel-Dokument existiert unter data/files/
+#   - (optional) Test-Login liefert ein Token
+#     -> nur wenn verify_login_email/-password gesetzt sind
+###############################################################################
+
+- name: Bundle-Verzeichnis
+  set_fact:
+    incoming_dir: "{{ migration_dir }}/incoming"
+
+- name: App-Health prüfen
+  shell: docker inspect --format='{{ '{{' }}.State.Health.Status{{ '}}' }}' proudig-app
+  register: v_health
+  changed_when: false
+  failed_when: "'healthy' not in v_health.stdout"
+
+- name: Erwartete Zeilenzahlen aus MANIFEST lesen
+  shell: grep '^rows_{{ item }}=' {{ incoming_dir }}/MANIFEST | cut -d= -f2
+  loop: [users, documents, folders]
+  register: expected_rows
+  changed_when: false
+
+- name: Aktuelle Zeilenzahlen aus der Ziel-DB lesen
+  shell: >
+    docker exec proudig-db psql -U {{ db_user }} -d {{ db_name }} -tA
+    -c "select count(*) from {{ item }}"
+  loop: [users, documents, folders]
+  register: actual_rows
+  changed_when: false
+
+- name: Zeilenzahlen vergleichen (Parität)
+  fail:
+    msg: >
+      Parität verletzt bei '{{ item.0 }}': erwartet {{ item.1.stdout | trim }},
+      vorhanden {{ item.2.stdout | trim }}.
+  when: (item.1.stdout | trim) != (item.2.stdout | trim)
+  loop: "{{ ['users','documents','folders'] | zip(expected_rows.results, actual_rows.results) | list }}"
+  loop_control:
+    label: "{{ item.0 }}"
+
+- name: Beispiel-Dokument aus der DB wählen
+  shell: >
+    docker exec proudig-db psql -U {{ db_user }} -d {{ db_name }} -tA
+    -c "select storage_path from documents limit 1"
+  register: sample_doc
+  changed_when: false
+
+- name: Beispiel-Dokument existiert auf der Platte
+  shell: >
+    find {{ app_dir }}/data/files -type f -name '{{ sample_doc.stdout | trim }}' | head -1
+  register: sample_found
+  changed_when: false
+  failed_when:
+    - sample_doc.stdout | trim | length > 0
+    - sample_found.stdout | trim | length == 0
+
+- name: Test-Login prüfen (optional)
+  shell: >
+    curl -sS -o /dev/null -w '%{http_code}'
+    -X POST http://localhost/api/auth/login
+    -H 'Content-Type: application/json'
+    -d '{"email":"{{ verify_login_email }}","password":"{{ verify_login_password }}"}'
+  register: login_code
+  changed_when: false
+  failed_when: login_code.stdout != "200"
+  when:
+    - verify_login_email is defined
+    - verify_login_password is defined
+
+- name: Verifikations-Zusammenfassung
+  debug:
+    msg:
+      - "App-Health: {{ v_health.stdout }}"
+      - "users: erwartet {{ expected_rows.results[0].stdout | trim }} / vorhanden {{ actual_rows.results[0].stdout | trim }}"
+      - "documents: erwartet {{ expected_rows.results[1].stdout | trim }} / vorhanden {{ actual_rows.results[1].stdout | trim }}"
+      - "folders: erwartet {{ expected_rows.results[2].stdout | trim }} / vorhanden {{ actual_rows.results[2].stdout | trim }}"
+      - "Beispiel-Dokument: {{ (sample_found.stdout | trim) if (sample_doc.stdout | trim | length > 0) else 'keine Dokumente vorhanden' }}"
+      - "Test-Login: {{ login_code.stdout | default('übersprungen (keine verify_login_* gesetzt)') }}"

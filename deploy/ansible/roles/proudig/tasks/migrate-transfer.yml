@@ -1,0 +1,57 @@
+---
+###############################################################################
+# TRANSFER (Quell -> Ziel, direkt) — überträgt das jüngste Bundle per rsync
+# vom alten auf den neuen Server nach {{ migration_dir }}/incoming/.
+#
+# Voraussetzung: Der Quell-Server erreicht den Ziel-Server per SSH
+# (Agent-Forwarding empfohlen, siehe inventory.migration.yml).
+###############################################################################
+
+- name: Ziel-Host aus der Gruppe 'target' bestimmen
+  set_fact:
+    target_inventory_host: "{{ groups['target'][0] }}"
+
+- name: Ziel-SSH-Koordinaten ableiten
+  set_fact:
+    target_ssh_host: "{{ hostvars[target_inventory_host].ansible_host }}"
+    target_ssh_user: "{{ hostvars[target_inventory_host].ansible_user }}"
+
+- name: Jüngstes Bundle aus LATEST lesen
+  shell: cat {{ migration_dir }}/LATEST
+  register: latest
+  changed_when: false
+
+- name: Bundle-Pfad setzen
+  set_fact:
+    bundle_dir: "{{ migration_dir }}/{{ latest.stdout | trim }}"
+
+- name: Ziel-Verzeichnis incoming/ anlegen (auf dem Ziel-Server)
+  file:
+    path: "{{ migration_dir }}/incoming"
+    state: directory
+    mode: "0700"
+  delegate_to: "{{ target_inventory_host }}"
+
+- name: Bundle direkt Quell -> Ziel übertragen (rsync)
+  # Läuft auf dem Quell-Server und pusht direkt zum Ziel-Server.
+  shell: >
+    rsync -az --delete
+    -e "ssh -o StrictHostKeyChecking=accept-new"
+    {{ bundle_dir }}/
+    {{ target_ssh_user }}@{{ target_ssh_host }}:{{ migration_dir }}/incoming/
+  register: rsync_result
+  changed_when: true
+
+- name: Integrität auf dem Ziel-Server prüfen (SHA256)
+  shell: |
+    cd {{ migration_dir }}/incoming
+    sha256sum -c SHA256SUMS
+  delegate_to: "{{ target_inventory_host }}"
+  register: verify_sums
+  changed_when: false
+
+- name: Transfer-Zusammenfassung
+  debug:
+    msg:
+      - "Bundle {{ latest.stdout | trim }} -> {{ target_ssh_user }}@{{ target_ssh_host }}:{{ migration_dir }}/incoming/"
+      - "{{ verify_sums.stdout_lines }}"

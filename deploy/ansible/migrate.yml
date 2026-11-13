@@ -1,0 +1,78 @@
+###############################################################################
+# ProuDig — Server-Migration (alt -> neu)
+#
+# Überträgt die beiden zustandsbehafteten Datenbestände vollständig:
+#   1. PostgreSQL  proudigdb  (Docker-Volume proudig-pgdata)
+#   2. Uploads     data/files (Bind-Mount)
+#
+# Voraussetzung: Vault-basierter Deploy (Change deploy-ansible-vault-migration).
+# Der Ziel-Server rendert dieselbe .env aus demselben Vault -> DB-Passwort-Parität.
+#
+# Ablauf (Tags — in dieser Reihenfolge ausführen):
+#   --tags export     Quell-Server:  App einfrieren, pg_dump + tar, MANIFEST
+#   --tags transfer   Quell->Ziel:   Bundle direkt per rsync übertragen
+#   --tags import     Ziel-Server:   Restore DB + Dateien, Deploy aus Vault
+#   --tags verify     Ziel-Server:   Datenparität prüfen
+#
+# Details siehe MIGRATION-RUNBOOK.md
+#
+# Beispiel:
+#   ansible-playbook -i inventory.migration.yml migrate.yml --tags export
+#   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \
+#     -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+#   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
+###############################################################################
+
+# ── Gemeinsame Migrations-Variablen ──
+# (app_dir/db_user/db_password/preview_password kommen aus group_vars/all)
+- name: Migration — gemeinsame Defaults
+  hosts: migration
+  gather_facts: false
+  tags: [always]
+  tasks:
+    - name: Migrations-Variablen setzen
+      set_fact:
+        migration_dir: "{{ migration_dir | default('/opt/proudig-migration') }}"
+        db_name: "{{ db_name | default('proudigdb') }}"
+        freeze_app: "{{ freeze_app | default(true) }}"
+        force_import: "{{ force_import | default(false) }}"
+
+# ══════════════════════════════════════════════════════════════
+# EXPORT  (Quell-Server)
+# ══════════════════════════════════════════════════════════════
+- name: Export — Bundle auf dem Quell-Server erzeugen
+  hosts: source
+  become: true
+  tags: [export]
+  tasks:
+    - import_tasks: roles/proudig/tasks/migrate-export.yml
+
+# ══════════════════════════════════════════════════════════════
+# TRANSFER  (Quell -> Ziel, direkt)
+# ══════════════════════════════════════════════════════════════
+- name: Transfer — Bundle direkt zum Ziel-Server übertragen
+  hosts: source
+  become: true
+  tags: [transfer]
+  tasks:
+    - import_tasks: roles/proudig/tasks/migrate-transfer.yml
+
+# ══════════════════════════════════════════════════════════════
+# IMPORT  (Ziel-Server)
+# ══════════════════════════════════════════════════════════════
+- name: Import — Restore + Deploy auf dem Ziel-Server
+  hosts: target
+  become: true
+  tags: [import]
+  tasks:
+    - import_tasks: roles/proudig/tasks/migrate-import.yml
+
+# ══════════════════════════════════════════════════════════════
+# VERIFY  (Ziel-Server)
+# ══════════════════════════════════════════════════════════════
+- name: Verify — Datenparität auf dem Ziel-Server prüfen
+  hosts: target
+  become: true
+  tags: [verify]
+  tasks:
+    - import_tasks: roles/proudig/tasks/migrate-verify.yml
