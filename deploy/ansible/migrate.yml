@@ -19,7 +19,7 @@
 # Beispiel:
 #   ansible-playbook -i inventory.migration.yml migrate.yml --tags export
 #   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \
-#     -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+#     -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'
 #   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
 ###############################################################################
 

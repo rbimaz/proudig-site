@@ -8,10 +8,14 @@
 # Anpassen: ansible_host (IP), ansible_user, SSH-Key je Host.
 #
 # WICHTIG (direkter Transfer source->target): Der alte Server muss den neuen
-# per SSH erreichen. Am einfachsten via Agent-Forwarding beim Aufruf:
-#   ssh-add ~/.ssh/instance1.pem ~/.ssh/instance2.pem
+# per SSH erreichen (Agent-Forwarding). Vorher BEIDE Keys in den Agent laden —
+# instance1.pem (alt) UND den Key des NEUEN Servers:
+#   ssh-add ~/.ssh/instance1.pem ~/.ssh/KeyPairProudigHomePage.pem
+# ForwardAgent-Flag als JSON an '-e' übergeben. NICHT
+# "-e ansible_ssh_extra_args='-o ForwardAgent=yes'" — den Wert mit Leerzeichen
+# zerlegt Ansible am Space -> ssh-Fehler 'no argument after keyword "-o"':
 #   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \
-#     -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+#     -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'
 ###############################################################################
 
 migration:
@@ -19,14 +23,14 @@ migration:
     source:
       hosts:
         proudig-old:
-          ansible_host: OLD_SERVER_IP        # <-- alte Server-IP
+          ansible_host: 217.154.13.179       # <-- alte Server-IP
           ansible_user: root
           ansible_ssh_private_key_file: ~/.ssh/instance1.pem
           ansible_python_interpreter: /usr/bin/python3
     target:
       hosts:
         proudig-new:
-          ansible_host: NEW_SERVER_IP        # <-- neue Server-IP
-          ansible_user: root
-          ansible_ssh_private_key_file: ~/.ssh/instance2.pem
+          ansible_host: 80.158.61.13        # <-- neue Server-IP
+          ansible_user: ubuntu
+          ansible_ssh_private_key_file: ~/.ssh/KeyPairProudigHomePage.pem
           ansible_python_interpreter: /usr/bin/python3

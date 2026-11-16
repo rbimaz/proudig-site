@@ -7,7 +7,10 @@ Benutzer unverändert anmeldet und alle seine Daten sieht, ohne selbst etwas zu
 tun**.
 
 Tooling: Ansible (`migrate.yml` + `inventory.migration.yml`). Strategie:
-**Big-Bang-Cutover** mit kurzer geplanter Downtime, direkter Transfer alt→neu.
+**Big-Bang-Cutover ohne Downtime**, direkter Transfer alt→neu. Die alte Site
+bleibt bis zur DNS-Umstellung online; die Schreibruhe während Export/Transfer
+wird **organisatorisch** sichergestellt (Anwender informiert, keine Uploads/
+Speicherungen), nicht durch einen technischen App-Stop.
 
 > **Voraussetzung:** Vault-basierter Deploy (Change
 > `deploy-ansible-vault-migration`). Der neue Server rendert dieselbe `.env` aus
@@ -19,21 +22,25 @@ Tooling: Ansible (`migrate.yml` + `inventory.migration.yml`). Strategie:
 
 ## 0. Vorbereitung
 
-1. **Neuen Server** provisionieren und im Setup grundinstallieren:
+1. **Neuen Server** provisionieren und grundinstallieren (Docker, Docker-Gruppe,
+   Firewall, Verzeichnisse). `setup` steckt im regulären `playbook.yml`:
    ```bash
-   # inventory.migration.yml: OLD_SERVER_IP / NEW_SERVER_IP eintragen
-   ansible-playbook -i inventory.migration.yml migrate.yml --limit target --tags setup
-   # (Docker etc. — nutzt die regulären Setup-Tasks; alternativ inventory.yml)
+   # inventory.migration.yml: IPs, ansible_user + SSH-Key je Host eintragen.
+   # Ziel-Server ist i.d.R. ein non-root-Cloud-User (z.B. 'ubuntu') mit sudo;
+   # Root-SSH ist bei Cloud-Images oft gesperrt.
+   ansible-playbook -i inventory.migration.yml playbook.yml --limit proudig-new --tags setup
    ```
-   > Hinweis: `--tags setup` gehört zum regulären `playbook.yml`. Für das
-   > Grund-Setup des Ziel-Servers `playbook.yml` mit einem auf den neuen Server
-   > zeigenden Inventar verwenden. `migrate.yml` selbst deckt Export/Transfer/
-   > Import/Verify ab.
+   > Dieser Schritt installiert Docker und fügt den Deploy-User der `docker`-Gruppe
+   > hinzu. **Die Gruppenmitgliedschaft greift erst bei einer NEUEN SSH-Session** —
+   > die folgenden Schritte daher als separaten Aufruf starten (nicht im selben
+   > Lauf), und beim ersten Folgeaufruf `-o ControlPath=none` erzwingen (s.u.),
+   > damit nicht die alte, gecachte Verbindung ohne `docker`-Gruppe wiederverwendet
+   > wird. `migrate.yml` selbst deckt nur Export/Transfer/Import/Verify ab.
 
 2. **SSH-Erreichbarkeit alt→neu** sicherstellen (für den direkten Transfer).
    Am einfachsten via Agent-Forwarding:
    ```bash
-   ssh-add ~/.ssh/instance1.pem ~/.ssh/instance2.pem
+   ssh-add ~/.ssh/instance1.pem ~/.ssh/KeyPairProudigHomePage.pem
    ```
 
 3. **DNS-TTL senken** (z. B. auf 300 s) für `proudig.ai`, damit die Umstellung
@@ -44,13 +51,21 @@ Tooling: Ansible (`migrate.yml` + `inventory.migration.yml`). Strategie:
    ```bash
    ansible-playbook -i inventory.migration.yml migrate.yml \
      --tags export -e freeze_app=false
-   ansible-playbook -i inventory.migration.yml migrate.yml \
-     --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
-   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
+   
+   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \                                                                                         
+    -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'   
+   
+   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify \
+     -e '{"ansible_ssh_extra_args":"-o ControlPath=none"}'
    ```
-   Danach das Ziel-Volume wieder leeren, um den echten Cutover sauber zu starten:
+   > `ControlPath=none` = frische SSH-Verbindung, nötig direkt nach `setup`, damit
+   > der Deploy-User die neue `docker`-Gruppe hat (sonst "permission denied
+   > /var/run/docker.sock" beim ersten `docker compose`).
+
+   Danach das Ziel-Volume wieder leeren, um den echten Cutover sauber zu starten
+   (Compose präfixt den Namen mit dem Projekt → `proudig_proudig-pgdata`):
    ```bash
-   ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig-pgdata'
+   ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig_proudig-pgdata'
    ```
 
 ---
@@ -61,18 +76,23 @@ Reihenfolge strikt einhalten:
 
 1. **Wartungsfenster ankündigen.**
 
-2. **Finaler Export (mit Freeze).** Stoppt `proudig-app` auf dem alten Server
-   (keine Schreibzugriffe mehr), dumpt DB + Dateien, schreibt `MANIFEST`:
+2. **Finaler Export (ohne Freeze).** `proudig-app` bleibt laufen, die alte Site
+   bleibt **online** — dumpt DB + Dateien, schreibt `MANIFEST`:
    ```bash
-   ansible-playbook -i inventory.migration.yml migrate.yml --tags export
+   ansible-playbook -i inventory.migration.yml migrate.yml --tags export -e freeze_app=false
    ```
-   → ab hier ist die alte Site offline (Downtime-Start).
+   > **Konsistenz ist jetzt organisatorisch, nicht technisch:** Ohne Freeze gibt
+   > es keinen Schreibschutz. Voraussetzung ist, dass die Anwender informiert sind
+   > und ab jetzt bis zur DNS-Umstellung **nichts mehr speichern/hochladen**.
+   > Schreibzugriffe während Export/Transfer landen sonst nicht auf dem neuen
+   > Server. Keine Downtime der alten Site.
 
 3. **Transfer** direkt alt→neu:
    ```bash
    ansible-playbook -i inventory.migration.yml migrate.yml \
-     --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+     --tags transfer -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'
    ```
+   > Agent vorher laden: `ssh-add ~/.ssh/instance1.pem ~/.ssh/KeyPairProudigHomePage.pem`.
 
 4. **Import + Verify** auf dem neuen Server (Restore DB + Dateien, Deploy aus
    Vault, Paritätsprüfung):
@@ -96,7 +116,7 @@ Reihenfolge strikt einhalten:
 
 - [ ] App-Container `healthy`.
 - [ ] DB-Zeilenzahlen `users` / `documents` / `folders` == `MANIFEST`.
-- [ ] Beispiel-Dokument existiert unter `data/files/`.
+- [ ] Dateianzahl auf der Platte (`data/files/`) == Bundle (`files.tgz`).
 - [ ] (optional) Test-Login liefert HTTP 200.
 - [ ] Manuell: echter Benutzer meldet sich an und sieht seine Ordner/Freigaben.
 
@@ -104,18 +124,16 @@ Reihenfolge strikt einhalten:
 
 ## 3. Rollback
 
-- **Vor der DNS-Umstellung:** trivial — alten `proudig-app` wieder starten:
-  ```bash
-  ssh <alt> 'cd /opt/proudig && docker compose start proudig-app'
-  ```
-  Der alte Server ist unangetastet (nur App gestoppt) → kein Datenverlust.
+- **Vor der DNS-Umstellung:** trivial — es gibt nichts zurückzurollen. Ohne
+  Freeze läuft die alte Site unverändert weiter; einfach die DNS **nicht**
+  umstellen. Der alte Server ist unangetastet → kein Datenverlust.
 
 - **Nach der DNS-Umstellung:** A-Record wieder auf die alte IP zeigen, alten
   `proudig-app` starten. Wegen niedriger TTL schnell wirksam.
 
 - **Neuer Server fehlerhaft:** Ziel verwerfen und neu importieren:
   ```bash
-  ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig-pgdata'
+  ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig_proudig-pgdata'
   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
   ```
 
@@ -137,7 +155,7 @@ Reihenfolge strikt einhalten:
 |---|---|---|
 | `migration_dir` | `/opt/proudig-migration` | Ablage der Bundles |
 | `db_name` | `proudigdb` | Datenbankname |
-| `freeze_app` | `true` | `false` für Probelauf im Live-Betrieb |
+| `freeze_app` | `true` | `false` = kein App-Stop (Probelauf **und** Cutover ohne Downtime); Schreibruhe dann organisatorisch |
 | `force_import` | `false` | Versions-/Volume-Guards übergehen (Vorsicht) |
 | `verify_login_email` / `verify_login_password` | — | optionaler Test-Login in `verify` |
 
@@ -147,5 +165,8 @@ Reihenfolge strikt einhalten:
   (Voraussetzung `deploy-ansible-vault-migration`).
 - **Versions-Mismatch** (Deploy ≠ gedumptes Schema) → Liquibase-Konflikt.
   *Schutz:* `source_git` im MANIFEST, Import bricht bei Abweichung ab.
-- **Schreibzugriff während Export** → inkonsistenter Dump. *Schutz:* Freeze.
+- **Schreibzugriff während Export/Transfer** → geht verloren (landet nicht auf
+  dem neuen Server) bzw. macht den Dump inkonsistent. *Schutz:* organisatorische
+  Schreibruhe (Anwender informiert) — da bewusst **ohne** Freeze gefahren wird.
+  Technischer Freeze optional via `-e freeze_app=true`.
 - **Belegtes Ziel-Volume** → Restore-Konflikt. *Schutz:* Volume-Guard beim Import.

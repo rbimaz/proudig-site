@@ -176,8 +176,10 @@ cd deploy/ansible
 ansible-playbook -i inventory.migration.yml migrate.yml --tags export
 
 # 2. Direkter Transfer alt -> neu (Agent-Forwarding empfohlen)
+#    ForwardAgent-Flag als JSON (ein '-e key=value' mit Leerzeichen zerlegt Ansible
+#    am Space -> ssh-Fehler 'no argument after keyword "-o"').
 ansible-playbook -i inventory.migration.yml migrate.yml \
-  --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+  --tags transfer -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'
 
 # 3. Import + Verifikation auf dem neuen Server (Restore + Deploy aus Vault)
 ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
