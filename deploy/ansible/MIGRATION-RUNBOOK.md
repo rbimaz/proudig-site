@@ -19,21 +19,25 @@ Tooling: Ansible (`migrate.yml` + `inventory.migration.yml`). Strategie:
 
 ## 0. Vorbereitung
 
-1. **Neuen Server** provisionieren und im Setup grundinstallieren:
+1. **Neuen Server** provisionieren und grundinstallieren (Docker, Docker-Gruppe,
+   Firewall, Verzeichnisse). `setup` steckt im regulären `playbook.yml`:
    ```bash
-   # inventory.migration.yml: OLD_SERVER_IP / NEW_SERVER_IP eintragen
-   ansible-playbook -i inventory.migration.yml migrate.yml --limit target --tags setup
-   # (Docker etc. — nutzt die regulären Setup-Tasks; alternativ inventory.yml)
+   # inventory.migration.yml: IPs, ansible_user + SSH-Key je Host eintragen.
+   # Ziel-Server ist i.d.R. ein non-root-Cloud-User (z.B. 'ubuntu') mit sudo;
+   # Root-SSH ist bei Cloud-Images oft gesperrt.
+   ansible-playbook -i inventory.migration.yml playbook.yml --limit proudig-new --tags setup
    ```
-   > Hinweis: `--tags setup` gehört zum regulären `playbook.yml`. Für das
-   > Grund-Setup des Ziel-Servers `playbook.yml` mit einem auf den neuen Server
-   > zeigenden Inventar verwenden. `migrate.yml` selbst deckt Export/Transfer/
-   > Import/Verify ab.
+   > Dieser Schritt installiert Docker und fügt den Deploy-User der `docker`-Gruppe
+   > hinzu. **Die Gruppenmitgliedschaft greift erst bei einer NEUEN SSH-Session** —
+   > die folgenden Schritte daher als separaten Aufruf starten (nicht im selben
+   > Lauf), und beim ersten Folgeaufruf `-o ControlPath=none` erzwingen (s.u.),
+   > damit nicht die alte, gecachte Verbindung ohne `docker`-Gruppe wiederverwendet
+   > wird. `migrate.yml` selbst deckt nur Export/Transfer/Import/Verify ab.
 
 2. **SSH-Erreichbarkeit alt→neu** sicherstellen (für den direkten Transfer).
    Am einfachsten via Agent-Forwarding:
    ```bash
-   ssh-add ~/.ssh/instance1.pem ~/.ssh/instance2.pem
+   ssh-add ~/.ssh/instance1.pem ~/.ssh/KeyPairProudigHomePage.pem
    ```
 
 3. **DNS-TTL senken** (z. B. auf 300 s) für `proudig.ai`, damit die Umstellung
@@ -44,13 +48,21 @@ Tooling: Ansible (`migrate.yml` + `inventory.migration.yml`). Strategie:
    ```bash
    ansible-playbook -i inventory.migration.yml migrate.yml \
      --tags export -e freeze_app=false
-   ansible-playbook -i inventory.migration.yml migrate.yml \
-     --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
-   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
+   
+   ansible-playbook -i inventory.migration.yml migrate.yml --tags transfer \                                                                                         
+    -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'   
+   
+   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify \
+     -e '{"ansible_ssh_extra_args":"-o ControlPath=none"}'
    ```
-   Danach das Ziel-Volume wieder leeren, um den echten Cutover sauber zu starten:
+   > `ControlPath=none` = frische SSH-Verbindung, nötig direkt nach `setup`, damit
+   > der Deploy-User die neue `docker`-Gruppe hat (sonst "permission denied
+   > /var/run/docker.sock" beim ersten `docker compose`).
+
+   Danach das Ziel-Volume wieder leeren, um den echten Cutover sauber zu starten
+   (Compose präfixt den Namen mit dem Projekt → `proudig_proudig-pgdata`):
    ```bash
-   ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig-pgdata'
+   ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig_proudig-pgdata'
    ```
 
 ---
@@ -71,8 +83,9 @@ Reihenfolge strikt einhalten:
 3. **Transfer** direkt alt→neu:
    ```bash
    ansible-playbook -i inventory.migration.yml migrate.yml \
-     --tags transfer -e ansible_ssh_extra_args='-o ForwardAgent=yes'
+     --tags transfer -e '{"ansible_ssh_extra_args":"-o ForwardAgent=yes"}'
    ```
+   > Agent vorher laden: `ssh-add ~/.ssh/instance1.pem ~/.ssh/KeyPairProudigHomePage.pem`.
 
 4. **Import + Verify** auf dem neuen Server (Restore DB + Dateien, Deploy aus
    Vault, Paritätsprüfung):
@@ -96,7 +109,7 @@ Reihenfolge strikt einhalten:
 
 - [ ] App-Container `healthy`.
 - [ ] DB-Zeilenzahlen `users` / `documents` / `folders` == `MANIFEST`.
-- [ ] Beispiel-Dokument existiert unter `data/files/`.
+- [ ] Dateianzahl auf der Platte (`data/files/`) == Bundle (`files.tgz`).
 - [ ] (optional) Test-Login liefert HTTP 200.
 - [ ] Manuell: echter Benutzer meldet sich an und sieht seine Ordner/Freigaben.
 
@@ -115,7 +128,7 @@ Reihenfolge strikt einhalten:
 
 - **Neuer Server fehlerhaft:** Ziel verwerfen und neu importieren:
   ```bash
-  ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig-pgdata'
+  ssh <neu> 'cd /opt/proudig && docker compose down && docker volume rm proudig_proudig-pgdata'
   ansible-playbook -i inventory.migration.yml migrate.yml --tags import,verify
   ```
 

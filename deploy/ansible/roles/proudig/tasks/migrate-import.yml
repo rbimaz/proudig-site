@@ -46,15 +46,17 @@
 
 # ── Ziel-DB muss frisch sein ──
 - name: Vorhandenes proudig-pgdata-Volume prüfen
-  shell: docker volume inspect proudig-pgdata >/dev/null 2>&1 && echo "exists" || echo "absent"
+  # Compose präfixt den Volume-Namen mit dem Projektnamen (Verzeichnis /opt/proudig
+  # -> 'proudig') -> tatsächlicher Name 'proudig_proudig-pgdata'.
+  shell: docker volume inspect proudig_proudig-pgdata >/dev/null 2>&1 && echo "exists" || echo "absent"
   register: pgvol
   changed_when: false
 
 - name: Abbruch bei bereits belegtem Ziel-Volume
   fail:
     msg: >
-      proudig-pgdata existiert bereits auf dem Ziel-Server. Für einen sauberen
-      Restore ein frisches Volume verwenden ('docker volume rm proudig-pgdata'
+      proudig_proudig-pgdata existiert bereits auf dem Ziel-Server. Für einen sauberen
+      Restore ein frisches Volume verwenden ('docker volume rm proudig_proudig-pgdata'
       nach 'docker compose down') oder -e force_import=true setzen.
   when:
     - pgvol.stdout == "exists"
@@ -85,9 +87,19 @@
       - "--exclude=.idea"
       - "--exclude=.vscode"
 
+# rsync -a übernimmt die numerischen Owner/Rechte des Control-Nodes (z.B. 0600).
+# Da der Build hier als non-root (ansible_user) läuft, müssen die gesyncten
+# Dateien diesem gehören — sonst ist z.B. pom.xml (0600) für den Build unlesbar.
+- name: Projekt-Dateien dem Build-User übereignen
+  file:
+    path: "{{ app_dir }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: yes
+
 - name: Environment-Datei (.env) aus Vault rendern
   template:
-    src: env.j2
+    src: "{{ playbook_dir }}/roles/proudig/templates/env.j2"
     dest: "{{ app_dir }}/.env"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
@@ -115,20 +127,23 @@
   changed_when: false
 
 - name: Datenbank einspielen (db.sql -> proudigdb)
+  # Läuft als root (Play-become), NICHT als become_user: Das Bundle liegt unter
+  # {{ migration_dir }} (0700 root) — nur root kann db.sql lesen. Als ansible_user
+  # liefert 'cat' Permission denied → leerer, still fehlschlagender Restore.
   shell: >
     cat {{ incoming_dir }}/db.sql
     | docker exec -i proudig-db psql -U {{ db_user }} -d {{ db_name }}
     -v ON_ERROR_STOP=1 -q
-  become_user: "{{ ansible_user }}"
   register: restore_result
   changed_when: true
 
 # ── Dateien wiederherstellen ──
 - name: Uploads entpacken (files.tgz -> data/)
+  # Kein 'creates'-Guard: data/files wird vom Setup/Verzeichnis-Task bereits
+  # angelegt und würde das Entpacken sonst fälschlich überspringen.
   shell: >
     tar xzf {{ incoming_dir }}/files.tgz -C {{ app_dir }}/data
-  args:
-    creates: "{{ app_dir }}/data/files"
+  changed_when: true
 
 - name: Eigentümer/Rechte der Uploads setzen
   file:

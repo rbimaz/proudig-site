@@ -33,9 +33,12 @@
   delegate_to: "{{ target_inventory_host }}"
 
 - name: Bundle direkt Quell -> Ziel übertragen (rsync)
-  # Läuft auf dem Quell-Server und pusht direkt zum Ziel-Server.
+  become: false   # sudo würde den weitergereichten SSH-Agenten (SSH_AUTH_SOCK) killen
+  # Läuft auf dem Quell-Server (user=root) und pusht direkt zum Ziel-Server.
+  # Empfang via sudo, da sich der Ziel-Server als non-root (ubuntu) verbindet.
   shell: >
     rsync -az --delete
+    --rsync-path="sudo rsync"
     -e "ssh -o StrictHostKeyChecking=accept-new"
     {{ bundle_dir }}/
     {{ target_ssh_user }}@{{ target_ssh_host }}:{{ migration_dir }}/incoming/

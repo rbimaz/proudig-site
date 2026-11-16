@@ -42,21 +42,19 @@
   loop_control:
     label: "{{ item.0 }}"
 
-- name: Beispiel-Dokument aus der DB wählen
-  shell: >
-    docker exec proudig-db psql -U {{ db_user }} -d {{ db_name }} -tA
-    -c "select storage_path from documents limit 1"
-  register: sample_doc
+# Datei-Integrität: alle Dateien aus dem Bundle müssen auf der Platte liegen.
+# Robuster als eine 'limit 1'-Stichprobe: In der Quelle gibt es verwaiste
+# DB-Records ohne Datei (Download würde 404 liefern) — eine Einzel-Stichprobe
+# schlug dadurch fälschlich fehl. Der Bundle-Transfer selbst ist via SHA256
+# (Transfer-Schritt) bereits integritätsgeprüft.
+- name: Dateien vollständig entpackt (data/files == files.tgz)
+  shell: |
+    DISK=$(find {{ app_dir }}/data/files -type f | wc -l)
+    TGZ=$(tar tzf {{ incoming_dir }}/files.tgz | grep -vc '/$')
+    echo "disk=${DISK} tgz=${TGZ}"
+    test "${DISK}" -eq "${TGZ}"
+  register: files_parity
   changed_when: false
-
-- name: Beispiel-Dokument existiert auf der Platte
-  shell: >
-    find {{ app_dir }}/data/files -type f -name '{{ sample_doc.stdout | trim }}' | head -1
-  register: sample_found
-  changed_when: false
-  failed_when:
-    - sample_doc.stdout | trim | length > 0
-    - sample_found.stdout | trim | length == 0
 
 - name: Test-Login prüfen (optional)
   shell: >
@@ -78,5 +76,5 @@
       - "users: erwartet {{ expected_rows.results[0].stdout | trim }} / vorhanden {{ actual_rows.results[0].stdout | trim }}"
       - "documents: erwartet {{ expected_rows.results[1].stdout | trim }} / vorhanden {{ actual_rows.results[1].stdout | trim }}"
       - "folders: erwartet {{ expected_rows.results[2].stdout | trim }} / vorhanden {{ actual_rows.results[2].stdout | trim }}"
-      - "Beispiel-Dokument: {{ (sample_found.stdout | trim) if (sample_doc.stdout | trim | length > 0) else 'keine Dokumente vorhanden' }}"
+      - "Dateien (Platte==Bundle): {{ files_parity.stdout }}"
       - "Test-Login: {{ login_code.stdout | default('übersprungen (keine verify_login_* gesetzt)') }}"
